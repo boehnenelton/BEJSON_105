@@ -27,6 +27,7 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
+- [Context Clarification & Naming Heritage](#context-clarification--naming-heritage)
 - [Breakdown](#breakdown)
   - [Essence & Purpose](#essence--purpose)
   - [Primary & General Use Cases](#primary--general-use-cases)
@@ -68,7 +69,7 @@
 
 ## Introduction
 
-The **BEJSON 105 Core Libraries & Specification Ecosystem** is a multi-language software suite designed for local-first, high-throughput, and structurally verifiable data persistence. BEJSON (Binary-Efficient JSON / Boehnen-Elton JSON) is a strict tabular data serialization format that enforces **positional integrity**—aligning value arrays directly to field definition indices—to eliminate key redundancy, minimize payload byte overhead, enable $O(1)$ field map lookups, and guarantee zero-drift schema enforcement without requiring external database daemons.
+The **BEJSON 105 Core Libraries & Specification Ecosystem** is a multi-language software suite designed for local-first, high-throughput, and structurally verifiable data persistence. BEJSON (BOEHNEN ELTON JSON) is a strict tabular data serialization format that enforces **positional integrity**—aligning value arrays directly to field definition indices—to eliminate key redundancy, minimize payload byte overhead, enable $O(1)$ field map lookups, and guarantee zero-drift schema enforcement without requiring external database daemons.
 
 This repository hosts the canonical reference implementation across four major programming environments:
 1. **Python (`Lib_PY`):** Python 3.10+ native implementation with static type hints, dataclass validation results, and CLI tools.
@@ -77,6 +78,14 @@ This repository hosts the canonical reference implementation across four major p
 4. **Bash (`Lib_SH`):** Portable POSIX/Bash shell functions backed by `jq` and `onig5` primitives for server administration and Termux tools.
 
 Together with the Multi-File Database (MFDB v1.31/1.39/1.40) specification, this suite enables modular, file-system-native database architectures that scale from standalone configuration files up to complex multi-entity federated nodes.
+
+---
+
+## Context Clarification & Naming Heritage
+
+To prevent acronym ambiguity across documentation and tooling:
+- **BEJSON:** Stands explicitly for **BOEHNEN ELTON JSON** (named after format creator Elton Boehnen). It is a strict, self-describing tabular data serialization format enforcing positional integrity.
+- **MFDB:** Stands explicitly for **MULTI FILE DATABASE**. It is an architectural database specification that orchestrates individual BEJSON files (manifests and entity files) into a federated local database structure.
 
 ---
 
