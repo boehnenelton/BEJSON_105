@@ -1,0 +1,7 @@
+dev/
+Backups/
+__pycache__/
+*.pyc
+*.tmp
+.DS_Store
+libraries_105.zip
