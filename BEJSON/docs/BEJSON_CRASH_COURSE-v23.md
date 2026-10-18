@@ -161,7 +161,7 @@ Due to the requirement of holding positional integrity and using null padding, t
 
 BEJSON Core Nesting (Nested 104)
 
-BEJSON 104 allows for deeply nested, validated tabular structures directly within its cells via the Core_Nesting library (Error codes 130-159). This enables complex, hierarchical data without breaking positional integrity.
+BEJSON 104 allows for deeply nested, validated tabular structures directly within its cells via the Core nesting modules (Error codes 130-159). This enables complex, hierarchical data without breaking positional integrity.
 
 Embedded 104 Documents: A cell within a 104 document can contain a fully valid BEJSON 104 document (parsed as a string or object). These nested documents must possess all six mandatory keys and Format_Creator: "Elton Boehnen". There is no new Format_Version for this; it is simply 104 embedded in 104.
 

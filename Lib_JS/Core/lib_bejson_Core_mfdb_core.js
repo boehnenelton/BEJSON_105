@@ -2,12 +2,12 @@
  * Library:        lib_bejson_Core_mfdb_core.js
  * Family:         Core
  * Description:    Multi-file database orchestrator managing manifests and entity synchronization.
- * Version:        2.4.1
- * Date:           2026-10-06
+ * Version:        2.4.3
+ * Date:           2026-10-12
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  70f3fc35-5fca-460f-9b4d-ec36628286bf
+ * RELATIONAL_ID:  d56d02f9-a46c-432f-8e5b-a5f82402ccbf
  * Release_Version: 300
  *
  * CHANGE (2026-10-06): Consolidation re-merge -- the V6-PKG101 silent-catch
@@ -23,9 +23,9 @@
  * mfdb_core_add/update/delete_entity_record_105 (restrict / cascade / null,
  * cycle-guarded). Semantics mirror PY 105 Phase 6. NOTE: unlike PY there is no
  * PID lock (JS has no ResilientPIDLock); writes are single-process synchronous.
- * Delete resolves dependents ON DISK as it walks, exactly as PY does; a restrict
- * violation raised mid-walk can follow earlier null/cascade resolutions of
- * sibling dependents (same behaviour as PY -- documented, not changed here).
+ * 2026-10-09 (adversarial review, finding 2): delete is now two-phase -- the whole
+ * cascade is planned in memory first (restrict/cycle throw with nothing written),
+ * then committed with byte-for-byte file rollback if the commit fails part-way.
  *
  * FIX (2026-10-03): Node.js load crash. `window.JSZip` was dereferenced
  * unconditionally at module top level, throwing ReferenceError in Node before
@@ -108,6 +108,22 @@ function _writeBejson(filePath, doc) {
 }
 
 // ---------------------------------------------------------------------------
+function _atomicWrite(filePath, doc) {
+  if (!_isNode()) {
+    console.warn('Sync write not available in browser');
+    return;
+  }
+  const fs = require('fs');
+  const path = require('path');
+  const clean = {};
+  for (const k of Object.keys(doc)) { if (!k.startsWith('_')) clean[k] = doc[k]; }
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const tmp = path.join(dir, '.' + path.basename(filePath) + '.' + process.pid + '.tmp');
+  fs.writeFileSync(tmp, JSON.stringify(clean, null, 2), 'utf8');
+  fs.renameSync(tmp, filePath);
+}
+
 // Manifest API (Spec §15.3 and §15.10) — merged from engine dump.
 // Complements MFDBArchive below: this section manipulates the unpacked
 // manifest/entity files directly, while MFDBArchive handles zip packaging.
@@ -214,7 +230,7 @@ function mfdb_core_sync_all_counts(manifestPath) {
 // Entity Creation (Spec §15.4) — merged from engine dump.
 // ---------------------------------------------------------------------------
 
-function mfdb_core_init_entity_file(manifestPath, entityName, fields, filePathRel) {
+function mfdb_core_init_entity_file(manifestPath, entityName, fields, filePathRel, options = {}) {
   if (!_isNode()) return;
   const path = require('path');
   const manifestDir = path.dirname(path.resolve(manifestPath));
@@ -360,7 +376,7 @@ function mfdb_core_create_connected_slave_entity(manifestPath) {
     );
   }
   return mfdb_core_init_entity_file(
-    manifestPath, "ConnectedSlave", CONNECTED_SLAVE_SCHEMA,
+    manifestPath, "ConnectedSlave", CONNECTED_SLAVE_SCHEMA, "data/connectedslave.bejson",
     { description: "Registry of Slave nodes connected to this Master.", primary_key: "slave_id" }
   );
 }
@@ -818,11 +834,13 @@ function _riCheckFkWritesForRow(manifestPath, entityName, entityDoc, values) {
   const fkFields = _riFkFields(entityDoc);
   if (!fkFields.length) return;
   const fields = entityDoc.Fields || [];
-  const fieldValues = entityDoc.Format_Version === '105db' ? values.slice(1) : values;
+  // values is ordered exactly like Fields. For 105db values[0] is the
+  // Record_Type_Parent discriminator and Fields[0] IS Record_Type_Parent, so
+  // values[i] <-> Fields[i] with no shift.
   for (const fk of fkFields) {
     const idx = fields.findIndex(f => f.name === fk.name);
-    if (idx === -1 || idx >= fieldValues.length) continue;
-    mfdb_core_check_fk_write(manifestPath, entityName, fk, fieldValues[idx]);
+    if (idx === -1 || idx >= values.length) continue;
+    mfdb_core_check_fk_write(manifestPath, entityName, fk, values[idx]);
   }
 }
 
@@ -886,28 +904,102 @@ function _riWriteCell(manifestPath, entityName, recordUuid, fieldName, value) {
   _writeBejson(p, doc);
 }
 
-function _riCascadeDeleteDependents(manifestPath, entityName, recordUuid, visited) {
+/**
+ * PHASE 1 of a cascade delete: pure in-memory traversal, ZERO disk writes.
+ * Appends ops in safe execution order (children before parents):
+ *   {op:'null', entity, record_uuid, field} | {op:'delete', entity, record_uuid}
+ * A restrict violation or a genuine cascade cycle throws BEFORE anything has
+ * been touched. inPath = keys on the CURRENT recursion path (true cycles only;
+ * a record reachable via two parents is planned once, not a "cycle").
+ */
+function _riPlanCascadeDelete(manifestPath, entityName, recordUuid, inPath, deleted, ops) {
   const key = `${entityName}#${recordUuid}`;
-  if (visited.has(key)) {
+  if (inPath.has(key)) {
     throw new MFDBCoreError(`Cascade cycle detected: ${key} revisited during cascade delete`, _E_FK.CASCADE_CYCLE);
   }
-  visited.add(key);
-  for (const ref of mfdb_core_find_referencing_rows(manifestPath, entityName, recordUuid)) {
-    const refDoc = _riLoadEntityDoc(manifestPath, ref.entity);
-    const fk = refDoc.Fields.find(f => f.name === ref.field);
-    const onDelete = fk.fk_on_delete === undefined ? 'restrict' : fk.fk_on_delete;
-    if (onDelete === 'restrict') {
-      throw new MFDBCoreError(
-        `Cannot delete ${entityName}#${recordUuid}: restricted by ${ref.entity}.${ref.field} -> record ${ref.record_uuid}`,
-        _E_FK.RESTRICT_VIOLATION);
-    } else if (onDelete === 'null') {
-      _riWriteCell(manifestPath, ref.entity, ref.record_uuid, ref.field, null);
-    } else if (onDelete === 'cascade') {
-      _riCascadeDeleteDependents(manifestPath, ref.entity, ref.record_uuid, visited);
-      _riDeleteRaw(manifestPath, ref.entity, ref.record_uuid);
-    } else {
-      throw new MFDBCoreError(`${ref.entity}.${ref.field}: fk_on_delete must be restrict/cascade/null, got ${JSON.stringify(onDelete)}`, _E_FK.INVALID_ON_DELETE);
+  inPath.add(key);
+  try {
+    for (const ref of mfdb_core_find_referencing_rows(manifestPath, entityName, recordUuid)) {
+      const refKey = `${ref.entity}#${ref.record_uuid}`;
+      if (deleted.has(refKey)) continue; // already scheduled for deletion
+      const refDoc = _riLoadEntityDoc(manifestPath, ref.entity);
+      const fk = refDoc.Fields.find(f => f.name === ref.field);
+      const onDelete = fk.fk_on_delete === undefined ? 'restrict' : fk.fk_on_delete;
+      if (onDelete === 'restrict') {
+        throw new MFDBCoreError(
+          `Cannot delete ${entityName}#${recordUuid}: restricted by ${ref.entity}.${ref.field} -> record ${ref.record_uuid}`,
+          _E_FK.RESTRICT_VIOLATION);
+      } else if (onDelete === 'null') {
+        ops.push({ op: 'null', entity: ref.entity, record_uuid: ref.record_uuid, field: ref.field });
+      } else if (onDelete === 'cascade') {
+        _riPlanCascadeDelete(manifestPath, ref.entity, ref.record_uuid, inPath, deleted, ops);
+        if (!deleted.has(refKey)) {
+          deleted.add(refKey);
+          ops.push({ op: 'delete', entity: ref.entity, record_uuid: ref.record_uuid });
+        }
+      } else {
+        throw new MFDBCoreError(`${ref.entity}.${ref.field}: fk_on_delete must be restrict/cascade/null, got ${JSON.stringify(onDelete)}`, _E_FK.INVALID_ON_DELETE);
+      }
     }
+  } finally {
+    inPath.delete(key);
+  }
+}
+
+/** Byte-for-byte snapshot of every existing regular file in paths. */
+function _riSnapshotFiles(paths) {
+  const fs = require('fs');
+  const snap = new Map();
+  for (const p of paths) {
+    if (!snap.has(p) && fs.existsSync(p) && fs.statSync(p).isFile()) snap.set(p, fs.readFileSync(p));
+  }
+  return snap;
+}
+
+/** Put every snapshotted file back (write temp + rename). Best effort per file. */
+function _riRestoreFiles(snap) {
+  const fs = require('fs');
+  for (const [p, data] of snap) {
+    try {
+      const tmp = `${p}.rollback-${process.pid}-${Date.now()}`;
+      fs.writeFileSync(tmp, data);
+      fs.renameSync(tmp, p);
+    } catch (e) {
+      console.error(`[MFDB_CORE] Rollback failed for ${p}: ${e.message}`);
+    }
+  }
+}
+
+/** PHASE 2: execute a plan from _riPlanCascadeDelete. */
+function _riApplyCascadeOps(manifestPath, ops, deleted) {
+  for (const o of ops) {
+    if (o.op === 'null') {
+      if (deleted.has(`${o.entity}#${o.record_uuid}`)) continue; // row is being deleted anyway
+      _riWriteCell(manifestPath, o.entity, o.record_uuid, o.field, null);
+    } else {
+      _riDeleteRaw(manifestPath, o.entity, o.record_uuid);
+    }
+  }
+}
+
+/**
+ * Resolves every OTHER row referencing (entityName, recordUuid) per its FK's
+ * fk_on_delete. Two-phase: plan fully in memory (restrict/cycle throw with
+ * nothing written), then commit; a failure part-way restores every touched
+ * file from a pre-commit snapshot. `visited` is accepted for backward
+ * compatibility and ignored. Does NOT delete (entityName, recordUuid) itself.
+ */
+function _riCascadeDeleteDependents(manifestPath, entityName, recordUuid, visited) {
+  const ops = [], deleted = new Set();
+  _riPlanCascadeDelete(manifestPath, entityName, recordUuid, new Set(), deleted, ops);
+  if (!ops.length) return;
+  const touched = [manifestPath, ...new Set(ops.map(o => _mfdbGetEntityPath(manifestPath, o.entity)))];
+  const snap = _riSnapshotFiles(touched);
+  try {
+    _riApplyCascadeOps(manifestPath, ops, deleted);
+  } catch (e) {
+    _riRestoreFiles(snap);
+    throw e;
   }
 }
 
@@ -951,14 +1043,26 @@ function mfdb_core_delete_entity_record_105(manifestPath, entityName, recordUuid
   const p = _mfdbGetEntityPath(manifestPath, entityName);
   const check = _loadJson(p);
   _riRequire105(check, entityName, 'mfdb_core_remove_entity_record()');
+  const ops = [], deleted = new Set();
   if (mfdb_core_is_ref_integrity_enabled(manifestPath)) {
-    _riCascadeDeleteDependents(manifestPath, entityName, recordUuid, new Set());
+    // Phase 1: plan the whole cascade in memory; throws (restrict/cycle) before any write.
+    _riPlanCascadeDelete(manifestPath, entityName, recordUuid, new Set(), deleted, ops);
   }
-  const doc = _loadJson(p);
-  _riCore().bejson_core_delete_record(doc, recordUuid);
-  _writeBejson(p, doc);
-  if (syncCount) mfdb_core_sync_count(manifestPath, entityName, doc.Values.length);
-  return doc;
+  // Phase 2: commit dependents + the record itself as one unit; any failure
+  // restores every touched file from the pre-commit snapshot.
+  const touched = [manifestPath, p, ...new Set(ops.map(o => _mfdbGetEntityPath(manifestPath, o.entity)))];
+  const snap = _riSnapshotFiles(touched); // always: root write + manifest count sync must be all-or-nothing
+  try {
+    _riApplyCascadeOps(manifestPath, ops, deleted);
+    const doc = _loadJson(p);
+    _riCore().bejson_core_delete_record(doc, recordUuid);
+    _writeBejson(p, doc);
+    if (syncCount) mfdb_core_sync_count(manifestPath, entityName, doc.Values.length);
+    return doc;
+  } catch (e) {
+    if (snap) _riRestoreFiles(snap);
+    throw e;
+  }
 }
 
 // ---------------------------------------------------------------------------

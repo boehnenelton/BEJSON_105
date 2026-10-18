@@ -7,12 +7,12 @@
  *                 from lib_bejson_Core_bejson_chunking.ts, which should only
  *                 own packaging/IO, not validation logic. See changelog note
  *                 dated 2026-07-13.
- * Version:        2.2.1
- * Date:           2026-10-03
+ * Version:        2.2.2
+ * Date:           2026-10-09
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  7b4a1b99-4446-4cb4-82cc-0cb795e74490
+ * RELATIONAL_ID:  d53f3b34-529d-412b-933f-d00b00af6921
  * Release_Version: 300
  *
  * Changelog:
@@ -254,7 +254,10 @@ export function validateEntityFile(
 
   // No path escaping
   if (typeof entity.Parent_Hierarchy === "string") {
-    if (entity.Parent_Hierarchy.includes("..") && _escapesRoot(entity.Parent_Hierarchy)) {
+    const entityDepth = options.entityRelativePath
+      ? options.entityRelativePath.replace(/\\/g, "/").split("/").filter((x) => x !== "" && x !== ".").length - 1
+      : 1;
+    if (entity.Parent_Hierarchy.includes("..") && _escapesRoot(entity.Parent_Hierarchy, Math.max(entityDepth, 0))) {
       _emitError(r, E.MISSING_PARENT_HIERARCHY,
         "Parent_Hierarchy must not escape the database root directory.", "Parent_Hierarchy");
     }
@@ -381,7 +384,6 @@ export function checkReferentialIntegrity(
     if (fkFields.length === 0) continue;
 
     const isMulti = doc.Format_Version === "105db";
-    const offset = isMulti ? 2 : 1;
     const uuidCol = isMulti ? 1 : 0;
     const fieldNames = doc.Fields.map((f) => f.name);
 
@@ -417,7 +419,8 @@ export function checkReferentialIntegrity(
 
       const col = fieldNames.indexOf(fkField.name);
       if (col === -1) continue;
-      const absCol = col + offset;
+      // 105db: Fields[0] is Record_Type_Parent at row col 0; Fields[i>=1] at i+1.
+      const absCol = isMulti ? (col === 0 ? 0 : col + 1) : col + 1;
 
       for (const row of doc.Values) {
         if (row.length <= absCol) continue;
@@ -545,9 +548,9 @@ function _checkFKResolution(
 // Utility
 // ---------------------------------------------------------------------------
 
-function _escapesRoot(relPath: string): boolean {
+function _escapesRoot(relPath: string, startDepth = 0): boolean {
   const parts = relPath.replace(/\\/g, "/").split("/");
-  let depth = 0;
+  let depth = startDepth;
   for (const part of parts) {
     if (part === "..") {
       depth--;

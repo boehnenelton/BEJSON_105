@@ -1,0 +1,68 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104",
+  "Format_Creator": "Elton Boehnen",
+  "Parent_Hierarchy": "../104a.mfdb.bejson",
+  "Records_Type": [
+    "Schemas"
+  ],
+  "Fields": [
+    {
+      "name": "SCHEMA_NAME",
+      "type": "string"
+    },
+    {
+      "name": "OWNING_FAMILY",
+      "type": "string"
+    },
+    {
+      "name": "LANGUAGE",
+      "type": "string"
+    },
+    {
+      "name": "VERSION",
+      "type": "string"
+    },
+    {
+      "name": "FIELD_DEFINITIONS",
+      "type": "string"
+    },
+    {
+      "name": "DESCRIPTION",
+      "type": "string"
+    },
+    {
+      "name": "SOURCE_FILE",
+      "type": "string"
+    }
+  ],
+  "Values": [
+    [
+      "SCHEMA_MFDB_ENTITY",
+      "Core",
+      "PY",
+      "5",
+      "[{\"name\": \"version\", \"type\": \"string\"}, {\"name\": \"file_path\", \"type\": \"string\"}, {\"name\": \"file_name\", \"type\": \"string\"}, {\"name\": \"content\", \"type\": \"string\"}, {\"name\": \"is_binary\", \"type\": \"boolean\"}, {\"name\": \"is_base64\", \"type\": \"boolean\"}]",
+      "MFDB Chunker v5 entity schema (6 fields: version/file_path/file_name/content/is_binary/is_base64). TRUE DUPLICATE resolved: diffed byte-for-byte identical field lists between Core.SCHEMA_MFDB_ENTITY_v5 and Utility.SCHEMA_MFDB_ENTITY - genuinely the same schema under two names in two files. Merged into this single DB row as the one source of truth.",
+      "Lib_PY/Core/lib_bejson_Core_bejson_schema.py (as SCHEMA_MFDB_ENTITY_v5); Lib_PY/Utility/lib_bejson_Utility_bejson_utility.py (as SCHEMA_MFDB_ENTITY)"
+    ],
+    [
+      "SCHEMA_MFDB_MANIFEST_v5",
+      "Core",
+      "PY",
+      "5",
+      "[{\"name\": \"entity_name\", \"type\": \"string\"}, {\"name\": \"file_path\", \"type\": \"string\"}, {\"name\": \"description\", \"type\": \"string\"}, {\"name\": \"record_count\", \"type\": \"integer\"}, {\"name\": \"schema_version\", \"type\": \"string\"}, {\"name\": \"primary_key\", \"type\": \"string\"}, {\"name\": \"changelog\", \"type\": \"string\"}, {\"name\": \"chunked_at\", \"type\": \"string\"}, {\"name\": \"tags\", \"type\": \"string\"}]",
+      "MFDB Chunker v5 manifest schema (9 fields).",
+      "Lib_PY/Core/lib_bejson_Core_bejson_schema.py"
+    ],
+    [
+      "SCHEMA_MODEL_REGISTRY__Core",
+      "Core",
+      "PY",
+      "2.1.2",
+      "{\"Records_Type\": [\"AI_Model\"], \"Fields\": [{\"name\": \"display_name\", \"type\": \"string\"}, {\"name\": \"model_id\", \"type\": \"string\"}, {\"name\": \"currently_active\", \"type\": \"boolean\"}, {\"name\": \"thinking_enabled\", \"type\": \"boolean\"}, {\"name\": \"google_search_enabled\", \"type\": \"boolean\"}]}",
+      "AI_Model registry (Gemini models: display_name/model_id/currently_active/thinking_enabled/google_search_enabled). NAME COLLISION resolved, not a duplicate: diffed against AI.SCHEMA_MODEL_REGISTRY and confirmed they are genuinely different schemas (different Records_Type, different field sets, different model vendor) that happen to share the same Python constant name in two files. Kept as two separate DB rows, distinguished here by OWNING_FAMILY suffix in SCHEMA_NAME. Flagging for you: the identical constant name across Core and AI risks accidental shadowing/confusion at import time - candidate for a rename in a future confirmed pass (out of scope this turn, not touched).",
+      "Lib_PY/Core/lib_bejson_Core_bejson_schema.py"
+    ]
+  ]
+}

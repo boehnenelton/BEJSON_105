@@ -1,0 +1,1979 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104",
+  "Format_Creator": "Elton Boehnen",
+  "Parent_Hierarchy": "../104a.mfdb.bejson",
+  "Records_Type": [
+    "Errors"
+  ],
+  "Fields": [
+    {
+      "name": "ERROR_NUMBER",
+      "type": "integer"
+    },
+    {
+      "name": "ERROR_NAME",
+      "type": "string"
+    },
+    {
+      "name": "LIBRARY_FAMILY",
+      "type": "string"
+    },
+    {
+      "name": "LANGUAGE",
+      "type": "string"
+    },
+    {
+      "name": "RANGE_LABEL",
+      "type": "string"
+    }
+  ],
+  "Values": [
+    [
+      1,
+      "E_INVALID_JSON",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      1,
+      "E_INVALID_JSON",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      1,
+      "E_INVALID_JSON",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      1,
+      "E_INVALID_JSON",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      2,
+      "E_MISSING_MANDATORY_KEY",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      2,
+      "E_MISSING_MANDATORY_KEY",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      2,
+      "E_MISSING_MANDATORY_KEY",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      2,
+      "E_MISSING_MANDATORY_KEY",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      3,
+      "E_INVALID_FORMAT",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      3,
+      "E_INVALID_FORMAT",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      3,
+      "E_INVALID_FORMAT",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      3,
+      "E_INVALID_FORMAT",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      4,
+      "E_INVALID_VERSION",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      4,
+      "E_INVALID_VERSION",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      4,
+      "E_INVALID_VERSION",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      4,
+      "E_INVALID_VERSION",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      5,
+      "E_INVALID_RECORDS_TYPE",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      5,
+      "E_INVALID_RECORDS_TYPE",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      5,
+      "E_INVALID_RECORDS_TYPE",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      5,
+      "E_INVALID_RECORDS_TYPE",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      6,
+      "E_INVALID_FIELDS",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      6,
+      "E_INVALID_FIELDS",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      6,
+      "E_INVALID_FIELDS",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      6,
+      "E_INVALID_FIELDS",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      7,
+      "E_INVALID_VALUES",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      7,
+      "E_INVALID_VALUES",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      7,
+      "E_INVALID_VALUES",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      7,
+      "E_INVALID_VALUES",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      8,
+      "E_TYPE_MISMATCH",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      8,
+      "E_TYPE_MISMATCH",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      8,
+      "E_TYPE_MISMATCH",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      8,
+      "E_TYPE_MISMATCH",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      9,
+      "E_RECORD_LENGTH_MISMATCH",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      9,
+      "E_RECORD_LENGTH_MISMATCH",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      9,
+      "E_RECORD_LENGTH_MISMATCH",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      9,
+      "E_RECORD_LENGTH_MISMATCH",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      10,
+      "E_RESERVED_KEY_COLLISION",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      10,
+      "E_RESERVED_KEY_COLLISION",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      10,
+      "E_RESERVED_KEY_COLLISION",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      10,
+      "E_RESERVED_KEY_COLLISION",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      11,
+      "E_INVALID_RECORD_TYPE_PARENT",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      11,
+      "E_INVALID_RECORD_TYPE_PARENT",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      11,
+      "E_INVALID_RECORD_TYPE_PARENT",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      11,
+      "E_INVALID_RECORD_TYPE_PARENT",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      12,
+      "E_NULL_VIOLATION",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      12,
+      "E_NULL_VIOLATION",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      12,
+      "E_NULL_VIOLATION",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      12,
+      "E_NULL_VIOLATION",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      13,
+      "E_FILE_NOT_FOUND",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      13,
+      "E_FILE_NOT_FOUND",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      13,
+      "E_FILE_NOT_FOUND",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      13,
+      "E_FILE_NOT_FOUND",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      14,
+      "E_PERMISSION_DENIED",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      14,
+      "E_PERMISSION_DENIED",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      14,
+      "E_PERMISSION_DENIED",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      14,
+      "E_PERMISSION_DENIED",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      15,
+      "E_ATOMIC_WRITE_FAILED",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      15,
+      "E_ATOMIC_WRITE_FAILED",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      15,
+      "E_ATOMIC_WRITE_FAILED",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      15,
+      "E_ATOMIC_WRITE_FAILED",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      16,
+      "E_INVALID_FORMAT_CREATOR",
+      "Core",
+      "JS",
+      "BEJSON Validation"
+    ],
+    [
+      16,
+      "E_INVALID_FORMAT_CREATOR",
+      "Core",
+      "PY",
+      "BEJSON Validation"
+    ],
+    [
+      16,
+      "E_INVALID_FORMAT_CREATOR",
+      "Core",
+      "SH",
+      "BEJSON Validation"
+    ],
+    [
+      16,
+      "E_INVALID_FORMAT_CREATOR",
+      "Core",
+      "TS",
+      "BEJSON Validation"
+    ],
+    [
+      17,
+      "E_CORE_PARSE_ERROR",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      17,
+      "E_CORE_PARSE_ERROR",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      17,
+      "E_CORE_PARSE_ERROR",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      17,
+      "E_CORE_PARSE_ERROR",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      18,
+      "E_CORE_SERIALIZATION_ERROR",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      18,
+      "E_CORE_SERIALIZATION_ERROR",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      18,
+      "E_CORE_SERIALIZATION_ERROR",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      18,
+      "E_CORE_SERIALIZATION_ERROR",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      19,
+      "E_CORE_NULL_DOCUMENT",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      19,
+      "E_CORE_NULL_DOCUMENT",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      19,
+      "E_CORE_NULL_DOCUMENT",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      19,
+      "E_CORE_NULL_DOCUMENT",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      20,
+      "E_CORE_INVALID_VERSION",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      20,
+      "E_CORE_INVALID_VERSION",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      20,
+      "E_CORE_INVALID_VERSION",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      20,
+      "E_CORE_INVALID_VERSION",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      21,
+      "E_CORE_INVALID_OPERATION",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      21,
+      "E_CORE_INVALID_OPERATION",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      21,
+      "E_CORE_INVALID_OPERATION",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      21,
+      "E_CORE_INVALID_OPERATION",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      22,
+      "E_CORE_INDEX_OUT_OF_BOUNDS",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      22,
+      "E_CORE_INDEX_OUT_OF_BOUNDS",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      22,
+      "E_CORE_INDEX_OUT_OF_BOUNDS",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      22,
+      "E_CORE_INDEX_OUT_OF_BOUNDS",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      23,
+      "E_CORE_FIELD_NOT_FOUND",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      23,
+      "E_CORE_FIELD_NOT_FOUND",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      23,
+      "E_CORE_FIELD_NOT_FOUND",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      23,
+      "E_CORE_FIELD_NOT_FOUND",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      24,
+      "E_CORE_TYPE_CONVERSION_FAILED",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      24,
+      "E_CORE_TYPE_CONVERSION_FAILED",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      24,
+      "E_CORE_TYPE_CONVERSION_FAILED",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      24,
+      "E_CORE_TYPE_CONVERSION_FAILED",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      25,
+      "E_CORE_BACKUP_FAILED",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      25,
+      "E_CORE_BACKUP_FAILED",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      25,
+      "E_CORE_BACKUP_FAILED",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      25,
+      "E_CORE_BACKUP_FAILED",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      26,
+      "E_CORE_WRITE_FAILED",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      26,
+      "E_CORE_WRITE_FAILED",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      26,
+      "E_CORE_WRITE_FAILED",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      26,
+      "E_CORE_WRITE_FAILED",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      27,
+      "E_CORE_QUERY_FAILED",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      27,
+      "E_CORE_QUERY_FAILED",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      27,
+      "E_CORE_QUERY_FAILED",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      27,
+      "E_CORE_QUERY_FAILED",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      28,
+      "E_CORE_ENCRYPTION_FAILED",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      28,
+      "E_CORE_ENCRYPTION_FAILED",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      28,
+      "E_CORE_ENCRYPTION_FAILED",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      28,
+      "E_CORE_ENCRYPTION_FAILED",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      29,
+      "E_CORE_DECRYPTION_FAILED",
+      "Core",
+      "JS",
+      "Core Ops"
+    ],
+    [
+      29,
+      "E_CORE_DECRYPTION_FAILED",
+      "Core",
+      "PY",
+      "Core Ops"
+    ],
+    [
+      29,
+      "E_CORE_DECRYPTION_FAILED",
+      "Core",
+      "SH",
+      "Core Ops"
+    ],
+    [
+      29,
+      "E_CORE_DECRYPTION_FAILED",
+      "Core",
+      "TS",
+      "Core Ops"
+    ],
+    [
+      30,
+      "E_MFDB_NOT_MANIFEST",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      30,
+      "E_MFDB_NOT_MANIFEST",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      30,
+      "E_MFDB_NOT_MANIFEST",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      30,
+      "E_MFDB_NOT_MANIFEST",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      31,
+      "E_MFDB_NOT_ENTITY_FILE",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      31,
+      "E_MFDB_NOT_ENTITY_FILE",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      31,
+      "E_MFDB_NOT_ENTITY_FILE",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      31,
+      "E_MFDB_NOT_ENTITY_FILE",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      32,
+      "E_MFDB_MANIFEST_RECORDS_TYPE",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      32,
+      "E_MFDB_MANIFEST_RECORDS_TYPE",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      32,
+      "E_MFDB_MANIFEST_RECORDS_TYPE",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      32,
+      "E_MFDB_MANIFEST_RECORDS_TYPE",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      33,
+      "E_MFDB_ENTITY_NOT_FOUND",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      33,
+      "E_MFDB_ENTITY_NOT_FOUND",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      33,
+      "E_MFDB_ENTITY_NOT_FOUND",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      33,
+      "E_MFDB_ENTITY_NOT_FOUND",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      34,
+      "E_MFDB_ENTITY_NAME_MISMATCH",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      34,
+      "E_MFDB_ENTITY_NAME_MISMATCH",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      34,
+      "E_MFDB_ENTITY_NAME_MISMATCH",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      34,
+      "E_MFDB_ENTITY_NAME_MISMATCH",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      35,
+      "E_MFDB_DUPLICATE_ENTRY",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      35,
+      "E_MFDB_DUPLICATE_ENTRY",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      35,
+      "E_MFDB_DUPLICATE_ENTRY",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      35,
+      "E_MFDB_DUPLICATE_ENTRY",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      36,
+      "E_MFDB_NO_PARENT_HIERARCHY",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      36,
+      "E_MFDB_NO_PARENT_HIERARCHY",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      36,
+      "E_MFDB_NO_PARENT_HIERARCHY",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      36,
+      "E_MFDB_NO_PARENT_HIERARCHY",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      37,
+      "E_MFDB_MANIFEST_NOT_FOUND",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      37,
+      "E_MFDB_MANIFEST_NOT_FOUND",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      37,
+      "E_MFDB_MANIFEST_NOT_FOUND",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      37,
+      "E_MFDB_MANIFEST_NOT_FOUND",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      38,
+      "E_MFDB_BIDIRECTIONAL_FAIL",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      38,
+      "E_MFDB_BIDIRECTIONAL_FAIL",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      38,
+      "E_MFDB_BIDIRECTIONAL_FAIL",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      38,
+      "E_MFDB_BIDIRECTIONAL_FAIL",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      39,
+      "E_MFDB_FK_UNRESOLVED",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      39,
+      "E_MFDB_FK_UNRESOLVED",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      39,
+      "E_MFDB_FK_UNRESOLVED",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      39,
+      "E_MFDB_FK_UNRESOLVED",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      40,
+      "E_MFDB_MISSING_REQUIRED_FIELD",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      40,
+      "E_MFDB_MISSING_REQUIRED_FIELD",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      40,
+      "E_MFDB_MISSING_REQUIRED_FIELD",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      40,
+      "E_MFDB_MISSING_REQUIRED_FIELD",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      41,
+      "E_MFDB_NULL_REQUIRED",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      41,
+      "E_MFDB_NULL_REQUIRED",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      41,
+      "E_MFDB_NULL_REQUIRED",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      41,
+      "E_MFDB_NULL_REQUIRED",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      42,
+      "E_MFDB_INVALID_ARCHIVE",
+      "Core",
+      "JS",
+      "MFDB Validation"
+    ],
+    [
+      42,
+      "E_MFDB_INVALID_ARCHIVE",
+      "Core",
+      "PY",
+      "MFDB Validation"
+    ],
+    [
+      42,
+      "E_MFDB_INVALID_ARCHIVE",
+      "Core",
+      "SH",
+      "MFDB Validation"
+    ],
+    [
+      42,
+      "E_MFDB_INVALID_ARCHIVE",
+      "Core",
+      "TS",
+      "MFDB Validation"
+    ],
+    [
+      43,
+      "E_MFDB_FK_TARGET_ENTITY_UNKNOWN",
+      "Core",
+      "PY",
+      "MFDB Referential Integrity"
+    ],
+    [
+      43,
+      "E_MFDB_FK_TARGET_ENTITY_UNKNOWN",
+      "Core",
+      "TS",
+      "MFDB Referential Integrity"
+    ],
+    [
+      44,
+      "E_MFDB_FK_RESTRICT_VIOLATION",
+      "Core",
+      "PY",
+      "MFDB Referential Integrity"
+    ],
+    [
+      44,
+      "E_MFDB_FK_RESTRICT_VIOLATION",
+      "Core",
+      "TS",
+      "MFDB Referential Integrity"
+    ],
+    [
+      45,
+      "E_MFDB_FK_CASCADE_CYCLE",
+      "Core",
+      "PY",
+      "MFDB Referential Integrity"
+    ],
+    [
+      45,
+      "E_MFDB_FK_CASCADE_CYCLE",
+      "Core",
+      "TS",
+      "MFDB Referential Integrity"
+    ],
+    [
+      46,
+      "E_MFDB_FK_ENTITY_STILL_REFERENCED",
+      "Core",
+      "PY",
+      "MFDB Referential Integrity"
+    ],
+    [
+      46,
+      "E_MFDB_FK_ENTITY_STILL_REFERENCED",
+      "Core",
+      "TS",
+      "MFDB Referential Integrity"
+    ],
+    [
+      47,
+      "E_MFDB_FK_INVALID_ON_DELETE",
+      "Core",
+      "PY",
+      "MFDB Referential Integrity"
+    ],
+    [
+      47,
+      "E_MFDB_FK_INVALID_ON_DELETE",
+      "Core",
+      "TS",
+      "MFDB Referential Integrity"
+    ],
+    [
+      50,
+      "E_MFDB_CORE_MANIFEST_NOT_FOUND",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      50,
+      "E_MFDB_CORE_MANIFEST_NOT_FOUND",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      50,
+      "E_MFDB_CORE_MANIFEST_NOT_FOUND",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      50,
+      "E_MFDB_CORE_MANIFEST_NOT_FOUND",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      51,
+      "E_MFDB_CORE_ENTITY_NOT_FOUND",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      51,
+      "E_MFDB_CORE_ENTITY_NOT_FOUND",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      51,
+      "E_MFDB_CORE_ENTITY_NOT_FOUND",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      51,
+      "E_MFDB_CORE_ENTITY_NOT_FOUND",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      52,
+      "E_MFDB_CORE_WRITE_FAILED",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      52,
+      "E_MFDB_CORE_WRITE_FAILED",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      52,
+      "E_MFDB_CORE_WRITE_FAILED",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      52,
+      "E_MFDB_CORE_WRITE_FAILED",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      53,
+      "E_MFDB_CORE_LOCK_FAILED",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      53,
+      "E_MFDB_CORE_LOCK_FAILED",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      53,
+      "E_MFDB_CORE_LOCK_FAILED",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      53,
+      "E_MFDB_CORE_LOCK_FAILED",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      54,
+      "E_MFDB_CORE_INVALID_OPERATION",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      54,
+      "E_MFDB_CORE_INVALID_OPERATION",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      54,
+      "E_MFDB_CORE_INVALID_OPERATION",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      54,
+      "E_MFDB_CORE_INVALID_OPERATION",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      55,
+      "E_MFDB_CORE_INDEX_OUT_OF_BOUNDS",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      55,
+      "E_MFDB_CORE_INDEX_OUT_OF_BOUNDS",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      55,
+      "E_MFDB_CORE_INDEX_OUT_OF_BOUNDS",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      55,
+      "E_MFDB_CORE_INDEX_OUT_OF_BOUNDS",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      56,
+      "E_MFDB_CORE_JOIN_FAILED",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      56,
+      "E_MFDB_CORE_JOIN_FAILED",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      56,
+      "E_MFDB_CORE_JOIN_FAILED",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      56,
+      "E_MFDB_CORE_JOIN_FAILED",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      57,
+      "E_MFDB_CORE_DUPLICATE_ENTITY_NAME",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      57,
+      "E_MFDB_CORE_DUPLICATE_ENTITY_NAME",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      58,
+      "E_MFDB_CORE_RECORD_COUNT_SYNC_FAILED",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      58,
+      "E_MFDB_CORE_RECORD_COUNT_SYNC_FAILED",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      59,
+      "E_MFDB_CORE_NULL_MANIFEST",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      59,
+      "E_MFDB_CORE_NULL_MANIFEST",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      60,
+      "E_MFDB_CORE_ENTITY_NOT_IN_MANIFEST",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      60,
+      "E_MFDB_CORE_ENTITY_NOT_IN_MANIFEST",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      70,
+      "E_MFDB_CORE_ARCHIVE_ERROR",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      70,
+      "E_MFDB_CORE_ARCHIVE_ERROR",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      70,
+      "E_MFDB_CORE_ARCHIVE_ERROR",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      70,
+      "E_MFDB_CORE_ARCHIVE_ERROR",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      71,
+      "E_MFDB_CORE_MOUNT_CONFLICT",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      71,
+      "E_MFDB_CORE_MOUNT_CONFLICT",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      71,
+      "E_MFDB_CORE_MOUNT_CONFLICT",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      71,
+      "E_MFDB_CORE_MOUNT_CONFLICT",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      72,
+      "E_MFDB_CORE_CREATE_FAILED",
+      "Core",
+      "JS",
+      "MFDB Core Ops"
+    ],
+    [
+      72,
+      "E_MFDB_CORE_CREATE_FAILED",
+      "Core",
+      "PY",
+      "MFDB Core Ops"
+    ],
+    [
+      72,
+      "E_MFDB_CORE_CREATE_FAILED",
+      "Core",
+      "SH",
+      "MFDB Core Ops"
+    ],
+    [
+      72,
+      "E_MFDB_CORE_CREATE_FAILED",
+      "Core",
+      "TS",
+      "MFDB Core Ops"
+    ],
+    [
+      80,
+      "E_FIELD_INTEGRITY_MISMATCH",
+      "Core",
+      "PY",
+      "Format 105 Integrity Era"
+    ],
+    [
+      80,
+      "E_FIELD_INTEGRITY_MISMATCH",
+      "Core",
+      "TS",
+      "Format 105 Integrity Era"
+    ],
+    [
+      81,
+      "E_FORMAT_UNSUPPORTED",
+      "Core",
+      "PY",
+      "Format 105 Integrity Era"
+    ],
+    [
+      81,
+      "E_FORMAT_UNSUPPORTED",
+      "Core",
+      "TS",
+      "Format 105 Integrity Era"
+    ],
+    [
+      82,
+      "E_RECORD_NOT_FOUND",
+      "Core",
+      "PY",
+      "Format 105 Integrity Era"
+    ],
+    [
+      82,
+      "E_RECORD_NOT_FOUND",
+      "Core",
+      "TS",
+      "Format 105 Integrity Era"
+    ],
+    [
+      83,
+      "E_UPGRADE_VALIDATION_FAILED",
+      "Core",
+      "PY",
+      "Format 105 Integrity Era"
+    ],
+    [
+      83,
+      "E_UPGRADE_VALIDATION_FAILED",
+      "Core",
+      "TS",
+      "Format 105 Integrity Era"
+    ],
+    [
+      84,
+      "E_DUPLICATE_FIELD_NAME",
+      "Core",
+      "PY",
+      "Format 105 Integrity Era"
+    ],
+    [
+      84,
+      "E_DUPLICATE_FIELD_NAME",
+      "Core",
+      "TS",
+      "Format 105 Integrity Era"
+    ],
+    [
+      85,
+      "E_DUPLICATE_FIELD_UUID",
+      "Core",
+      "PY",
+      "Format 105 Integrity Era"
+    ],
+    [
+      85,
+      "E_DUPLICATE_FIELD_UUID",
+      "Core",
+      "TS",
+      "Format 105 Integrity Era"
+    ],
+    [
+      130,
+      "E_NESTING_INVALID_CELL",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      131,
+      "E_NESTING_NOT_BEJSON",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      132,
+      "E_NESTING_DEPTH_EXCEEDED",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      133,
+      "E_NESTING_CACHE_MISS",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      134,
+      "E_NESTING_SCHEMA_MISMATCH",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      135,
+      "E_NESTING_CIRCULAR_REF",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      136,
+      "E_NESTING_VALIDATION_FAILED",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      137,
+      "E_NESTING_FIELD_MAP_FAILED",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      138,
+      "E_NESTING_QUERY_INVALID_PATH",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      139,
+      "E_NESTING_QUERY_EMPTY_PATH",
+      "Core",
+      "PY",
+      "Core Nesting"
+    ],
+    [
+      130,
+      "E_NESTING_INVALID_CELL",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      131,
+      "E_NESTING_NOT_BEJSON",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      132,
+      "E_NESTING_DEPTH_EXCEEDED",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      133,
+      "E_NESTING_CACHE_MISS",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      134,
+      "E_NESTING_SCHEMA_MISMATCH",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      135,
+      "E_NESTING_CIRCULAR_REF",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      136,
+      "E_NESTING_VALIDATION_FAILED",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      137,
+      "E_NESTING_FIELD_MAP_FAILED",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      138,
+      "E_NESTING_QUERY_INVALID_PATH",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      139,
+      "E_NESTING_QUERY_EMPTY_PATH",
+      "Core",
+      "JS",
+      "Core Nesting"
+    ],
+    [
+      130,
+      "E_NESTING_INVALID_CELL",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      131,
+      "E_NESTING_NOT_BEJSON",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      132,
+      "E_NESTING_DEPTH_EXCEEDED",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      133,
+      "E_NESTING_CACHE_MISS",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      134,
+      "E_NESTING_SCHEMA_MISMATCH",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      135,
+      "E_NESTING_CIRCULAR_REF",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      136,
+      "E_NESTING_VALIDATION_FAILED",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      137,
+      "E_NESTING_FIELD_MAP_FAILED",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      138,
+      "E_NESTING_QUERY_INVALID_PATH",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      139,
+      "E_NESTING_QUERY_EMPTY_PATH",
+      "Core",
+      "TS",
+      "Core Nesting"
+    ],
+    [
+      130,
+      "E_NESTING_INVALID_CELL",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      131,
+      "E_NESTING_NOT_BEJSON",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      132,
+      "E_NESTING_DEPTH_EXCEEDED",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      133,
+      "E_NESTING_CACHE_MISS",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      134,
+      "E_NESTING_SCHEMA_MISMATCH",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      135,
+      "E_NESTING_CIRCULAR_REF",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      136,
+      "E_NESTING_VALIDATION_FAILED",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      137,
+      "E_NESTING_FIELD_MAP_FAILED",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      138,
+      "E_NESTING_QUERY_INVALID_PATH",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ],
+    [
+      139,
+      "E_NESTING_QUERY_EMPTY_PATH",
+      "Core",
+      "SH",
+      "Core Nesting"
+    ]
+  ]
+}

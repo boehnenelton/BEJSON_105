@@ -8,12 +8,12 @@
 #                 lib_bejson_Core_bejson_chunking.sh, which should only own
 #                 packaging/IO, not validation logic. See changelog note
 #                 dated 2026-07-13.
-# Version:        2.3.0
-# Date:           2026-10-03
+# Version:        2.3.1
+# Date:           2026-10-09
 # Author:         Elton Boehnen
 # Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 # Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  7c8968a0-4958-45d7-b094-38cc37df8b19
+# RELATIONAL_ID:  0acff0dd-49f1-4411-b692-52c1a2123e3a
 # Release_Version: 300
 #
 # FEATURE (2026-10-03): Phase 6 SH port -- mfdb_validator_check_referential_integrity
@@ -480,8 +480,8 @@ mfdb_validator_check_referential_integrity() {
         epath="${ri_path[$ename]}"
         ever=$(jq -r '.Format_Version' "$epath")
         case "$ever" in 105|105a|105db) ;; *) continue ;; esac
-        local uuid_col=0 offset=1
-        [[ "$ever" == "105db" ]] && { uuid_col=1; offset=2; }
+        local uuid_col=0
+        [[ "$ever" == "105db" ]] && uuid_col=1
 
         local fk_name fk_target fk_on_delete fk_idx
         while IFS=$'\t' read -r fk_name fk_target fk_on_delete fk_idx; do
@@ -512,13 +512,18 @@ mfdb_validator_check_referential_integrity() {
             local tuuids
             tuuids=$(jq -c --argjson c "$tcol" '[.Values[] | select(length > $c) | .[$c]]' "$tpath")
 
+            # Row column of the FK field: idx+1 everywhere except 105db Fields[0]
+            # (Record_Type_Parent) which sits at column 0.
+            local fk_col=$((fk_idx + 1))
+            [[ "$ever" == "105db" && "$fk_idx" -eq 0 ]] && fk_col=0
+
             local ref_uuid fk_val
             while IFS=$'\t' read -r ref_uuid fk_val; do
                 [[ -z "$ref_uuid" && -z "$fk_val" ]] && continue
                 printf 'E_MFDB_FK_UNRESOLVED\t%s\t%s#%s.%s = %s does not exist in %s\n' \
                     "$ename" "$ename" "$ref_uuid" "$fk_name" "$fk_val" "$fk_target"
                 rc=1
-            done < <(jq -r --argjson col "$((fk_idx + offset))" --argjson uc "$uuid_col" --argjson tu "$tuuids" '
+            done < <(jq -r --argjson col "$fk_col" --argjson uc "$uuid_col" --argjson tu "$tuuids" '
                 .Values[]
                 | select(length > $col)
                 | select(.[$col] != null)

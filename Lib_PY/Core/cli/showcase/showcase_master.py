@@ -1,14 +1,14 @@
 """
-Library:        showcase_master.py
-Family:         Core
-Description:    Numeric-driven master controller for the GEMINI Python terminal showcases.
-Version:        2.0.4
-Date:           2026-06-12
-Author:         Elton Boehnen
-Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-Format_Creator: Elton Boehnen
-RELATIONAL_ID:  08e4f505-f55c-46af-a1d1-ffad98ffd4de
+Library:         showcase_master.py
+Family:          showcase
+Module Purpose:  Version: 2.0.3
+Architecture:    BEJSON Core provides foundational format parsing, schema enforcement, path security, positional field map caching, and multi-format integration across runtime environments.
+Version:         2.0.3
 Release_Version: 300
+Date:            2026-09-14
+Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+Format_Creator:  Elton Boehnen
+RELATIONAL_ID:   cf18ca34-5ff0-470f-bb21-d0839c187f51
 """
 
 #!/usr/bin/env python3

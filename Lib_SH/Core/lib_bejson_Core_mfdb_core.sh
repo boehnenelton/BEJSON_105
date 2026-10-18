@@ -1,38 +1,20 @@
-# Library:        lib_bejson_Core_mfdb_core.sh
-# Family:         Core
-# Description:    Multi-file database orchestrator managing manifests and entity synchronization.
-# Version:        2.3.0
-# Date:           2026-10-03
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  dd8382e6-75ce-47a9-bd63-41642a317656
+# -----------------------------------------------------------------------------
+# Library:         lib_bejson_Core_mfdb_core.sh
+# Family:          Core
+# Module Purpose:  MFDB orchestrator: discovery, entity access, and MFDB-132 archive mount/commit/unmount.
+# Architecture:    MFDB (a database architecture layered on BEJSON, not a BEJSON format version): one BEJSON 104a manifest (104a.mfdb.bejson) registers many dense BEJSON 104 entity files linked by Parent_Hierarchy. MFDB-132 packs a whole MFDB into one Chunked-104a document and is handled here as a wrapper around the same manifest + entity structure. It is not 104db and uses no null-padding.
+# Format_Scope:    MFDB only (104a manifest + 104 entity files; NOT 104db)
+# Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+#                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+#                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+# Version:         2.2.5
 # Release_Version: 300
-#
-# FEATURE (2026-10-03): Phase 6 SH port -- 105-series Referential Integrity.
-# mfdb_core_enable/disable/is_ref_integrity_enabled, mfdb_core_check_fk_write,
-# mfdb_core_find_referencing_rows, mfdb_core_check_entity_droppable and the
-# uuid-addressed CRUD entry points mfdb_core_add/update/delete_entity_record_105
-# (restrict / cascade / null, cycle-guarded). Semantics mirror PY Phase 6
-# (including: dependents are resolved on disk as the walk proceeds, and a record
-# reachable twice in one cascade is reported as E_MFDB_FK_CASCADE_CYCLE).
-# NOTE: no PID lock in SH here (single-process synchronous jq + mv, same as
-# mfdb_core_add_entity_record above). value arguments: an empty string or the
-# literal `null` means SQL-null; any other string is a record_uuid.
-#
-# FEATURE (2026-07-31): Meta-GUID debug entity system — full Bash port.
-# mfdb_core_enable_debug, mfdb_core_disable_debug, mfdb_core_get_debug_log,
-# mfdb_core_get_failed_ops, mfdb_core_clear_debug_log, mfdb_core_debug_summary,
-# mfdb_core_detect_schema_drift. Internal _mfdb_meta_log direct writer gated
-# by Debug_Mode manifest header — zero overhead when off.
-#
-# FEATURE (2026-07-29): Network_Role parameter added to mfdb_core_create_database
-# (arg $7, default "Standalone"). Federation functions added:
-# mfdb_federation_push_config, mfdb_federation_poll_dropzone,
-# mfdb_federation_distill_logs, mfdb_core_create_connected_slave_entity.
+# Date:            2026-10-16
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   4aa4dee4-b170-4f9f-882e-ca4b897027ee
+# -----------------------------------------------------------------------------
 
-# NOTE: set -o nounset intentionally omitted — library files must not modify
-# global shell options; doing so breaks host scripts that source this file. (SH3)
 set -o pipefail
 
 # Source dependencies if not already loaded.
@@ -68,6 +50,7 @@ fi
 # MFDBArchive (v1.2 Feature)
 #-------------------------------------------------------------------------------
 
+# MFDB archive step: extracts a .mfdb.zip (a whole MFDB -- 104a manifest + 104 entity files -- in one archive) into a workspace and creates a session lock (.mfdb_lock). The archive is only a container.
 # mfdb_archive_mount <archive_path> <target_dir> [force]
 # Extracts archive to workspace and creates session lock.
 mfdb_archive_mount() {
@@ -116,6 +99,7 @@ mfdb_archive_mount() {
     echo "$(realpath "$target_dir/104a.mfdb.bejson")"
 }
 
+# Repacks the workspace into the .mfdb.zip atomically (optionally validating first).
 # mfdb_archive_commit <mount_dir> [archive_path]
 # Repacks workspace into .mfdb.zip atomically.
 mfdb_archive_commit() {
@@ -160,6 +144,7 @@ mfdb_archive_commit() {
     echo "$(realpath "$dest")"
 }
 
+# Releases the session lock; with cleanup also deletes the workspace.
 # mfdb_archive_unmount <mount_dir> [cleanup]
 mfdb_archive_unmount() {
     local mount_dir="$1"
@@ -174,6 +159,7 @@ mfdb_archive_unmount() {
 # Discovery
 #-------------------------------------------------------------------------------
 
+# Prints the MFDB role of a file: manifest (104a named *.mfdb.bejson), entity (104 with Parent_Hierarchy), archive (.mfdb.zip) or standalone (anything else, including a 104db file).
 # mfdb_core_discover <file_path>
 # Prints: 'manifest', 'entity', 'archive', or 'standalone'
 mfdb_core_discover() {
@@ -212,6 +198,7 @@ mfdb_core_discover() {
 # Internal helpers
 #-------------------------------------------------------------------------------
 
+# Resolves path placeholders to an absolute path through the environment layer.
 __mfdb_core_resolve() {
     local manifest_path="$1"
     local file_path_rel="$2"
@@ -220,21 +207,24 @@ __mfdb_core_resolve() {
     realpath -m "$manifest_dir/$file_path_rel" 2>/dev/null || echo "$manifest_dir/$file_path_rel"
 }
 
+# Echoes the column index of a field name in a document (jq).
 __mfdb_field_index() {
     local file_path="$1"
     local field_name="$2"
-    # Self-maintaining cache: a hit reads neither the file nor jq.
     bejson_core_get_field_index_file "$file_path" "$field_name"
 }
 
+# Echoes the column index of entity_name in the manifest.
 __mfdb_core_en_idx() {
     __mfdb_field_index "$1" "entity_name"
 }
 
+# Echoes the column index of file_path in the manifest.
 __mfdb_core_fp_idx() {
     __mfdb_field_index "$1" "file_path"
 }
 
+# Echoes an entity's file_path from the manifest.
 __mfdb_core_get_file_path() {
     local manifest_path="$1"
     local entity_name="$2"
@@ -250,6 +240,7 @@ __mfdb_core_get_file_path() {
 # Dependency check
 #-------------------------------------------------------------------------------
 
+# Checks the required tools (jq, zip/unzip) are installed.
 mfdb_core_check_dependencies() {
     mfdb_validator_check_dependencies || return $?
     if ! declare -f bejson_core_atomic_write > /dev/null 2>&1; then
@@ -269,6 +260,7 @@ mfdb_core_check_dependencies() {
 # Read operations
 #-------------------------------------------------------------------------------
 
+# Validates the manifest, then prints it (a 104a document named *.mfdb.bejson).
 mfdb_core_load_manifest() {
     local manifest_path="$1"
     if ! mfdb_validator_validate_manifest "$manifest_path"; then
@@ -278,6 +270,7 @@ mfdb_core_load_manifest() {
     jq -r '.Values[] | @tsv' "$manifest_path" 2>/dev/null
 }
 
+# Prints the registered entity names from the manifest.
 mfdb_core_list_entities() {
     local manifest_path="$1"
     local en_idx
@@ -285,6 +278,7 @@ mfdb_core_list_entities() {
     jq -r --argjson ei "$en_idx" '.Values[] | .[$ei] // empty' "$manifest_path" 2>/dev/null
 }
 
+# Prints one entity's records (a dense BEJSON 104 entity file; no null-padding, no Record_Type_Parent).
 mfdb_core_load_entity() {
     local manifest_path="$1"
     local entity_name="$2"
@@ -304,6 +298,7 @@ mfdb_core_load_entity() {
     jq -r '.Values[] | @tsv' "$resolved" 2>/dev/null
 }
 
+# Echoes the absolute path of an entity file.
 mfdb_core_get_entity_path() {
     local manifest_path="$1"
     local entity_name="$2"
@@ -316,6 +311,7 @@ mfdb_core_get_entity_path() {
     __mfdb_core_resolve "$manifest_path" "$file_path_rel"
 }
 
+# Prints summary statistics for the MFDB (entity count, record counts).
 mfdb_core_get_stats() {
     local manifest_path="$1"
     local db_name schema_version
@@ -350,6 +346,7 @@ mfdb_core_get_stats() {
 # Write operations
 #-------------------------------------------------------------------------------
 
+# Appends a row to an entity file, then syncs the manifest record_count.
 mfdb_core_add_entity_record() {
     local manifest_path="$1"
     local entity_name="$2"
@@ -379,8 +376,12 @@ mfdb_core_add_entity_record() {
     fi
     mv "$tmp_file" "$resolved"
     mfdb_core_sync_manifest_count "$manifest_path" "$entity_name"
+    local sync_rc=$?
+    _mfdb_meta_log "$manifest_path" "ADD_RECORD" "$entity_name" "-" "-" "-" 1 0 ""
+    return $sync_rc
 }
 
+# Removes a row from an entity file, then syncs the manifest record_count.
 mfdb_core_remove_entity_record() {
     local manifest_path="$1"
     local entity_name="$2"
@@ -412,12 +413,16 @@ mfdb_core_remove_entity_record() {
     fi
     mv "$tmp_file" "$resolved"
     mfdb_core_sync_manifest_count "$manifest_path" "$entity_name"
+    local sync_rc=$?
+    _mfdb_meta_log "$manifest_path" "REMOVE_RECORD" "$entity_name" "-" "-" "$record_index" 1 0 ""
+    return $sync_rc
 }
 
 #-------------------------------------------------------------------------------
 # Manifest sync
 #-------------------------------------------------------------------------------
 
+# Writes one entity's real row count into the manifest.
 mfdb_core_sync_manifest_count() {
     local manifest_path="$1"
     local entity_name="$2"
@@ -446,6 +451,7 @@ mfdb_core_sync_manifest_count() {
     echo "$actual_count"
 }
 
+# Runs the count sync for every entity.
 mfdb_core_sync_all_counts() {
     local manifest_path="$1"
     while IFS= read -r entity_name; do
@@ -459,6 +465,7 @@ mfdb_core_sync_all_counts() {
 # Database creation
 #-------------------------------------------------------------------------------
 
+# Creates a new empty entity file (BEJSON 104, one Records_Type, Parent_Hierarchy back to the manifest) and registers it in the manifest.
 mfdb_core_create_entity_file() {
     local manifest_path="$1"
     local entity_name="$2"
@@ -517,6 +524,7 @@ mfdb_core_create_entity_file() {
     echo "$resolved"
 }
 
+# Creates a new MFDB on disk: the 104a manifest (104a.mfdb.bejson) plus one 104 entity file per entity. Result is ordinary 104a + 104 files; no new Format_Version, not 104db.
 mfdb_core_create_database() {
     local root_dir="$1"
     local db_name="$2"
@@ -631,11 +639,12 @@ export -f mfdb_core_create_entity_file
 export -f mfdb_core_create_database
 
 # ── Federated Master / Slave node system ───────────────────────────────────────
-# Network_Role ("Master"|"Slave"|"Standalone") is now emitted on
+# Network_Role ("Master"|"Slave"|"Standalone") is emitted by
 # mfdb_core_create_database. This block wires the full runtime federation
 # protocol: ConnectedSlave entity creator, Master→Slave atomic push,
 # Slave dropzone poller, and Slave→Master log distillation.
 
+# Federation: registers a ConnectedSlave entity on a Master manifest; fails if Network_Role is not Master.
 # mfdb_core_create_connected_slave_entity <manifest_path>
 # Creates the ConnectedSlave entity file and registers it in the manifest.
 # Fails if Network_Role != "Master".
@@ -662,6 +671,7 @@ mfdb_core_create_connected_slave_entity() {
 }
 export -f mfdb_core_create_connected_slave_entity
 
+# Federation: Master -> Slave config push; atomically drops a BEJSON 104a config document into the slave's drop-zone. Returns 0 on success.
 # mfdb_federation_push_config <config_json_string> <slave_target_path>
 # Master → Slave atomic drop-zone push. Writes config via same-dir temp + mv.
 # Returns 0 on success, 1 on error.
@@ -682,6 +692,7 @@ mfdb_federation_push_config() {
 }
 export -f mfdb_federation_push_config
 
+# Federation: processes new documents in a drop-zone directory; prints how many configs were handled.
 # mfdb_federation_poll_dropzone <dropzone_dir> <handler_function> [poll_interval_sec=2] [timeout_sec=60]
 # Slave: polls dropzone_dir for incoming .bejson files from Master.
 # Each file is passed to handler_function <file_path> then removed.
@@ -714,6 +725,7 @@ mfdb_federation_poll_dropzone() {
 }
 export -f mfdb_federation_poll_dropzone
 
+# Federation: truncates a slave's local log entity to max_rows and delivers the rows to the master poll directory.
 # mfdb_federation_distill_logs <slave_manifest_path> <entity_name> <master_poll_dir> [max_rows=100]
 # Slave → Master one-way log push. Overflow rows pushed as distilled summary,
 # local entity truncated to max_rows. Returns 0 on success, 1 on error.
@@ -777,6 +789,7 @@ export -f mfdb_federation_distill_logs
 # jq-based writer — bypasses mfdb_core_add_entity_record to prevent recursion.
 # Requires jq >= 1.6.
 
+# True when manifest header Debug_Mode is 'true'.
 _mfdb_debug_is_enabled() {
     local manifest_path="$1"
     local mode
@@ -784,6 +797,7 @@ _mfdb_debug_is_enabled() {
     [[ "${mode,,}" == "true" ]]
 }
 
+# True when Debug_Reads is also 'true'.
 _mfdb_debug_reads_enabled() {
     local manifest_path="$1"
     local flag
@@ -791,10 +805,12 @@ _mfdb_debug_reads_enabled() {
     [[ "${flag,,}" == "true" ]]
 }
 
+# Echoes the debug/meta entity name from the manifest.
 _mfdb_debug_get_meta_name() {
     jq -r '.Debug_Meta_Entity // ""' "$1" 2>/dev/null
 }
 
+# Echoes the path of an entity file for the debug helpers.
 _mfdb_debug_get_entity_path() {
     local manifest_path="$1"
     local entity_name="$2"
@@ -808,6 +824,7 @@ _mfdb_debug_get_entity_path() {
     echo "$(dirname "$(realpath "$manifest_path")")/$rel_path"
 }
 
+# Appends one operation record to the debug meta entity (a normal 104 entity file).
 # _mfdb_meta_log <manifest> <operation> <target_entity> <field_name|-> <field_exists|-> <row_index|-> <success:0|1> <duration_ms> <notes> [reads_only:0|1]
 _mfdb_meta_log() {
     local manifest_path="$1"
@@ -874,14 +891,14 @@ _mfdb_meta_log() {
 }
 export -f _mfdb_meta_log
 
+# Logs a SCHEMA_SNAPSHOT row per entity (baseline for drift detection).
 _mfdb_debug_schema_snapshot() {
     local manifest_path="$1"
     local meta_name="$2"
 
-    local entities_json
-    entities_json=$(mfdb_core_list_entities "$manifest_path" 2>/dev/null)
-
-    echo "$entities_json" | jq -r '.[]' 2>/dev/null | while IFS= read -r ename; do
+    # mfdb_core_list_entities prints one name per line (plain text). Before 2.2.5 this piped it through
+    # jq '.[]', which fails on plain text, so no SCHEMA_SNAPSHOT row was ever written.
+    mfdb_core_list_entities "$manifest_path" 2>/dev/null | while IFS= read -r ename; do
         [[ -z "$ename" || "$ename" == "$meta_name" ]] && continue
         local entity_path
         entity_path=$(_mfdb_debug_get_entity_path "$manifest_path" "$ename") || continue
@@ -896,6 +913,7 @@ _mfdb_debug_schema_snapshot() {
 }
 export -f _mfdb_debug_schema_snapshot
 
+# Turns on Debug_Mode, creates the meta entity and records the schema snapshot; prints the meta entity name.
 # mfdb_core_enable_debug <manifest_path> [row_cap=500] [debug_reads=0]
 # Creates meta-{uuid} entity, sets debug headers, logs initial SCHEMA_SNAPSHOT.
 # Prints meta entity name. Returns 0 on success.
@@ -975,6 +993,7 @@ mfdb_core_enable_debug() {
 }
 export -f mfdb_core_enable_debug
 
+# Sets Debug_Mode to false; meta entity and rows are kept.
 # mfdb_core_disable_debug <manifest_path>
 mfdb_core_disable_debug() {
     local tmp
@@ -983,6 +1002,7 @@ mfdb_core_disable_debug() {
 }
 export -f mfdb_core_disable_debug
 
+# Prints the meta entity rows as a JSON array of objects.
 # mfdb_core_get_debug_log <manifest_path>
 # Outputs the meta entity Values array as a JSON array of objects.
 mfdb_core_get_debug_log() {
@@ -1000,6 +1020,7 @@ mfdb_core_get_debug_log() {
 }
 export -f mfdb_core_get_debug_log
 
+# Prints only failed (success=false) rows, sorted by timestamp.
 # mfdb_core_get_failed_ops <manifest_path>
 # Outputs failed (success=false) rows sorted by timestamp.
 mfdb_core_get_failed_ops() {
@@ -1008,6 +1029,7 @@ mfdb_core_get_failed_ops() {
 }
 export -f mfdb_core_get_failed_ops
 
+# Deletes all meta-entity rows and prints how many.
 # mfdb_core_clear_debug_log <manifest_path>
 # Wipes all Values from meta entity. Prints rows deleted.
 mfdb_core_clear_debug_log() {
@@ -1027,6 +1049,7 @@ mfdb_core_clear_debug_log() {
 }
 export -f mfdb_core_clear_debug_log
 
+# Prints a JSON summary of the debug log.
 # mfdb_core_debug_summary <manifest_path>
 # Outputs a JSON summary object with aggregated debug stats.
 mfdb_core_debug_summary() {
@@ -1058,6 +1081,7 @@ mfdb_core_debug_summary() {
 }
 export -f mfdb_core_debug_summary
 
+# Prints a JSON object, keyed by entity_name, for entities whose Fields changed since the snapshot.
 # mfdb_core_detect_schema_drift <manifest_path>
 # Diffs live Fields[] against SCHEMA_SNAPSHOT baseline in the debug log.
 # Outputs a JSON object keyed by entity_name.
@@ -1102,7 +1126,6 @@ mfdb_core_detect_schema_drift() {
 }
 export -f mfdb_core_detect_schema_drift
 
-
 #-------------------------------------------------------------------------------
 # Phase 6 -- 105-series MFDB Referential Integrity (2026-10-03)
 # Additive only: gated on Format_Version 105/105a/105db. The 104-series CRUD
@@ -1116,7 +1139,7 @@ export -f mfdb_core_detect_schema_drift
 [[ -v E_MFDB_FK_INVALID_ON_DELETE      ]] || readonly E_MFDB_FK_INVALID_ON_DELETE=47
 [[ -v E_RECORD_NOT_FOUND               ]] || readonly E_RECORD_NOT_FOUND=82
 
-__MFDB_RI_VISITED=""
+__MFDB_RI_INPATH=""; __MFDB_RI_DELETED=""
 
 __mfdb_ri_is105() { case "$1" in 105|105a|105db) return 0 ;; esac; return 1; }
 
@@ -1204,7 +1227,7 @@ __mfdb_ri_check_row() {
         mfdb_core_check_fk_write "$manifest" "$entity" "$fk_name" "$fk_val" || return $?
     done < <(jq -r --argjson vals "$vals" '
         . as $d
-        | (if $d.Format_Version == "105db" then $vals[1:] else $vals end) as $fv
+        | $vals as $fv   # ordered like Fields (105db: vals[0] = Record_Type_Parent = Fields[0])
         | $d.Fields | to_entries[]
         | select(.value.fk_target_entity)
         | select(.key < ($fv | length))
@@ -1226,10 +1249,10 @@ mfdb_core_find_referencing_rows() {
         jq -r --arg te "$target_entity" --arg tu "$target_uuid" --arg en "$name" '
             select(.Format_Version | IN("105","105a","105db"))
             | (if .Format_Version == "105db" then 1 else 0 end) as $uc
-            | (if .Format_Version == "105db" then 2 else 1 end) as $off
             | . as $d
             | ([$d.Fields | to_entries[] | select(.value.fk_target_entity == $te)
-                | {n: .value.name, c: (.key + $off)}][]) as $f
+                | {n: .value.name,
+                   c: (if $d.Format_Version == "105db" then (if .key == 0 then 0 else .key + 1 end) else .key + 1 end)}][]) as $f
             | $d.Values[] | select(length > $f.c and .[$f.c] == $tu)
             | [$en, $f.n, .[$uc]] | @tsv' "$path" 2>/dev/null
     done < <(jq -r --argjson ei "$en_idx" --argjson fi "$fp_idx" '.Values[] | [.[$ei], .[$fi]] | @tsv' "$manifest")
@@ -1286,42 +1309,116 @@ __mfdb_ri_write_cell() {
     fi
     __mfdb_ri_jq_write "$epath" --arg u "$ru" --arg fn "$fname" --argjson v "$jval" '
         (if .Format_Version == "105db" then 1 else 0 end) as $uc
-        | (if .Format_Version == "105db" then 2 else 1 end) as $off
         | ([.Fields[].name] | index($fn)) as $i
+        | (if .Format_Version == "105db" then (if $i == 0 then 0 else $i + 1 end) else $i + 1 end) as $c
         | (.Values | to_entries | map(select(.value | (length > $uc and .[$uc] == $u))) | .[0].key) as $r
-        | .Values[$r][$i + $off] = $v'
+        | .Values[$r][$c] = $v'
 }
 
-__mfdb_ri_cascade() {
+# PHASE 1 of a cascade delete: pure read-only traversal, ZERO disk writes.
+# Uses dynamic scope from the caller: __MFDB_RI_INPATH (keys on the current
+# recursion path -- real cycles only; a record reachable via two parents is
+# planned once), __MFDB_RI_DELETED (keys already scheduled), __MFDB_RI_OPS
+# (array of "null|delete<TAB>entity<TAB>uuid<TAB>field", children before parents).
+# A restrict violation or cycle returns non-zero BEFORE anything was touched.
+__mfdb_ri_plan() {
     local manifest="$1" entity="$2" ru="$3"
     local key="${entity}#${ru}"
-    if [[ $'\n'"$__MFDB_RI_VISITED" == *$'\n'"$key"$'\n'* ]]; then
+    if [[ $'\n'"$__MFDB_RI_INPATH" == *$'\n'"$key"$'\n'* ]]; then
         echo "ERROR: Cascade cycle detected: $key revisited during cascade delete" >&2
         return $E_MFDB_FK_CASCADE_CYCLE
     fi
-    __MFDB_RI_VISITED+="${key}"$'\n'
+    __MFDB_RI_INPATH+="${key}"$'\n'
 
-    local refs rent rfield ruuid rpath on_delete rc
+    local refs rent rfield ruuid rpath on_delete refkey rc=0
     refs="$(mfdb_core_find_referencing_rows "$manifest" "$entity" "$ru")"
     while IFS=$'\t' read -r rent rfield ruuid; do
         [[ -z "$rent" ]] && continue
-        rpath="$(mfdb_core_get_entity_path "$manifest" "$rent")" || return $?
+        refkey="${rent}#${ruuid}"
+        [[ $'\n'"$__MFDB_RI_DELETED" == *$'\n'"$refkey"$'\n'* ]] && continue
+        rpath="$(mfdb_core_get_entity_path "$manifest" "$rent")" || { rc=$?; break; }
         on_delete="$(jq -r --arg n "$rfield" '.Fields[] | select(.name == $n) | .fk_on_delete // "restrict"' "$rpath")"
         case "$on_delete" in
             restrict)
                 echo "ERROR: Cannot delete ${entity}#${ru}: restricted by ${rent}.${rfield} -> record ${ruuid}" >&2
-                return $E_MFDB_FK_RESTRICT_VIOLATION ;;
+                rc=$E_MFDB_FK_RESTRICT_VIOLATION; break ;;
             null)
-                __mfdb_ri_write_cell "$manifest" "$rent" "$ruuid" "$rfield" null || return $? ;;
+                __MFDB_RI_OPS+=("null"$'\t'"${rent}"$'\t'"${ruuid}"$'\t'"${rfield}") ;;
             cascade)
-                __mfdb_ri_cascade "$manifest" "$rent" "$ruuid" || return $?
-                __mfdb_ri_delete_raw "$manifest" "$rent" "$ruuid" || return $? ;;
+                __mfdb_ri_plan "$manifest" "$rent" "$ruuid" || { rc=$?; break; }
+                if [[ $'\n'"$__MFDB_RI_DELETED" != *$'\n'"$refkey"$'\n'* ]]; then
+                    __MFDB_RI_DELETED+="${refkey}"$'\n'
+                    __MFDB_RI_OPS+=("delete"$'\t'"${rent}"$'\t'"${ruuid}"$'\t') 
+                fi ;;
             *)
                 echo "ERROR: ${rent}.${rfield}: fk_on_delete must be restrict/cascade/null, got '$on_delete'" >&2
-                return $E_MFDB_FK_INVALID_ON_DELETE ;;
+                rc=$E_MFDB_FK_INVALID_ON_DELETE; break ;;
         esac
     done <<< "$refs"
+    __MFDB_RI_INPATH="${__MFDB_RI_INPATH/"${key}"$'\n'/}"
+    return $rc
+}
+
+# PHASE 2: execute __MFDB_RI_OPS (dynamic scope from the caller).
+__mfdb_ri_apply() {
+    local manifest="$1" op o e u f
+    for op in "${__MFDB_RI_OPS[@]}"; do
+        IFS=$'\t' read -r o e u f <<< "$op"
+        if [[ "$o" == "null" ]]; then
+            [[ $'\n'"$__MFDB_RI_DELETED" == *$'\n'"${e}#${u}"$'\n'* ]] && continue  # row is being deleted anyway
+            __mfdb_ri_write_cell "$manifest" "$e" "$u" "$f" null || return $?
+        else
+            __mfdb_ri_delete_raw "$manifest" "$e" "$u" || return $?
+        fi
+    done
     return 0
+}
+
+# __mfdb_ri_snapshot <snapdir> <path...>  /  __mfdb_ri_restore <snapdir>
+# Byte-for-byte copies (index.tsv maps snapshot file -> original path).
+__mfdb_ri_snapshot() {
+    local sd="$1"; shift
+    local p i=0
+    : > "$sd/index.tsv"
+    for p in "$@"; do
+        [[ -f "$p" ]] || continue
+        grep -qxF -- "$p" <(cut -f2- "$sd/index.tsv") 2>/dev/null && continue
+        i=$((i + 1))
+        cp -p -- "$p" "$sd/$i" && printf '%s\t%s\n' "$i" "$p" >> "$sd/index.tsv"
+    done
+}
+__mfdb_ri_restore() {
+    local sd="$1" i p
+    while IFS=$'\t' read -r i p; do
+        [[ -n "$i" ]] || continue
+        cp -p -- "$sd/$i" "${p}.rollback.$$" && mv -f -- "${p}.rollback.$$" "$p" \
+            || echo "ERROR: rollback failed for $p" >&2
+        bejson_core_invalidate_field_map_file "$p" 2>/dev/null || true
+    done < "$sd/index.tsv"
+}
+
+# Runs plan + (snapshot, apply, rollback-on-failure) for a delete. Dynamic
+# scope: sets __MFDB_RI_* locals in the caller via the arrays it declares.
+# __mfdb_ri_cascade <manifest> <entity> <record_uuid> [extra_touched_path...]
+# Resolves dependents only (does NOT delete the record itself).
+__mfdb_ri_cascade() {
+    local manifest="$1" entity="$2" ru="$3"
+    local __MFDB_RI_INPATH="" __MFDB_RI_DELETED="" rc=0
+    local -a __MFDB_RI_OPS=()
+    __mfdb_ri_plan "$manifest" "$entity" "$ru" || return $?
+    [[ ${#__MFDB_RI_OPS[@]} -gt 0 ]] || return 0
+    local sd op o e u f touched=("$manifest")
+    for op in "${__MFDB_RI_OPS[@]}"; do
+        IFS=$'\t' read -r o e u f <<< "$op"
+        touched+=("$(mfdb_core_get_entity_path "$manifest" "$e")")
+    done
+    sd="$(mktemp -d)" || return $E_MFDB_CORE_WRITE_FAILED
+    __mfdb_ri_snapshot "$sd" "${touched[@]}"
+    if ! __mfdb_ri_apply "$manifest"; then
+        rc=$?; __mfdb_ri_restore "$sd"
+    fi
+    rm -rf "$sd"
+    return $rc
 }
 
 # __mfdb_ri_require105 <manifest> <entity> <legacy_fn_hint>  -> prints entity path
@@ -1385,11 +1482,26 @@ mfdb_core_delete_entity_record_105() {
         echo "ERROR: unknown record_uuid '$ru' in $entity" >&2
         return $E_RECORD_NOT_FOUND
     fi
+    # Two-phase: plan the whole cascade read-only first (restrict/cycle return
+    # before any file is touched), then commit dependents + the record itself as
+    # one unit, restoring every touched file from a snapshot if the commit fails.
+    local __MFDB_RI_INPATH="" __MFDB_RI_DELETED="" rc=0
+    local -a __MFDB_RI_OPS=()
     if mfdb_core_is_ref_integrity_enabled "$manifest"; then
-        __MFDB_RI_VISITED=""
-        __mfdb_ri_cascade "$manifest" "$entity" "$ru" || return $?
+        __mfdb_ri_plan "$manifest" "$entity" "$ru" || return $?
     fi
-    __mfdb_ri_delete_raw "$manifest" "$entity" "$ru"
+    local sd op o e u f touched=("$manifest" "$epath")
+    for op in "${__MFDB_RI_OPS[@]}"; do
+        IFS=$'\t' read -r o e u f <<< "$op"
+        touched+=("$(mfdb_core_get_entity_path "$manifest" "$e")")
+    done
+    sd="$(mktemp -d)" || return $E_MFDB_CORE_WRITE_FAILED
+    __mfdb_ri_snapshot "$sd" "${touched[@]}"
+    if ! { __mfdb_ri_apply "$manifest" && __mfdb_ri_delete_raw "$manifest" "$entity" "$ru"; }; then
+        rc=$?; __mfdb_ri_restore "$sd"
+    fi
+    rm -rf "$sd"
+    return $rc
 }
 
 export -f mfdb_core_enable_ref_integrity mfdb_core_disable_ref_integrity mfdb_core_is_ref_integrity_enabled

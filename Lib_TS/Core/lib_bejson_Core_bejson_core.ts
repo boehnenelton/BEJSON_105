@@ -6,12 +6,12 @@
  *                 do not restate or reinterpret this acronym elsewhere.
  * MFDB:           MFDB stands for Multi File Database. Authoritative definition;
  *                 do not restate or reinterpret this acronym elsewhere.
- * Version:        2.2.0
- * Date:           2026-10-03
+ * Version:        2.2.1
+ * Date:           2026-10-09
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  2178fd8e-ca34-460f-b109-2fedc4787fce
+ * RELATIONAL_ID:  94d67f37-566b-43a7-ac2e-825dd24a80ab
  * Release_Version: 300
  *
  * CHANGE (2026-08-08): LIB-C5 -- _keyCache was a single slot, same
@@ -340,11 +340,33 @@ export async function deriveKey(password: string, salt: Uint8Array): Promise<Cry
 // switching between more than 4 password/salt combos. Bumped to 12,
 // matching the JS sibling.
 const _KEY_CACHE_MAX_SLOTS = 12;
-const _keyCache: Array<{ password: string; salt: string; key: CryptoKey }> = [];
+const _keyCache: Array<{ fp: string; key: CryptoKey }> = [];
+
+// SECURITY (adversarial review, finding 5): never retain the plaintext
+// password. Lookup is by HMAC-SHA-256 fingerprint of (salt, password) under a
+// random per-process NON-extractable key.
+let _cacheMacKeyPromise: Promise<CryptoKey> | null = null;
+function _getCacheMacKey(): Promise<CryptoKey> {
+  if (!_cacheMacKeyPromise) {
+    _cacheMacKeyPromise = crypto.subtle.generateKey({ name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  }
+  return _cacheMacKeyPromise;
+}
+async function _cacheFingerprint(password: string, saltHex: string): Promise<string> {
+  const macKey = await _getCacheMacKey();
+  const data = new TextEncoder().encode(saltHex + "\u0000" + password);
+  const sig = await crypto.subtle.sign("HMAC", macKey, data as BufferSource);
+  return _ab2hex(sig);
+}
+/** Drop every cached derived key (call when a session/document is closed). */
+export function clearKeyCache(): void {
+  _keyCache.length = 0;
+}
 
 async function _getOrDeriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
   const saltHex = _ab2hex(salt as BufferSource);
-  const hitIdx = _keyCache.findIndex((e) => e.password === password && e.salt === saltHex);
+  const fp = await _cacheFingerprint(password, saltHex);
+  const hitIdx = _keyCache.findIndex((e) => e.fp === fp);
   if (hitIdx !== -1) {
     const [hit] = _keyCache.splice(hitIdx, 1);
     _keyCache.push(hit); // move to most-recently-used end
@@ -354,7 +376,7 @@ async function _getOrDeriveKey(password: string, salt: Uint8Array): Promise<Cryp
   if (_keyCache.length >= _KEY_CACHE_MAX_SLOTS) {
     _keyCache.shift(); // evict least-recently-used
   }
-  _keyCache.push({ password, salt: saltHex, key });
+  _keyCache.push({ fp, key });
   return key;
 }
 

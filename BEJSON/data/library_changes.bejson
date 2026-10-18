@@ -1,0 +1,845 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104",
+  "Format_Creator": "Elton Boehnen",
+  "Parent_Hierarchy": "../104a.mfdb.bejson",
+  "Records_Type": [
+    "Library_Changes"
+  ],
+  "Fields": [
+    {
+      "name": "LIBRARY_FAMILY",
+      "type": "string"
+    },
+    {
+      "name": "LANGUAGE",
+      "type": "string"
+    },
+    {
+      "name": "LIBRARY_FILE",
+      "type": "string"
+    },
+    {
+      "name": "CHANGE_DATE",
+      "type": "string"
+    },
+    {
+      "name": "CHANGE_DETAILS",
+      "type": "string"
+    }
+  ],
+  "Values": [
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/104a.mfdb.bejson",
+      "2026-07-18",
+      "Rebuilt manifest: added Families entity, bumped MFDB_Version/Schema_Version"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/errors.bejson",
+      "2026-07-18",
+      "Rebuilt as the global cross-family error code map; populated with Core, Core_Nesting, Cognition, MD codes across all languages"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/metadata.bejson",
+      "2026-07-18",
+      "Rebuilt with LIBRARY_FAMILY+LANGUAGE granularity; added ECOSYSTEM row (2.0.41)"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/library_changes.bejson",
+      "2026-07-18",
+      "Rebuilt changelog entity (this file) - now tracks LANGUAGE per entry"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/families.bejson",
+      "2026-07-18",
+      "New entity: registry of every family x language combo and whether it has an owned errors file"
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_errors.py",
+      "2026-07-18",
+      "v2.4.0: removed Core_Nesting (130-159) and Cognition (270-289) ranges, now owned by their own families"
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_errors.js",
+      "2026-07-18",
+      "v2.3.0: removed Core_Nesting (130-159) range (moved) and Cognition (270-275) range (deleted as dead code - no Lib_JS/Cognition family exists)"
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_types.ts",
+      "2026-07-18",
+      "v2.4.0: removed CORE_NESTING_CODES block, now owned by Core_Nesting family"
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_errors.sh",
+      "2026-07-18",
+      "v1.4.0: removed Core_Nesting (130-159) range, now owned by Core_Nesting family"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/metadata.bejson",
+      "2026-07-18",
+      "Redesigned as EAV-style (RECORD_TYPE/KEY/VALUE) to hold both per-family versions AND governance rules (Core language-parity requirement, MFDB-is-part-of-Core), per Elton's clarification"
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core.py",
+      "2026-07-21",
+      "v2.0.4: added BEJSON acronym clarification (BOEHNEN ELTON JSON) to header per Elton's direct order"
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_core.js",
+      "2026-07-21",
+      "v2.0.4: added BEJSON acronym clarification (BOEHNEN ELTON JSON) to header per Elton's direct order"
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_core.ts",
+      "2026-07-21",
+      "v2.1.2: added BEJSON acronym clarification (BOEHNEN ELTON JSON) to header per Elton's direct order"
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_core.sh",
+      "2026-07-21",
+      "v2.0.4: added BEJSON acronym clarification (BOEHNEN ELTON JSON) to header per Elton's direct order"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/metadata.bejson",
+      "2026-07-21",
+      "Schema v3.1: added BEJSON_ACRONYM_DEFINITION rule (BOEHNEN ELTON JSON) and PMS_DEPRECATED rule; bumped ECOSYSTEM version to 2.0.42"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/104a.mfdb.bejson",
+      "2026-07-21",
+      "Manifest v1.33/Schema 2.2.0: bumped Metadata and Library_Changes record_count to reflect this session's additions"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/dependencies.bejson",
+      "2026-07-21",
+      "New entity (Task 1 of MFDB expansion plan): 167 import/require/source edges scanned across Lib_PY, Lib_JS, Lib_TS, Lib_SH"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/104a.mfdb.bejson",
+      "2026-07-21",
+      "Manifest v1.34/Schema 2.3.0: registered Dependencies entity, record_count 167"
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_chunking.py",
+      "2026-07-21",
+      "MFDB-132 self-identification fix: create_mfdb132_package now overwrites Schema_Name->'MFDB-132' and Records_Type->['MFDB-132'] instead of inheriting Chunked-104a identity"
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_mfdb_validator.py",
+      "2026-07-21",
+      "is_mfdb132_package/validate_mfdb132_package now check for Schema_Name=='MFDB-132' and Records_Type==['MFDB-132'] instead of the old Chunked-104a values"
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_chunking.ts",
+      "2026-07-21",
+      "MFDB-132 self-identification fix: same Schema_Name/Records_Type overwrite as PY"
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_mfdb_validators.ts",
+      "2026-07-21",
+      "isMfdb132Package/validateMfdb132Package updated to check MFDB-132 identity instead of Chunked-104a"
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_chunking.sh",
+      "2026-07-21",
+      "MFDB-132 self-identification fix: same Schema_Name/Records_Type overwrite as PY (via jq)"
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_mfdb_validator.sh",
+      "2026-07-21",
+      "mfdb_validator_is_mfdb132_package/validate_mfdb132_package updated to check MFDB-132 identity instead of Chunked-104a"
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_chunking.js",
+      "2026-07-21",
+      "MFDB-132 self-identification fix: same Schema_Name/Records_Type overwrite as PY"
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_mfdb_validator.js",
+      "2026-07-21",
+      "mfdb_validator_is_mfdb132_package/validate_mfdb132_package updated to check MFDB-132 identity instead of Chunked-104a"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/templates.bejson",
+      "2026-07-22",
+      "New entity (Task 2 of MFDB expansion plan): 6 rows - PY/JS-TS/SH file header templates, new-family errors skeleton (PY), MFDB entity skeleton, MFDB manifest skeleton"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/104a.mfdb.bejson",
+      "2026-07-22",
+      "Manifest v1.36/Schema 2.4.0: registered Templates entity, record_count 6"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/data/schemas.bejson",
+      "2026-07-22",
+      "New entity (Task 3 of MFDB expansion plan): 9 rows inventorying every SCHEMA_* constant found across Lib_PY. Resolved SCHEMA_MFDB_ENTITY_v5/SCHEMA_MFDB_ENTITY as a true duplicate (byte-identical fields, diffed) - merged to one row. Resolved SCHEMA_MODEL_REGISTRY as a name collision, not a duplicate (Core=Gemini AI_Model schema, AI=OpenRouterModelRegistry schema, genuinely different fields/Records_Type) - kept as two rows, flagged the shared constant name for a future rename pass."
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/104a.mfdb.bejson",
+      "2026-07-22",
+      "Manifest v1.37/Schema 2.5.0: registered Schemas entity, record_count 9"
+    ],
+    [
+      "MFDB",
+      "N/A",
+      "BEJSON/MFDB/104a.mfdb.bejson",
+      "2026-07-24",
+      "Manifest v1.38/Schema 2.5.1: registered GeminiModelRegistry entity (Lib_PY/AI/gemini_model_registry.104a.bejson, 12 rows, PK model_id). File existed on disk but was never registered until this entry -- change log had gone stale after the 2026-07-22 Schemas-entity bump and was never updated for this registration. Filed retroactively during the 2026-08-15 registry-drift audit/cleanup pass."
+    ],
+    [
+      "Core",
+      "N/A",
+      "context.bejson",
+      "2026-08-15",
+      "LOW-1 remediation: fixed typos in the Release_Versioning entry text ('to o declare' -> 'to declare', stray 'IAll' -> 'All', 'Core A BEJSON' -> 'Core BEJSON'). Content meaning unchanged, wording now matches the intended policy statement. Valid JSON verified post-edit."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/lib_bejson_Core_bejson_core.py",
+      "2026-08-15",
+      "v2.0.5->3.0.0: Format105_Master_Plan_Rev2 Phase 2 (\u00a72.1-\u00a72.6) landed -- resolve_field_index, write_cell (dual-key heal), add_field/add_record_105/remove_field/delete_record, transaction batching + content-hash cache, verify_105_integrity. Additive; 104-series paths byte-identical. Deviation flagged: add_record_105 ships under a new name rather than overloading the existing bejson_core_add_record (live callers elsewhere have an incompatible signature). Bugfix vs. plan draft: add_field now pads existing Values rows to preserve positional integrity."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/lib_bejson_Core_bejson_validator.py",
+      "2026-08-15",
+      "v2.0.3->3.0.0: Phase 3 (\u00a73.1-\u00a73.2) -- 105/105a/105db registered in VALID_VERSIONS, new bejson_validator_check_105_strict_integrity(), single added branch in validate_bejson(). 104-series call sequence untouched."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/lib_bejson_Core_bejson_upgrade.py",
+      "2026-08-15",
+      "New file v1.0.0: Phase 4 (\u00a74.1) bejson_core_upgrade_to_105() -- backup to Backups/*.104.bak, atomic temp-then-replace swap, validated before commit. Round-trip + interrupted-write + 104db-discriminator tests all pass."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/cli/bejson_upgrade_cli.py",
+      "2026-08-15",
+      "New file v1.0.0: Phase 4 (\u00a74.2) --dry-run CLI, 3-line output template."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/lib_bejson_Core_bejson_errors.py",
+      "2026-08-15",
+      "v2.4.0->2.5.0: reserved error codes 80-89 (Appendix B); 80-85 assigned (E_FIELD_INTEGRITY_MISMATCH, E_FORMAT_UNSUPPORTED, E_RECORD_NOT_FOUND, E_UPGRADE_VALIDATION_FAILED, E_DUPLICATE_FIELD_NAME, E_DUPLICATE_FIELD_UUID); 86-89 held unassigned."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/tests/test_format105_suite.py",
+      "2026-08-16",
+      "New file v1.0.0: 65-case unittest suite covering every Format105 function (resolve_field_index, write_cell, add_field, add_record_105, remove_field, delete_record, transaction, serialize, verify_105_integrity, upgrade_to_105/dry_run, validator strict-integrity, upgrade_cli.py end-to-end) plus a 104/104a/104db regression class. Every test creates its own real file in a fresh temp dir (setUp) and deletes it (tearDown) -- zero shared state, zero leftover files. 65/65 pass. One real bug caught: the 104db test fixture itself was missing the required Record_Type_Parent marker -- fixed in the fixture, not the library."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_upgrade.py",
+      "2026-08-16",
+      "v1.0.0->1.0.1: AUDIT FIX -- 104a sources were silently upgrading to 105 instead of 105a (bug inherited from the master plan Rev.2 \u00a74.1 example code itself; the original test suite had zero 104a coverage and missed it). Now maps 104->105/104a->105a/104db->105db explicitly in both upgrade_to_105() and upgrade_dry_run(). Removed unused typing.Optional import."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core.py",
+      "2026-08-16",
+      "v3.0.0->3.0.1: AUDIT FIX -- removed two dead imports (E_UPGRADE_VALIDATION_FAILED, E_DUPLICATE_FIELD_UUID) that were imported but never referenced in this file."
+    ],
+    [
+      "Core",
+      "PY",
+      "cli/bejson_upgrade_cli.py",
+      "2026-08-16",
+      "v1.0.0->1.0.1: AUDIT FIX -- self-location now uses the mandated SCRIPT_PATH = Path(__file__).resolve().parent pattern (Policy \u00a74.1) instead of a bare os.path chain."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/tests/test_format105_suite.py",
+      "2026-08-16",
+      "v1.0.0->1.1.0: added TestUpgradeTo105a class (5 cases) after audit found zero 104a coverage in the original 65-case suite -- the exact gap that let the 104a->105 bug through. Suite now 70/70."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_validator.py",
+      "2026-08-19",
+      "v3.0.0->3.1.0: MERGE -- a parallel session independently added strict Field-type enforcement (VALID_FIELD_TYPES, 6 canonical types) on the pre-105 baseline as v2.1.0. Merged into the 105-series line rather than picking one lineage. Runs unconditionally across all versions incl. 105/105a/105db."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_mfdb_core.py",
+      "2026-08-19",
+      "v2.3.0->3.0.0: Phase 6 -- 105-series Referential Integrity. Ref_Integrity manifest switch (enable/disable, same convention as Debug_Mode). FK declared on the Field dict (fk_target_entity, fk_on_delete: restrict/cascade/null). New mfdb_core_create_entity_file/create_database format_version param (default \"104\", unchanged; \"105\" stamps field_uuid). New mfdb_core_add/update/delete_entity_record_105 -- uuid-addressed CRUD with write-time FK exists-check and delete-time cascade/restrict/null resolution (cycle-guarded). mfdb_core_check_entity_droppable() read-only entity-level check. Zero changes to any 104-series code path -- every new function gates on Format_Version up front."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_mfdb_validator.py",
+      "2026-08-19",
+      "v2.2.0->2.3.0: mfdb_validator_check_referential_integrity() standalone audit, strict_fk param on validate_mfdb_database() finally wired (existed since 2.2.0, dead until now). BUG FIX: _rows_as_dicts() misaligned every column for any 105-series entity (no awareness of the reserved record_uuid column) -- caught by the new test suite, fixed, 104-series path untouched. BUG FIX: validate_mfdb_entity_file() hardcoded Format_Version==\"104\", rejecting every 105-series entity outright -- widened to accept 105/105a/105db."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_errors.py",
+      "2026-08-19",
+      "v2.5.0->2.6.0: added 43-47 for 105-series MFDB Referential Integrity, reused pre-existing E_MFDB_FK_UNRESOLVED (39) rather than duplicating it."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/tests/test_mfdb_ref_integrity_suite.py",
+      "2026-08-19",
+      "New file v1.0.0: 31-case suite for Phase 6, real MFDB create/delete per test. Caught 2 real pre-existing bugs in mfdb_validator.py (see above) that had nothing to do with ref integrity itself -- just never had a 105-series entity exercised through that code path before."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core.py",
+      "2026-08-22",
+      "v3.0.1->3.1.0: Phase 8 -- bejson_core_define_field() (eager-validated field creation, the one sanctioned entry point), bejson_core_upsert_105(), bejson_core_row_checksum()/verify_row_checksums() (104+105), bejson_core_paginate_105() (cursor-based, 105-only). BUG FIX during testing: upsert_105 insert-path silently dropped unknown field keys in values instead of raising like the update-path did -- now validates all keys up front, before branching."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_validator.py",
+      "2026-08-22",
+      "v3.1.0->3.2.0: bejson_validator_check_105_schema_constraints() -- required, unique, enum, min/max, minLength/maxLength. Audit-only, wired into validate_bejson() as a second added branch for 105-series. Every key independently opt-in; fields declaring none of them are skipped without a row scan."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_errors.py",
+      "2026-08-22",
+      "v2.6.0->2.7.0: added 90-94 for 105-series Schema Constraints (E_REQUIRED_FIELD_NULL, E_UNIQUE_CONSTRAINT_VIOLATION, E_ENUM_VALUE_INVALID, E_VALUE_OUT_OF_RANGE, E_LENGTH_OUT_OF_RANGE). 95-97 held for pattern/immutable/default."
+    ],
+    [
+      "Core",
+      "PY",
+      "Lib_PY/Core/tests/test_phase8_suite.py",
+      "2026-08-22",
+      "New file v1.0.0: 54-case suite covering all 8 Phase 8 additions. Caught 1 real bug (see bejson_core.py entry above)."
+    ],
+    [
+      "Core",
+      "PY",
+      "Phase8_Demo/demo_phase8.py",
+      "2026-08-22",
+      "New file v1.0.0: standalone interactive demo (not unittest) -- creates a real MFDB database, walks all 8 Phase 8 additions one step at a time with input() pauses between each, writes a full transcript to results/demo_report.txt alongside the actual generated database at results/demo_db/. Caught one bug during first run: the demo's own bad-record test data had two field values swapped (email/username), which silently reduced the schema-constraint violations from 4 to 2. Bug was in the demo script, not the library -- confirmed via isolated repro against bejson_validator_check_105_schema_constraints() directly, which caught all 4 violations correctly. Fixed the demo's field ordering."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_types.ts",
+      "2026-08-25",
+      "v2.4.0->2.5.0: BEJSONVersion widened to 105/105a/105db, BEJSONField widened with Phase 2/6/8 optional keys, new BEJSON_105_CODES block (80-85,90-94) numerically mirroring the Python registry. MFDB Referential Integrity codes (43-47) deliberately not added yet."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_core_105.ts",
+      "2026-08-25",
+      "New file v1.0.0: resolveFieldIndex, writeCell, defineField (supersedes a bare addField -- see file header), addRecord105, removeField, deleteRecord105, verify105Integrity, upgradeTo105 (pure in-memory, no disk I/O -- matches this library's existing zero-fs-coupling design), upsert105, rowChecksum/verifyRowChecksums (async, uses crypto.subtle matching existing encryptRecord/decryptRecord), paginate105. Immutable-return contract throughout, matching appendRecord/updateRecord/deleteRecord/setFieldValue's existing convention in lib_bejson_Core_bejson_core.ts."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_validators.ts",
+      "2026-08-25",
+      "v2.0.2->2.1.0: validVersions widened to include 105/105a/105db, check105StrictIntegrity()/check105SchemaConstraints() added and wired into validateDocument() as a guarded branch replacing _checkValues() for 105-series. 104-series call sequence untouched."
+    ],
+    [
+      "Core",
+      "TS",
+      "index.ts",
+      "2026-08-25",
+      "v2.0.3->2.0.4: export the new bejson_core_105.ts module and the two new validator check functions."
+    ],
+    [
+      "Core",
+      "TS",
+      "Lib_TS/Core/tests/test_phase_105_parity.ts",
+      "2026-08-25",
+      "New file v1.0.0: 58-case functional suite (no test framework dependency, matching this library's existing lack of one), covering every new function plus a 104-series regression section. Compiled and run from the real final library location with the exact documented tsc/node commands before delivery; 58/58 pass."
+    ],
+    [
+      "Core",
+      "TS",
+      "index.ts",
+      "2026-08-26",
+      "v2.0.4->2.0.5: BUG FIX (architecture) -- removed 7 export*from \"../Gaming/...\" lines. Core is a leaf dependency; Core must never import from a feature family. Predates this session entirely (present since at least v2.0.3). Checked the rest of Lib_TS/Core and all of Lib_PY/Core for the same pattern -- this was the only instance. Found while extracting a Core-only zip for Elton, who was (rightly) furious that a 'Core' package pulled in Gaming."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_types.ts",
+      "2026-08-26",
+      "v2.5.0->2.6.0: added FK_TARGET_ENTITY_UNKNOWN(43)/FK_RESTRICT_VIOLATION(44)/FK_CASCADE_CYCLE(45)/FK_ENTITY_STILL_REFERENCED(46)/FK_INVALID_ON_DELETE(47) to MFDB_VALIDATION_CODES, numerically mirroring Python. Reused pre-existing FK_UNRESOLVED(39)."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_mfdb_validators.ts",
+      "2026-08-26",
+      "v2.1.0->2.2.0: checkReferentialIntegrity() standalone audit, wired into validateDatabase() additively alongside the pre-existing name-convention-based _checkFKResolution(). Pure function, no disk I/O, matches validateDatabase's existing Map<file_path,doc> contract."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_mfdb_core.ts",
+      "2026-08-26",
+      "v2.2.0->2.3.0: Phase 6 enforcement helpers -- enableRefIntegrity/disableRefIntegrity/isRefIntegrityEnabled (advisory -- no entity-CRUD wrapper exists in this file to auto-gate, unlike Python), checkFKWrite, checkEntityDroppable, resolveDeleteDependents (cycle-guarded cascade/restrict/null, immutable, built on the already-tested writeCell/deleteRecord105 from Phase 2.7 rather than hand-rolled row manipulation). KNOWN BUG found, not fixed (shared, outside Phase 6 scope): registerEntity() crashes via parseInt(null,10) when record_count is omitted."
+    ],
+    [
+      "Core",
+      "TS",
+      "Lib_TS/Core/tests/test_phase6_ref_integrity.ts",
+      "2026-08-26",
+      "New file v1.0.0: 24-case suite, entirely in-memory (zero filesystem, sidesteps the pre-existing fs/path bug in the unrelated Node-only debug/federation functions). 82/82 total across both TS suites confirmed before delivery."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_errors.py",
+      "2026-09-13",
+      "v2.7.0->2.8.0: AUDIT FIX (C1) -- renumbered 105-series Schema Constraints 90-94 -> 110-114. 90-94 collided with MD's 90-99 range (5th claim-then-collide occurrence). errors.bejson is now the required check-before-claim source of truth for any new Core range."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_types.ts",
+      "2026-09-13",
+      "v2.7.0->2.8.0: AUDIT FIX (C1) -- BEJSON_105_CODES renumbered 90-94 -> 110-114 to match the PY fix. Consumers use named E105.* constants, no call-site changes needed."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_mfdb_validator.sh",
+      "2026-09-13",
+      "v2.1.1->2.2.0: AUDIT FIX (H1) -- added mfdb_validator_validate_entity_file and mfdb_validator_validate_database (ported from PY). lib_bejson_Core_bejson_chunking.sh's mfdb132_archive_mount/commit called validate_database unguarded; it did not exist in SH, so both call sites hit 'command not found' at runtime. Verified against real fixtures (pass + two failure paths) before delivery. strict_fk accepted for signature parity, documented no-op until referential-integrity checking is ported to SH."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_errors.sh",
+      "2026-09-13",
+      "v1.5.0->1.6.0: AUDIT FIX (H2) -- SH was three generations behind, ending at code 72. Added 43-47 (MFDB Referential Integrity), 80-85 (Format 105 Integrity Era), 110-114 (Format 105 Schema Constraints, added directly at the post-C1 numbers). SH now matches the PY/JS/TS error surface."
+    ],
+    [
+      "Core",
+      "JS",
+      "Lib_JS/Core/*",
+      "2026-09-13",
+      "AUDIT FIX (H3), scope correction per Elton: removed the 8 mislabeled gaming-engine files from Lib_JS/Core entirely rather than relocating them anywhere in this package (bejson_assets.js, bejson_grid.js, bejson_physics.js, bejson_renderer.js, bejson_input.js, bejson_ui_screens.js, bejson_events.js, bejson_engine_core.js). Only the Core family is on 105 right now -- there is no 105 Gaming family and none is being created. Files pulled out to removed_non_core/ pending Elton's direction on where (if anywhere) they belong; nothing else in Lib_JS/Core imported them, confirmed by dependency grep before removal."
+    ],
+    [
+      "Core",
+      "Package",
+      "libraries_105.zip (root/tree)",
+      "2026-09-15",
+      "POST-DELIVERY AUDIT: removed a leaked Environment_Deployment_Tool artifact (a directory literally named ' containing download_maintenance_service.log/.lock from /storage/emulated/0/.env, pulled in by a packaging quoting bug upstream, not related to 105 libraries at all); removed all __pycache__ directories (5 locations, ~660KB of compiled bytecode); removed Lib_PY/Core/cli/CLI_Doc_Chunker/ entirely -- a full standalone Flask app (own .bejson_project.json + .bak, templates, static assets, live data file) that does not declare Family: Core anywhere and is not part of this library, matching the same violation class as H3's gaming files; deleted a dead 0-byte audit.md. Flagged but did NOT touch: gemini_showcase_intro.py / showcase/showcase_master.py both declare Family: Core but have blank Description and Date: Unknown -- header-policy violation (Sec 9.1), needs real content from Elton rather than an invented one."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_parse.py",
+      "2026-09-15",
+      "v2.1.0->2.1.1: BEST-PRACTICES FIX (policy 7.3): replaced print() with logging.warning() in the backup-copy exception handler -- ran inside real library logic, not a __main__ guard."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_static_backend.py",
+      "2026-09-15",
+      "v2.1.0->2.1.1: BEST-PRACTICES FIX (policy 7.3): replaced print() with logging.error() in _load_mfdb's malformed-manifest branch. Return-{} contract on failure left unchanged."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_errors.py",
+      "2026-09-25",
+      "v2.8.0->2.9.0: REMOVED 110-114 Schema Constraints block (required/unique/enum/range/length) per Be25. Field UUID (84-85) and FK/cascade (43-47) kept."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_validator.py",
+      "2026-09-25",
+      "v3.2.0->3.3.0: REMOVED bejson_validator_check_105_schema_constraints() and its call in validate_bejson()."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core.py",
+      "2026-09-25",
+      "v3.1.0->3.2.0: define_field() drops required/unique/enum/min/max/minLength/maxLength; FK options kept."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_types.ts",
+      "2026-09-25",
+      "v2.8.0->2.9.0: REMOVED 110-114 from BEJSON_105_CODES and constraint keys from BEJSONField."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_validators.ts",
+      "2026-09-25",
+      "v2.1.0->2.2.0: REMOVED check105SchemaConstraints() + call site; dropped unused imports."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_core_105.ts",
+      "2026-09-25",
+      "v1.1.0->1.2.0: defineField() drops constraint options; FK options kept."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_errors.sh",
+      "2026-09-25",
+      "v1.6.0->1.7.0: REMOVED 110-114 constants."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core.py",
+      "2026-09-25",
+      "v3.2.0->3.3.0: REMOVED upsert_105, row_checksum, verify_row_checksums, paginate_105 per Be25. Kept: UUID functions, FK/cascade, UUID-aware field map (by_name/by_uuid)."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_core_105.ts",
+      "2026-09-25",
+      "v1.2.0->1.3.0: REMOVED upsert105, rowChecksum, verifyRowChecksums, paginate105. Lookups now use cached UUID-aware field map instead of findIndex scans."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_field_map.ts",
+      "2026-09-25",
+      "v2.1.1->2.2.0: ADDED bejson_core_get_field_map_105() (byName + byUuid) mirroring PY by_name/by_uuid; clear_field_map_cache clears both."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core.py",
+      "2026-10-02",
+      "v3.3.0->3.4.0: SELF-MAINTAINING 105 field map (validated on every lookup/read, warmed on load/upgrade). FIXED get_field_index returning -1 after any 105 op and KeyError 'content_hash' on plain-then-105 calls. get_field_map/get_field_index on 105 docs now return row positions."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_upgrade.py",
+      "2026-10-02",
+      "v1.0.1->1.0.2: upgrade_to_105 returns a doc with its field map already built."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_field_map.ts",
+      "2026-10-02",
+      "v2.2.0->2.3.0: get_field_map_105 self-validates every call; per-document WeakMap replaces a never-evicting global Map."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core_nesting.py",
+      "2026-10-14",
+      "0.5.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_core_nesting.py, 0.4.5). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_nesting_query.py",
+      "2026-10-14",
+      "0.2.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_nesting_query.py, 0.1.3). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_nesting_errors.py",
+      "2026-10-14",
+      "1.1.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_errors.py, 1.0.2). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_core_nesting.js",
+      "2026-10-14",
+      "0.5.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_core_nesting.js, 0.4.5). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_nesting_query.js",
+      "2026-10-14",
+      "0.2.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_nesting_query.js, 0.1.5). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_nesting_errors.js",
+      "2026-10-14",
+      "1.1.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_errors.js, 1.0.2). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_core_nesting.ts",
+      "2026-10-14",
+      "0.5.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_core_nesting.ts, 0.4.5). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_nesting_query.ts",
+      "2026-10-14",
+      "0.2.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_nesting_query.ts, 0.1.5). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_nesting_errors.ts",
+      "2026-10-14",
+      "1.1.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_errors.ts, 1.0.2). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_core_nesting.sh",
+      "2026-10-14",
+      "0.5.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_core_nesting.sh, 0.4.5). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_nesting_query.sh",
+      "2026-10-14",
+      "0.2.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_nesting_query.sh, 0.1.5). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_nesting_errors.sh",
+      "2026-10-14",
+      "1.1.0: moved from the Core_Nesting family into Core (was lib_bejson_CoreNesting_bejson_errors.sh, 1.0.2). Renamed; same-directory imports updated. No code, API, error-code (130-139) or output change. Core_Nesting dependency/metadata/families rows folded into Core."
+    ],
+    [
+      "Core",
+      "ALL",
+      "Lib_*/Core/tests/test_nesting_smoke.*",
+      "2026-10-14",
+      "1.0.0: new smoke/behavior tests for the nesting modules (scan, mutate, query, error codes). SH scan/query recorded as expected-fail: pre-existing defect in _nesting_quick_validate_104 (jq keys[] scoping) makes SH reject every nested doc."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_env.py",
+      "2026-10-13",
+      "2.3.0: new source_env_fill() (secureenv_file.json + numbered env slots); existing functions unchanged. Registered 2026-10-14 (change was in dev/change-log.md only)."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_errors.py",
+      "2026-10-16",
+      "2.5.0: Core nesting codes 130-139 (E_NESTING_* constants) moved in from lib_bejson_Core_bejson_nesting_errors.py, which is removed; Core resolves every code through this file. Codes, names and values unchanged."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core_nesting.py",
+      "2026-10-16",
+      "0.5.1: error codes now resolved from the Core error file (nesting errors file removed). No behavior change."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_nesting_query.py",
+      "2026-10-16",
+      "0.2.1: error codes now resolved from the Core error file (nesting errors file removed). No behavior change."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_errors.js",
+      "2026-10-16",
+      "2.4.0: Core nesting codes 130-139 (E_NESTING_* constants) moved in from lib_bejson_Core_bejson_nesting_errors.js, which is removed; Core resolves every code through this file. Codes, names and values unchanged."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_core_nesting.js",
+      "2026-10-16",
+      "0.5.1: error codes now resolved from the Core error file (nesting errors file removed). No behavior change."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_nesting_query.js",
+      "2026-10-16",
+      "0.2.1: error codes now resolved from the Core error file (nesting errors file removed). No behavior change."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_errors.sh",
+      "2026-10-16",
+      "1.6.0: Core nesting codes 130-139 (E_NESTING_* constants) moved in from lib_bejson_Core_bejson_nesting_errors.sh, which is removed; Core resolves every code through this file. Codes, names and values unchanged."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_core_nesting.sh",
+      "2026-10-16",
+      "0.5.1: error codes now resolved from the Core error file (nesting errors file removed). No behavior change."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_nesting_query.sh",
+      "2026-10-16",
+      "0.2.1: error codes now resolved from the Core error file (nesting errors file removed). No behavior change."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_types.ts",
+      "2026-10-16",
+      "2.5.0: Core nesting codes 130-139 (CORE_NESTING_ERRORS) moved in from lib_bejson_Core_bejson_nesting_errors.ts, which is removed; Core resolves every code through this file. Codes, names and values unchanged."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_core_nesting.ts",
+      "2026-10-16",
+      "0.5.1: error codes now resolved from the Core error file (nesting errors file removed). No behavior change."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_nesting_query.ts",
+      "2026-10-16",
+      "0.2.1: error codes now resolved from the Core error file (nesting errors file removed). No behavior change."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_core_nesting.py",
+      "2026-10-16",
+      "0.6.0: Merged lib_bejson_Core_bejson_nesting_query into this module (query module removed, no alias); validation delegates to the Core validator and field maps to the Core field-map cache; no-RELATIONAL_ID fingerprint now hashes Fields + Values (fixes stale cache hits between same-schema documents)."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_core_nesting.js",
+      "2026-10-16",
+      "0.6.0: Merged lib_bejson_Core_bejson_nesting_query into this module (query module removed, no alias); validation delegates to the Core validator and field maps to the Core field-map cache; no-RELATIONAL_ID fingerprint now hashes Fields + Values (fixes stale cache hits between same-schema documents)."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_core_nesting.ts",
+      "2026-10-16",
+      "0.6.0: Merged lib_bejson_Core_bejson_nesting_query into this module (query module removed, no alias); validation delegates to the Core validator and field maps to the Core field-map cache; no-RELATIONAL_ID fingerprint now hashes Fields + Values (fixes stale cache hits between same-schema documents)."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_core_nesting.sh",
+      "2026-10-16",
+      "0.6.0: Merged lib_bejson_Core_bejson_nesting_query into this module (no alias); fixed scan rejecting every nested doc (jq mandatory-key test), valid cells also counted invalid, query skipping null/false cells and returning strings; fingerprint hashes Fields + Values. Validation stays local (Core Bash validator is file-based)."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_validator.js",
+      "2026-10-16",
+      "2.1.0: added bejson_validator_validate_object (isolated in-memory validation that preserves the caller's state); Format_Creator must be 'Elton Boehnen' (was any string), matching the PY/TS/SH validators."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_errors.js",
+      "2026-10-16",
+      "2.5.0: added E_MFDB_CORE_DUPLICATE_ENTITY_NAME (57), RECORD_COUNT_SYNC_FAILED (58), NULL_MANIFEST (59), ENTITY_NOT_IN_MANIFEST (60); registry now matches Python (66 codes)."
+    ],
+    [
+      "Core",
+      "SH",
+      "lib_bejson_Core_bejson_errors.sh",
+      "2026-10-16",
+      "1.7.0: added E_CORE_PARSE_ERROR (17), SERIALIZATION_ERROR (18), NULL_DOCUMENT (19) and MFDB codes 57-60; registry now matches Python (66 codes)."
+    ]
+  ]
+}

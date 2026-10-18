@@ -1,41 +1,35 @@
 /**
- * Library:        lib_bejson_Core_bejson_bejson.js
- * Family:         Core
- * Description:    Recursive BEJSON utility for managing BEJSON files within BEJSON.
- * Version:        2.1.0
- * Date:           2026-09-13
- * Author:         Elton Boehnen
- * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
- * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  1d9e6b3a-4f2c-4a81-8e5d-7c3b9f1a6d24
+ * Library:         lib_bejson_Core_bejson_bejson.js
+ * Family:          Core
+ * Module Purpose:  Browser facade (window.BEJSON_Switch.BEJSON) with create104 / create104a / create104db factories and a Format_Creator check.
+ * Architecture:    Format-level BEJSON layer that works on any BEJSON document (104, 104a, 104db) through positional Fields/Values and the field-map cache. It does not orchestrate MFDB and is not specific to 104db.
+ * Format_Scope:    104 | 104a | 104db (generic)
+ * Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+ *                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+ *                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+ * Version:         2.0.7
  * Release_Version: 300
- *
- * Changelog:
- *   2.1.0 - AUDIT FIX (H5): removed trailing `export default`/`export {}`
- *           (dead -- no file in this chunk imports it via ESM, and the
- *           referenced bejson_game.js does not exist here). Also replaced
- *           unconditional top-level `window.*` references with a
- *           `_globalCtx` (window || globalThis) guard so the module can be
- *           `require()`-d under Node without throwing before it even
- *           reaches the CommonJS export line. Now loads correctly in both
- *           Node (CJS) and the browser, matching the sibling convention
- *           already fixed in lib_bejson_Core_bejson_chunking.js (v1.8.0).
+ * Date:            2026-10-02
+ * Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+ * Format_Creator:  Elton Boehnen
+ * RELATIONAL_ID:   471e8ad0-b44d-43d6-b968-24dc4014ce98
  */
 
 'use strict';
 
 let BEJSON;
-const _hasWindow = typeof window !== 'undefined';
-const _globalCtx = _hasWindow ? window : (typeof globalThis !== 'undefined' ? globalThis : {});
 
 (function () {
-    _globalCtx.Core = _globalCtx.Core || {};
-    _globalCtx.BEJSON_Switch = _globalCtx.BEJSON_Switch || {};
-    const BEJSON_Switch = _globalCtx.BEJSON_Switch;
+    window.Core = window.Core || {};
+    window.BEJSON_Switch = window.BEJSON_Switch || {};
+    const BEJSON_Switch = window.BEJSON_Switch;
 
     BEJSON = {
         version: "1.0",
 
+        /**
+         * Factory: new BEJSON 104 document -- exactly ONE record type, strict (no custom top-level keys). Also the format of every MFDB entity file.
+         */
         create104(recordType, fields, values) {
             return {
                 Format: "BEJSON",
@@ -47,6 +41,9 @@ const _globalCtx = _hasWindow ? window : (typeof globalThis !== 'undefined' ? gl
             };
         },
 
+        /**
+         * Factory: new BEJSON 104a document -- one record type plus optional custom headers (metadata). Also the format of the MFDB manifest.
+         */
         create104a(recordType, fields, values, metadata = {}) {
             return {
                 Format: "BEJSON",
@@ -59,6 +56,9 @@ const _globalCtx = _hasWindow ? window : (typeof globalThis !== 'undefined' ? gl
             };
         },
 
+        /**
+         * Factory: new BEJSON 104db document -- ONE file holding 2+ record types, Record_Type_Parent first, per-field Record_Type_Parent ownership, null-padding. Single-file format; not MFDB.
+         */
         create104db(recordTypes, fields, values) {
             return {
                 Format: "BEJSON",
@@ -70,29 +70,42 @@ const _globalCtx = _hasWindow ? window : (typeof globalThis !== 'undefined' ? gl
             };
         },
 
+        /**
+         * Column index of a field by name (-1 if missing). Linear scan; prefer bejson_core_get_field_map for repeated lookups.
+         */
         getFieldIndex(doc, fieldName) {
             return doc.Fields.findIndex(f => f.name === fieldName);
         },
 
+        /**
+         * Returns the rows where fieldName equals value.
+         */
         query(doc, fieldName, value) {
             const idx = this.getFieldIndex(doc, fieldName);
             if (idx === -1) return [];
             return doc.Values.filter(row => row[idx] === value);
         },
 
+        /**
+         * Quick structural check: Format is BEJSON, Format_Version is 104, 104a or 104db, and Fields/Values exist. Not full validation.
+         */
         isValid(doc) {
             return !!(doc && doc.Format === "BEJSON" && ["104", "104a", "104db"].includes(doc.Format_Version) && doc.Format_Creator === "Elton Boehnen");
         }
     };
 
-    // Assign to BEJSON_Switch namespace (Gaming libraries) and global.BEJSON.Core
+    // Assign to BEJSON_Switch namespace (Gaming libraries) and window.BEJSON.Core
     BEJSON_Switch.BEJSON = BEJSON;
-    _globalCtx.Core.BEJSON = BEJSON;
-    _globalCtx.BEJSON = _globalCtx.BEJSON || {};
-    _globalCtx.BEJSON.Core = BEJSON;
+    window.Core.BEJSON = BEJSON;
+    window.BEJSON = window.BEJSON || {};
+    window.BEJSON.Core = BEJSON;
 
     // CommonJS export
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = BEJSON;
     }
 })();
+
+// ES module export (consumed by bejson_game.js via `import BEJSON from`)
+export default BEJSON;
+export { BEJSON };

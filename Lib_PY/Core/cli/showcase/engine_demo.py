@@ -1,13 +1,14 @@
 """
-Library:        engine_demo.py
-Family:         Core
-Description:    
-Version:        2.0.3
-Date:           Unknown
-Author:         Elton Boehnen
-Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-Format_Creator: Elton Boehnen
-RELATIONAL_ID:  fdd8d06e-89f7-4f59-a706-9fad6230504d
+Library:         engine_demo.py
+Family:          showcase
+Module Purpose:  Version: 2.0.3
+Architecture:    MFDB provides multi-file database federation coordinating a 104a central manifest (104a.mfdb.bejson) with dense 104 entity tables, supporting atomic transaction locks and cross-disk relational foreign keys.
+Version:         2.0.3
+Release_Version: 300
+Date:            2026-09-14
+Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+Format_Creator:  Elton Boehnen
+RELATIONAL_ID:   fdd8d06e-89f7-4f59-a706-9fad6230504d
 """
 
 #!/usr/bin/env python3

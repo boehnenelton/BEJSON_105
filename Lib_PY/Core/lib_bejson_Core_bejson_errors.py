@@ -153,3 +153,23 @@ E_UPGRADE_VALIDATION_FAILED          = 83  # bejson_core_upgrade_to_105 built a 
 E_DUPLICATE_FIELD_NAME               = 84  # add_field called with a name already present in Fields
 E_DUPLICATE_FIELD_UUID               = 85  # a generated/supplied field_uuid collides with an existing one
 # 86-89 reserved, unassigned — held for the next 105-era validation failure.
+
+# ---------------------------------------------------------------------------
+# Core nesting (130-159)
+# Nested BEJSON 104 (embedded 104 cells). Part of the Core family; resolved here,
+# there is no separate nesting errors file.
+# ---------------------------------------------------------------------------
+E_NESTING_INVALID_CELL               = 130  # Cell address out of bounds for mutation
+E_NESTING_NOT_BEJSON                 = 131  # Doc argument is not a dict
+E_NESTING_DEPTH_EXCEEDED             = 132  # Recursion hit NESTING_MAX_DEPTH
+E_NESTING_CACHE_MISS                 = 133  # Address not found in NestMap (informational)
+E_NESTING_SCHEMA_MISMATCH            = 134  # Column schema uniformity violation
+E_NESTING_CIRCULAR_REF               = 135  # Same fingerprint seen twice in walk path
+E_NESTING_VALIDATION_FAILED          = 136  # Nested doc fails 104 validation rules
+E_NESTING_FIELD_MAP_FAILED           = 137  # Could not build field map for nested doc
+E_NESTING_QUERY_INVALID_PATH         = 138  # Path string failed grammar parse
+E_NESTING_QUERY_EMPTY_PATH           = 139  # Path was empty / whitespace only
+
+# 140-159 reserved for future Core nesting codes.
+
+# Cognition codes moved to lib_bejson_Cognition_bejson_errors.py (v2.4.0)

@@ -3,12 +3,12 @@
  * Family:         Core
  * Description:    Tests for the SELF-MAINTAINING Field Map Cache in lib_bejson_Core_bejson_core.js
  *                 (callers never build/refresh it; parity with Python TestAutoFieldMap).
- * Version:        2.1.1
- * Date:           2026-10-03
+ * Version:        2.1.2
+ * Date:           2026-10-09
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  ffa0a170-6e87-4f77-9076-4ec53750dbff
+ * RELATIONAL_ID:  4bdc2361-900f-4ffb-927c-72bfad1cc09a
  * Release_Version: 300
  */
 const assert = require('assert');
@@ -46,9 +46,19 @@ t('105 returns ROW positions (record_uuid offset) with no setup', () => {
   assert.strictEqual(BEJSON.bejson_core_get_field_index(d, 'a'), 1);
   assert.strictEqual(d.Values[0][BEJSON.bejson_core_get_field_index(d, 'b')], 'y');
 });
-t('105db offset is 2', () => {
-  const d = doc105(); d.Format_Version = '105db';
+t('105db: Fields[0]=Record_Type_Parent at col 0, Fields[i>=1] at i+1', () => {
+  const d = { Format: 'BEJSON', Format_Version: '105db', Format_Creator: 'x', Records_Type: ['T'],
+    Fields: [{ name: 'Record_Type_Parent', type: 'string', field_uuid: 'f0' },
+             { name: 'a', type: 'string', field_uuid: 'f1' },
+             { name: 'b', type: 'string', field_uuid: 'f2' }],
+    Values: [['T', 'ru-1', 'x', 'y']] };
+  assert.strictEqual(BEJSON.bejson_core_get_field_index(d, 'Record_Type_Parent'), 0);
   assert.strictEqual(BEJSON.bejson_core_get_field_index(d, 'a'), 2);
+  assert.strictEqual(d.Values[0][BEJSON.bejson_core_get_field_index(d, 'a')], 'x');
+  assert.strictEqual(d.Values[0][BEJSON.bejson_core_get_field_index(d, 'b')], 'y');
+  assert.strictEqual(BEJSON.bejson_core_resolve_field_index(d, 'b'), 3);
+  BEJSON.bejson_core_write_cell(d, 'ru-1', 'f1', 'x2');
+  assert.deepStrictEqual(d.Values[0], ['T', 'ru-1', 'x2', 'y']);
 });
 t('105 self-heals after a rename and after add', () => {
   const d = doc105();

@@ -1,14 +1,14 @@
-#!/usr/bin/env bash
+#!/data/data/com.termux/files/usr/bin/bash
 # Library:        test_auto_field_map.sh
 # Family:         Core
 # Description:    Tests that the Bash field map is SELF-MAINTAINING (callers never build/refresh it):
 #                 parity with Python TestAutoFieldMap, JS bejson_cache.test.js, TS test_auto_field_map.ts.
 # Version:        1.0.0
-# Date:           2026-10-03
+# Date:           2026-10-09
 # Author:         Elton Boehnen
 # Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 # Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  a41f6c0e-93d2-4b75-8e1a-6c2d7f0b5e39
+# RELATIONAL_ID:  4050e20a-85e7-4e82-b7f0-42ccf730c8cb
 # Release_Version: 300
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,7 +17,7 @@ export BEJSON_FM_CACHE_BASE="$WORK/cache"; mkdir -p "$BEJSON_FM_CACHE_BASE"
 
 # jq counting shim: every real jq invocation bumps a counter file.
 REAL_JQ="$(command -v jq)"; mkdir -p "$WORK/shim"
-printf '#!/usr/bin/env bash\necho x >> "%s/jq_calls"\nexec "%s" "$@"\n' "$WORK" "$REAL_JQ" > "$WORK/shim/jq"; chmod +x "$WORK/shim/jq"
+printf '#!/data/data/com.termux/files/usr/bin/bash\necho x >> "%s/jq_calls"\nexec "%s" "$@"\n' "$WORK" "$REAL_JQ" > "$WORK/shim/jq"; chmod +x "$WORK/shim/jq"
 export PATH="$WORK/shim:$PATH"
 jq_calls() { [[ -f "$WORK/jq_calls" ]] && wc -l < "$WORK/jq_calls" | tr -d ' ' || echo 0; }
 
@@ -35,7 +35,9 @@ D105DB='{"Format":"BEJSON","Format_Version":"105db","Format_Creator":"x","Record
 eq "104 lookup, no setup call"          "$(bejson_core_get_field_index "$D104" name)" "1"
 eq "104 miss is -1"                     "$(bejson_core_get_field_index "$D104" nope)" "-1"
 eq "105 get_field_map returns ROW pos (offset 1)" "$(bejson_core_get_field_map "$D105" | tr '\t\n' '=;')" "a=1;b=2;"
-eq "105db offset is 2"                  "$(bejson_core_get_field_map "$D105DB" | tr '\t\n' '=;')" "a=2;"
+eq "105db Fields[0] (discriminator) is column 0" "$(bejson_core_get_field_map "$D105DB" | tr '\t\n' '=;')" "a=0;"
+D105DB2='{"Format":"BEJSON","Format_Version":"105db","Format_Creator":"x","Records_Type":["T"],"Fields":[{"name":"Record_Type_Parent","type":"string","field_uuid":"u0"},{"name":"b","type":"string","field_uuid":"u1"}],"Values":[["T","r1","x"]]}'
+eq "105db Fields[1] is column 2 (after record_uuid)" "$(bejson_core_get_field_map "$D105DB2" | tr '\t\n' '=;' | tr -d ' ')" "Record_Type_Parent=0;b=2;"
 
 # The point of the file-backed design: the cache survives $(...) subshells.
 bejson_core_get_field_index "$D104" id >/dev/null; before=$(jq_calls)

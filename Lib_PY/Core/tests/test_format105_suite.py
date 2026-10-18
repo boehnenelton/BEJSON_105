@@ -16,11 +16,11 @@ Description:    Exhaustive unittest suite for every Format_Version 105/105a/
                  or:   python3 tests/test_format105_suite.py
 
 Version:        1.2.1
-Date:           2026-10-03
+Date:           2026-10-09
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
-RELATIONAL_ID:  f46cfd38-23b1-4a4b-a822-a380ed4f23c4
+RELATIONAL_ID:  7f47993e-5b51-4edf-8eec-df344b34622e
 Release_Version: 300
 
 Changelog:
@@ -282,10 +282,10 @@ class TestResolveFieldIndex(FileBackedTestCase):
 class TestResolveFieldIndex105Db(FileBackedTestCase):
     doc_factory = staticmethod(make_104db_doc)
 
-    def test_offset_is_2_for_105db(self):
+    def test_val_resolves_to_col_2_for_105db(self):
         doc = self.upgrade()
         idx = Core.bejson_core_resolve_field_index(doc, "val")
-        self.assertEqual(idx, 3)  # Fields[1]="val" -> +2 offset = 3
+        self.assertEqual(idx, 2)  # Fields[0]=Record_Type_Parent(col 0), Fields[1]="val" -> col 2
 
 
 # ---------------------------------------------------------------------------

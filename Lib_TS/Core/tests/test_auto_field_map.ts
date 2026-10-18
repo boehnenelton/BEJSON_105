@@ -4,11 +4,11 @@
  * Description:    Tests that the TS field map is SELF-MAINTAINING (callers never build/refresh it):
  *                 parity with Python TestAutoFieldMap and JS bejson_cache.test.js.
  * Version:        1.0.0
- * Date:           2026-10-03
+ * Date:           2026-10-09
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  5b0c3a52-7e1d-4c8a-9a64-2f7d1e6b9c10
+ * RELATIONAL_ID:  51a2e8d9-7802-40d1-afde-5c7848ebe1e4
  * Release_Version: 300
  */
 import * as assert from "assert";
@@ -36,9 +36,18 @@ t("105 byNameRow carries the record_uuid offset", () => {
   assert.strictEqual(bejson_core_get_field_cache(d).byNameRow.get("a"), 1);
   assert.strictEqual((d.Values[0] as any[])[bejson_core_get_field_cache(d).byNameRow.get("b")!], "y");
 });
-t("105db offset is 2", () => {
-  const d = parse(j105()); (d as any).Format_Version = "105db";
-  assert.strictEqual(bejson_core_get_field_cache(d).byNameRow.get("a"), 2);
+t("105db: Fields[0]=Record_Type_Parent at col 0, Fields[i>=1] at i+1", () => {
+  const d: any = {
+    Format: "BEJSON", Format_Version: "105db", Format_Creator: "x", Records_Type: ["T"],
+    Fields: [{ name: "Record_Type_Parent", type: "string", field_uuid: "f0" },
+             { name: "a", type: "string", field_uuid: "f1" },
+             { name: "b", type: "string", field_uuid: "f2" }],
+    Values: [["T", "ru-1", "x", "y"]],
+  };
+  const m = bejson_core_get_field_cache(d).byNameRow;
+  assert.strictEqual(m.get("Record_Type_Parent"), 0);
+  assert.strictEqual(m.get("a"), 2);
+  assert.strictEqual(d.Values[0][m.get("b")!], "y");
 });
 t("getFieldIndex (throwing core API) uses the cache, still throws on miss", () => {
   const d = parse(j104());

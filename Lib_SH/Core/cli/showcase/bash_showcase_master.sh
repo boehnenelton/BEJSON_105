@@ -1,13 +1,16 @@
-#!/bin/bash
-# Library:        bash_showcase_master.sh
-# Family:         Core
-# Description:    Numeric-driven master controller for GEMINI Bash Terminal Showcases.
-# Version:        1.0.0
-# Date:           Unknown
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  ae418b20-f916-4602-b36f-0a927dddc7fb
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Library:         bash_showcase_master.sh
+# Family:          showcase
+# Module Purpose:  Implements bash script runtime functionality for bash_showcase_master.sh.
+# Architecture:    BEJSON Core provides foundational format parsing, schema enforcement, path security, positional field map caching, and multi-format integration across runtime environments.
+# Version:         1.0.0
+# Release_Version: 300
+# Date:            2026-09-14
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   ae418b20-f916-4602-b36f-0a927dddc7fb
+# -----------------------------------------------------------------------------
 
 VERSION="1.0.0"
 

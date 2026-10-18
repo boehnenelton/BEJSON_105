@@ -99,6 +99,18 @@ const BEJSON_ERRORS = {
     E_DUPLICATE_FIELD_NAME: 84,
     E_DUPLICATE_FIELD_UUID: 85,
 
+    // Core nesting (130-159)
+    E_NESTING_INVALID_CELL:               130,
+    E_NESTING_NOT_BEJSON:                 131,
+    E_NESTING_DEPTH_EXCEEDED:             132,
+    E_NESTING_CACHE_MISS:                 133,
+    E_NESTING_SCHEMA_MISMATCH:            134,
+    E_NESTING_CIRCULAR_REF:               135,
+    E_NESTING_VALIDATION_FAILED:          136,
+    E_NESTING_FIELD_MAP_FAILED:           137,
+    E_NESTING_QUERY_INVALID_PATH:         138,
+    E_NESTING_QUERY_EMPTY_PATH:           139,
+
     // Cognition (270-275) removed v2.3.0 — dead code, no Lib_JS/Cognition family exists
     // Core_Nesting codes moved to lib_bejson_CoreNesting_bejson_errors.js (v2.3.0)
 };

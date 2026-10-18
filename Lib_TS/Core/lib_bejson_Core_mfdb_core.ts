@@ -2,12 +2,12 @@
  * Library:        lib_bejson_Core_mfdb_core.ts
  * Family:         Core
  * Description:    Multi-file database orchestrator managing manifests and entity synchronization.
- * Version:        2.3.3
- * Date:           2026-10-03
+ * Version:        2.3.4
+ * Date:           2026-10-09
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  5ae09152-303b-44a1-a6f1-f2d0d6322d6a
+ * RELATIONAL_ID:  6cd5c38e-bfaa-4ada-b540-60354d74cabf
  * Release_Version: 300
  *
  * FIX (2026-10-03): registerEntity() now defaults record_count to 0 instead
@@ -46,6 +46,8 @@
  * federationDistillLogs) with typed interfaces.
  */
 
+import * as fs from "fs";
+import * as path from "path";
 import { bejson_core_get_field_index as _fmIndex } from "./lib_bejson_Core_bejson_field_map";
 import {
   BEJSONDocument,
@@ -453,11 +455,6 @@ export interface EnableDebugOptions {
   debugReads?: boolean;
 }
 
-// Lazy Node-only module handles for the debug section (see FIX 2.3.3 above).
-declare const require: any;
-const fs: any   = new Proxy({}, { get: (_t, k: string) => require("fs")[k] });
-const path: any = new Proxy({}, { get: (_t, k: string) => require("path")[k] });
-
 function _debugIsEnabled(manifestPath: string): boolean {
   try {
     const doc = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
@@ -780,8 +777,6 @@ export function checkEntityDroppable(
     if (fkFields.length === 0) continue;
     const uuidCol = _entityUuidCol(doc);
     for (const fkField of fkFields) {
-      const col = _fmIndex(doc, fkField.name);
-      const offset = doc.Format_Version === "105db" ? 2 : 1;
       for (const row of doc.Values) {
         if (row.length > uuidCol) {
           results.push({ entity: otherName, fieldName: fkField.name, recordUuid: row[uuidCol] as string });
@@ -823,12 +818,13 @@ export function resolveDeleteDependents(
     if (fkFields.length === 0) continue;
 
     const uuidCol = _entityUuidCol(refDoc);
-    const offset = refDoc.Format_Version === "105db" ? 2 : 1;
+    const isMultiRef = refDoc.Format_Version === "105db";
 
     for (const fkField of fkFields) {
       const onDelete = fkField.fk_on_delete ?? "restrict";
       const col = _fmIndex(refDoc, fkField.name);
-      const absCol = col + offset;
+      // 105db: Fields[0] is Record_Type_Parent at row col 0; Fields[i>=1] at i+1.
+      const absCol = isMultiRef ? (col === 0 ? 0 : col + 1) : col + 1;
 
       const matchingRows = refDoc.Values.filter((row) => row[absCol] === recordUuid);
       if (matchingRows.length === 0) continue;

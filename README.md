@@ -24,47 +24,6 @@
 
 ---
 
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Context Clarification & Naming Heritage](#context-clarification--naming-heritage)
-- [Breakdown](#breakdown)
-  - [Essence & Purpose](#essence--purpose)
-  - [Primary & General Use Cases](#primary--general-use-cases)
-  - [Advanced & Enterprise Use Cases](#advanced--enterprise-use-cases)
-- [Feature List](#feature-list)
-- [Usage Guide](#usage-guide)
-  - [Python Runtime Usage (`Lib_PY`)](#python-runtime-usage-lib_py)
-  - [JavaScript Runtime Usage (`Lib_JS`)](#javascript-runtime-usage-lib_js)
-  - [TypeScript Runtime Usage (`Lib_TS`)](#typescript-runtime-usage-lib_ts)
-  - [Bash & Shell Runtime Usage (`Lib_SH`)](#bash--shell-runtime-usage-lib_sh)
-- [System Architecture & Topology](#system-architecture--topology)
-- [BEJSON Format & Integrity Specifications](#bejson-format--integrity-specifications)
-  - [BEJSON 104 – Single Entity Standard](#bejson-104--single-entity-standard)
-  - [BEJSON 104a – Primitive Metadata Standard](#bejson-104a--primitive-metadata-standard)
-  - [BEJSON 104db – Multi-Entity Database Standard](#bejson-104db--multi-entity-database-standard)
-  - [BEJSON 105 & 105a – Integrity Era Standards](#bejson-105--105a--integrity-era-standards)
-  - [BEJSON 105db – Multi-Entity Integrity Standard](#bejson-105db--multi-entity-integrity-standard)
-  - [Nested 104 – Deep Hierarchical Cells](#nested-104--deep-hierarchical-cells)
-- [MFDB Specification & Master-Slave Federation](#mfdb-specification--master-slave-federation)
-  - [Manifest Architecture (`104a.mfdb.bejson`)](#manifest-architecture-104amfdbbejson)
-  - [Entity File Architecture](#entity-file-architecture)
-  - [Master-Slave Topological Federation](#master-slave-topological-federation)
-  - [MFDB-132 Session Mounting & Chunking](#mfdb-132-session-mounting--chunking)
-- [Comprehensive API Reference Matrix](#comprehensive-api-reference-matrix)
-  - [Python Module API (`Lib_PY`)](#python-module-api-lib_py)
-  - [JavaScript Module API (`Lib_JS`)](#javascript-module-api-lib_js)
-  - [TypeScript Module API (`Lib_TS`)](#typescript-module-api-lib_ts)
-  - [Bash Module API (`Lib_SH`)](#bash-module-api-lib_sh)
-- [Configuration & Environment Reference](#configuration--environment-reference)
-- [Performance, Field Map Cache & Benchmarks](#performance-field-map-cache--benchmarks)
-- [Exhaustive Error Registry & Diagnostic Code Reference](#exhaustive-error-registry--diagnostic-code-reference)
-- [Security Policy & Cryptographic Integrity](#security-policy--cryptographic-integrity)
-- [Troubleshooting & FAQ](#troubleshooting--faq)
-- [Development & Contribution Guidelines](#development--contribution-guidelines)
-- [Closing Summary](#closing-summary)
-- [Polyglot License](#polyglot-license)
-
 ---
 
 ## Introduction

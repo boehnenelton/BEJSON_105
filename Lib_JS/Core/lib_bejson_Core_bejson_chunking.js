@@ -1,77 +1,18 @@
 /**
  * Library:         lib_bejson_Core_bejson_chunking.js
  * Family:          Core
- * Description:     Standardized BEJSON project chunking engine. Ported 1:1 from
- *                   CLI_Chunker.py's Chunked-104 (104a) schema logic so all four
- *                   language families (PY/JS/TS/SH) produce byte-identical
- *                   documents from the same directory. Also implements the
- *                   MFDB 1.32 packaging extension: chunking an entire MFDB
- *                   database (manifest + entity files) into a single Chunked-104a
- *                   document as an alternative to the 1.31 zip container.
- *                   1.31 zip-based MFDB databases remain fully valid and
- *                   unaffected — 1.32 only adds an optional packaging format.
- *                   MFDB validation logic (mfdb_validator_is_mfdb132_package,
- *                   mfdb_validator_validate_mfdb132_package,
- *                   mfdb_validator_detect_mfdb_in_chunk) has been relocated to
- *                   lib_bejson_Core_mfdb_validator.js — this file now only
- *                   packages/unpacks and calls back into the validator.
- * Version:         1.8.1
- * Library_Version: 227
- * Date:            2026-10-06
- * RELATIONAL_ID:   fe7e7c93-4dbc-43d0-b1f6-df157f67b06f
+ * Module Purpose:  Chunked-104a project packaging (directory <-> one 104a document).
+ * Architecture:    Chunked-104a packaging: a directory tree stored as one BEJSON 104a document, and MFDB-132, which packs an entire MFDB (manifest + entity files) into one Chunked-104a document. Neither is BEJSON 104db.
+ * Format_Scope:    Chunked-104a and MFDB-132 packaging (NOT 104db)
+ * Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+ *                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+ *                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+ * Version:         1.8.4
  * Release_Version: 300
- *
- * CHANGE (2026-10-06): Consolidation re-merge -- the V6-PKG101 silent-catch
- * logging fix (unmount's lock-release header-clear cleanup) had been
- * reverted/lost on the forward V10-PKG102 branch; re-applied here, no
- * behavior change.
- *
- * CHANGE (2026-08-08): LIB-D3 -- renamed top-level session header
- * "Is_Mounted" to "Session_Is_Mounted" (collided with the per-row
- * Fields[] entry of the same name; also fixed from string "True"/"False"
- * to a real boolean). LIB-C2 -- File_Hash now SHA-256 instead of SHA-1.
- *
- * CHANGE (2026-08-07): Renamed top-level header "Chunk_Date-YYYY-MM-DD" to
- * "Chunk_Date" (LIB-D2/LIB-C3) -- fails PASCAL_CASE_RE in the TS sibling's
- * validator (hyphens not allowed). No readers of the old key existed.
- *
- * FEATURE (2026-08-02, later same day): Added bejsonCoreChunkingMfdb* --
- * see PY sibling file's docstring for full rationale (unifies chunking
- * globally across the flat Chunked-104a/MFDB-132 schema and mfdb_chunker.py's
- * rolling multi-version MFDB layout, same file/family, distinct function
- * prefix). Ported 1:1 from the PY implementation.
- *
- * FEATURE (2026-08-02): Package_Version tracking added -- see PY sibling
- * file's docstring for full rationale (ties back to the project schema
- * tracker's Project_Version / Package_Version split). Adds
- * bejsonCoreChunkingBumpPackageVersion() and a packageVersion param on both
- * create functions. Fully backward compatible.
- *
- * FEATURE (2026-07-29): MFDB132Archive class — full session-based mount
- * mirroring MFDBArchive (1.31). mount() unchunks to workspace + writes
- * .mfdb132_lock; commit() pre-validates then rechunks atomically;
- * resurrect_file() re-unchunks a single entity; unmount() releases lock
- * and clears Is_Mounted/Mount_Path headers on the chunk doc.
- *
- * FEATURE (2026-07-14): Binary file content is now preserved. Previously
- * Is_Binary=true rows stored File_Content="" and were skipped on unchunk,
- * silently losing any binary file. Binary bytes are now base64-encoded into
- * File_Content on chunk and base64-decoded back to real bytes on unchunk.
- * Is_Binary is unchanged as a schema field — it now doubles as the per-row
- * decode-path label. See /docs/FEATURE_base64_binary_preservation.md.
- *
- * BUGFIX (2026-07-14): v1.2.0 used ES-module `import`/`export` syntax while
- * every other Lib_JS/Core file (bejson_core.js, bejson_validator.js,
- * mfdb_core.js, mfdb_validator.js, bejson_errors.js) uses the CommonJS/UMD
- * `require()` + `module.exports` pattern. Under Node, `import { name } from
- * './lib_bejson_Core_mfdb_validator.js'` fails at load time because that file
- * is CommonJS and Node's static ESM/CJS interop cannot see its named exports
- * (only `default` is visible) — confirmed via direct reproduction. This file
- * has been converted to the same CommonJS/UMD pattern as its siblings. See
- * /docs/BUGFIX_chunking_js_module_system.md for the full report.
- *
- * Node.js only (uses fs/crypto). JS mirror of lib_bejson_Core_bejson_chunking.ts —
- * keep both in parity; this file has no TS-only constructs (no types/interfaces).
+ * Date:            2026-10-02
+ * Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+ * Format_Creator:  Elton Boehnen
+ * RELATIONAL_ID:   73921105-8f08-4310-9047-7314c9c1c4f5
  */
 
 const fs = require("fs");
@@ -111,10 +52,16 @@ const MFDB_MANIFEST_FILENAME = "104a.mfdb.bejson";
 // what makes it "MFDB-132." Do not bump this to track DB schema changes.
 const MFDB_CHUNK_SCHEMA_VERSION = "1.32";
 
+/**
+ * ISO-8601 UTC timestamp for chunk-document headers.
+ */
 function bejsonCoreChunkingGetTimestamp() {
   return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
+/**
+ * True if a file should be treated as binary (stored base64) when chunking.
+ */
 function bejsonCoreChunkingIsBinary(filePath) {
   // Matches CLI_Chunker.py: attempt strict UTF-8 decode of first 1024 bytes.
   try {
@@ -130,14 +77,17 @@ function bejsonCoreChunkingIsBinary(filePath) {
   }
 }
 
-// LIB-C2 fix (2026-08-08): SHA-1 -> SHA-256. Corruption-detection
-// checksum, not a security signature -- low severity, but SHA-1 is
-// deprecated and SHA-256 costs nothing here. Straight swap, no
-// migration path (matches this ecosystem's established convention).
+/**
+ * SHA-256 hex of raw bytes: the File_Hash stored per row. Change/corruption detection, not a signature.
+ */
+// SHA-256 checksum for corruption detection (not a security signature).
 function bejsonCoreChunkingHashFileBytes(rawBytes) {
   return crypto.createHash("sha256").update(rawBytes).digest("hex");
 }
 
+/**
+ * Recursively lists files under root, skipping excluded directory names.
+ */
 function walkDir(root, excludeDirs) {
   const results = [];
   const stack = [root];
@@ -157,6 +107,9 @@ function walkDir(root, excludeDirs) {
   return results;
 }
 
+/**
+ * Next Package_Version string from a prior chunk document. Tracks chunk releases; unrelated to Format_Version.
+ */
 function bejsonCoreChunkingBumpPackageVersion(priorDoc) {
   // Package_Version tracking, mirroring the project schema tracker's
   // Project_Version / Package_Version split -- see PY counterpart docstring
@@ -166,6 +119,9 @@ function bejsonCoreChunkingBumpPackageVersion(priorDoc) {
   return Number.isNaN(n) ? "1" : String(n + 1);
 }
 
+/**
+ * Packs a directory into one Chunked-104a document (one row per file: name, extension, relative path, content, hash, binary flag). Chunked-104a = a directory stored in ONE BEJSON 104a document (one row per file). Not 104db, not MFDB.
+ */
 function bejsonCoreChunkingCreateChunked104(
   targetDir,
   version = "latest",
@@ -213,9 +169,7 @@ function bejsonCoreChunkingCreateChunked104(
     Schema_Version: "1.0.1",
     Schema_Description: "Standard schema for chunking single projects.",
     "Chunk_Date": bejsonCoreChunkingGetTimestamp().slice(0, 10),
-    // LIB-D3 fix (2026-08-08): renamed from "Is_Mounted" (collided with
-    // the per-row Fields[] entry of the same name, and was a string
-    // "True"/"False" instead of a real boolean) to Session_Is_Mounted.
+    // Session-level mount flag (real boolean); distinct from the per-row Is_Mounted field in Fields[].
     Session_Is_Mounted: false,
     Mount_Path: "",
     Package_Version: packageVersion || "1",
@@ -225,6 +179,9 @@ function bejsonCoreChunkingCreateChunked104(
   };
 }
 
+/**
+ * Restores a Chunked-104a document's files into outputDir with a boundary check on every relative path. Returns the file count.
+ */
 function bejsonCoreChunkingUnchunkChunked104(doc, outputDir) {
   const fields = doc.Fields || CHUNKED_104_FIELDS;
   const fm = {};
@@ -259,6 +216,9 @@ function bejsonCoreChunkingUnchunkChunked104(doc, outputDir) {
 // is purely additive — nothing about the 1.31 disk layout or validation rules
 // changes.
 
+/**
+ * MFDB-132 packaging: reads an MFDB directory (104a manifest 104a.mfdb.bejson + 104 entity files) and stores all of it in ONE Chunked-104a document. A packaging wrapper around an ordinary MFDB; not a new format and not 104db.
+ */
 function bejsonCoreChunkingCreateMfdb132Package(
   mfdbRootDir,
   dbName,
@@ -298,18 +258,27 @@ function bejsonCoreChunkingCreateMfdb132Package(
   return doc;
 }
 
+/**
+ * True if a Chunked-104a document is a packaged MFDB-132.
+ */
 function bejsonCoreChunkingIsMfdb132Package(doc) {
   // Thin wrapper — validation logic lives in
   // lib_bejson_Core_mfdb_validator.mfdb_validator_is_mfdb132_package().
   return mfdb_validator_is_mfdb132_package(doc);
 }
 
+/**
+ * Level-1 validation of an MFDB-132 package (delegates to mfdb_validator).
+ */
 function bejsonCoreChunkingValidateMfdb132Package(doc) {
   // Thin wrapper — validation logic lives in
   // lib_bejson_Core_mfdb_validator.mfdb_validator_validate_mfdb132_package().
   return mfdb_validator_validate_mfdb132_package(doc);
 }
 
+/**
+ * Unpacks an MFDB-132 package into a normal MFDB directory (104a manifest + 104 entity files).
+ */
 function bejsonCoreChunkingUnchunkMfdb132Package(doc, outputDir) {
   const validation = bejsonCoreChunkingValidateMfdb132Package(doc);
   const count = bejsonCoreChunkingUnchunkChunked104(doc, outputDir);
@@ -327,9 +296,11 @@ function bejsonCoreChunkingUnchunkMfdb132Package(doc, outputDir) {
 }
 
 // ── MFDB-in-chunk deep detection (validator extension) ──────────────────────
-// Relocated to lib_bejson_Core_mfdb_validator.js (2026-07-13). Kept here as a
-// thin wrapper for callers already importing it from the chunking library.
+// Thin wrapper over lib_bejson_Core_mfdb_validator.js, exposed through the chunking library.
 
+/**
+ * Scans any Chunked-104a document for an embedded valid MFDB (delegates to mfdb_validator).
+ */
 function bejsonCoreChunkingDetectMfdbInChunk(doc) {
   // Thin wrapper — validation logic lives in
   // lib_bejson_Core_mfdb_validator.mfdb_validator_detect_mfdb_in_chunk().
@@ -344,16 +315,22 @@ function bejsonCoreChunkingDetectMfdbInChunk(doc) {
 
 const LOCK_FILE_132 = ".mfdb132_lock";
 
+/**
+ * SHA-256 of a file on disk, for chunk integrity checks.
+ */
 function _calculateChunkHash(filePath) {
   const data = fs.readFileSync(filePath);
   return crypto.createHash("sha256").update(data).digest("hex");
 }
 
+/**
+ * Writes Session_Is_Mounted and Mount_Path headers into a chunk document on disk.
+ */
 function _setChunkDocHeaders(chunkDocPath, isMounted, mountPath) {
   try {
     const doc = JSON.parse(fs.readFileSync(chunkDocPath, "utf8"));
     doc["Session_Is_Mounted"] = !!isMounted;
-    delete doc["Is_Mounted"]; // migrate any doc still on the old key
+    delete doc["Is_Mounted"]; // Session_Is_Mounted is the only document-level mount flag
     doc["Mount_Path"] = mountPath;
     fs.writeFileSync(chunkDocPath, JSON.stringify(doc, null, 2), "utf8");
   } catch (e) {
@@ -362,6 +339,9 @@ function _setChunkDocHeaders(chunkDocPath, isMounted, mountPath) {
 }
 
 class MFDB132Archive {
+  /**
+   * Extracts a chunk document into a workspace, takes a '132' session lock and sets Session_Is_Mounted / Mount_Path. sticky reuses valid extracted files. A packaged MFDB becomes an ordinary MFDB directory.
+   */
   /**
    * mount — unchunk an MFDB132 package to a workspace and write a session lock.
    * sticky=true reuses an existing valid workspace when the chunk doc hash matches.
@@ -434,6 +414,9 @@ class MFDB132Archive {
   }
 
   /**
+   * Re-chunks the mounted workspace into the chunk document (atomic); validate refuses to write on failure.
+   */
+  /**
    * commit — re-chunk the workspace back into an MFDB132 package atomically.
    * Runs full MFDB validation as a pre-write gate before touching disk.
    */
@@ -483,6 +466,9 @@ class MFDB132Archive {
   }
 
   /**
+   * Re-extracts one file from the chunk document into the mounted workspace (recovery).
+   */
+  /**
    * resurrect_file — re-unchunk a single file from the chunk doc into the workspace.
    * Used for recovery when an entity file is missing or corrupted.
    */
@@ -522,6 +508,9 @@ class MFDB132Archive {
   }
 
   /**
+   * Releases the session lock, clears Session_Is_Mounted / Mount_Path; cleanup removes the workspace.
+   */
+  /**
    * unmount — release the 132 session lock and clear Is_Mounted / Mount_Path
    * headers on the chunk doc. Optionally deletes the workspace directory.
    */
@@ -532,9 +521,7 @@ class MFDB132Archive {
         const lockData = JSON.parse(fs.readFileSync(lockFile, "utf8"));
         const cdp = lockData.chunk_doc_path;
         if (cdp && fs.existsSync(cdp)) _setChunkDocHeaders(cdp, false, "");
-      } catch (_e) {
-        console.debug(`[Chunking] Could not clear chunk-doc headers during lock release: ${_e.message}`);
-      }
+      } catch (_) {}
       fs.unlinkSync(lockFile);
     }
     if (cleanup && fs.existsSync(mountDir)) {
@@ -548,8 +535,8 @@ class MFDB132Archive {
 // one-shot schema. Everything below (bejsonCoreChunkingMfdb*) is a distinct
 // function set, same file/family, for mfdb_chunker.py's rolling
 // multi-version layout (manifest + entity split, one entity file holds ALL
-// versions as rows). See the PY sibling file's comment block for full
-// rationale -- ported 1:1.
+// versions as rows). See the PY sibling file's comment block for the full
+// description; the function set is identical across languages.
 
 const BEJSON_CORE_CHUNKING_MFDB_SCHEMA_MANIFEST = "mfdb_manifest";
 const BEJSON_CORE_CHUNKING_MFDB_SCHEMA_ENTITY = "mfdb_entity";
@@ -566,12 +553,18 @@ const _MFDB_ENTITY_LEGACY_FIELD_NAMES = new Set([
 ]);
 const _CHUNKED_104A_FIELD_NAMES = new Set(CHUNKED_104_FIELDS.map((f) => f.name));
 
+/**
+ * True when two Sets contain the same members.
+ */
 function _setsEqual(a, b) {
   if (a.size !== b.size) return false;
   for (const x of a) if (!b.has(x)) return false;
   return true;
 }
 
+/**
+ * Field-name -> index map for a chunk document, cached per Fields signature.
+ */
 function bejsonCoreChunkingMfdbGetFieldMap(doc) {
   const fields = doc.Fields || [];
   const map = {};
@@ -579,6 +572,9 @@ function bejsonCoreChunkingMfdbGetFieldMap(doc) {
   return map;
 }
 
+/**
+ * Classifies a chunk document's field layout (Chunked-104a file rows, MFDB entity rows, MFDB manifest rows, lowercase variants). Pure structure check.
+ */
 function bejsonCoreChunkingMfdbDetectSchema(doc) {
   const recordsType = doc.Records_Type;
   const fieldNames = new Set((doc.Fields || []).map((f) => f.name));
@@ -604,6 +600,9 @@ function bejsonCoreChunkingMfdbDetectSchema(doc) {
   return BEJSON_CORE_CHUNKING_MFDB_SCHEMA_UNKNOWN;
 }
 
+/**
+ * Checks the MFDB package version is a known one (1.31, 1.32, 1.38). This is the MFDB package/convention version, not a BEJSON Format_Version.
+ */
 function bejsonCoreChunkingMfdbCheckVersion(doc, knownVersions = ["1.31", "1.32", "1.38"]) {
   const mfdbVersion = doc.MFDB_Version;
   if (mfdbVersion === undefined || mfdbVersion === null) return null;
@@ -614,6 +613,9 @@ function bejsonCoreChunkingMfdbCheckVersion(doc, knownVersions = ["1.31", "1.32"
   return null;
 }
 
+/**
+ * Restores a rolling multi-version MFDB chunk (manifest + entity split, all versions as rows) to a directory; version selects the release.
+ */
 function bejsonCoreChunkingMfdbUnchunk(doc, outputDir, version = null, manifestDir = null) {
   const schema = bejsonCoreChunkingMfdbDetectSchema(doc);
   const warning = bejsonCoreChunkingMfdbCheckVersion(doc);

@@ -7,12 +7,12 @@ Description:    Bidirectional path and manifest-entity relationship validator.
                 lib_bejson_Core_bejson_chunking.py, which should only own
                 packaging/IO, not validation logic. See CHANGELOG note dated
                 2026-07-13.
-Version:        2.3.0
-Date:           2026-08-19
+Version:        2.3.1
+Date:           2026-10-09
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
-RELATIONAL_ID:  783f276c-7d6f-41d9-b10e-790e97442cac
+RELATIONAL_ID:  df4361f5-0918-485d-8a5a-46ceea0f19c0
 Release_Version: 300
 
 Changelog:
@@ -132,9 +132,12 @@ def _rows_as_dicts(doc: dict) -> list[dict]:
     if fmt in ("105", "105a", "105db"):
         is_multi = fmt == "105db"
         offset = 2 if is_multi else 1
+        # 105db: Fields[0] is Record_Type_Parent (row col 0, surfaced below);
+        # only Fields[1:] line up with row[2:].
+        data_names = names[1:] if is_multi else names
         result = []
         for row in doc["Values"]:
-            d = dict(zip(names, row[offset:]))
+            d = dict(zip(data_names, row[offset:]))
             d["record_uuid"] = row[1] if is_multi else row[0]
             if is_multi:
                 d["Record_Type_Parent"] = row[0]
@@ -328,8 +331,11 @@ def mfdb_validator_check_referential_integrity(manifest_path: str) -> list:
                 col = field_names.index(fk_field["name"])
             except ValueError:
                 continue
-            offset = 2 if edoc.get("Format_Version") == "105db" else 1
-            abs_col = col + offset
+            # 105db: Fields[0] is Record_Type_Parent at row col 0; Fields[i>=1] at i+1.
+            if edoc.get("Format_Version") == "105db":
+                abs_col = 0 if col == 0 else col + 1
+            else:
+                abs_col = col + 1
 
             for row in edoc.get("Values", []):
                 if len(row) <= abs_col:

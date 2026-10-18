@@ -1,21 +1,18 @@
 /**
- * Library:        lib_bejson_Core_mfdb_validator.js
- * Family:         Core
- * Description:    Bidirectional path and manifest-entity relationship validator.
- *                 Also owns MFDB-132-package validation
- *                 (mfdb_validator_is_mfdb132_package,
- *                 mfdb_validator_validate_mfdb132_package,
- *                 mfdb_validator_detect_mfdb_in_chunk) — relocated here from
- *                 lib_bejson_Core_bejson_chunking.js, which should only own
- *                 packaging/IO, not validation logic. See changelog note
- *                 dated 2026-07-13.
- * Version:        2.1.1
- * Date:           2026-10-03
- * Author:         Elton Boehnen
- * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
- * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  3b8a3acb-fdf0-4042-b5a2-5be99b6ea59c
+ * Library:         lib_bejson_Core_mfdb_validator.js
+ * Family:          Core
+ * Module Purpose:  MFDB validator: manifest (Level 1), entity files (Level 2) and database-level checks (Level 3, e.g. record_count accuracy).
+ * Architecture:    MFDB (a database architecture layered on BEJSON, not a BEJSON format version): one BEJSON 104a manifest (104a.mfdb.bejson, Records_Type ["mfdb"]) registers many BEJSON 104 entity files, one entity per file, dense records, each with Parent_Hierarchy pointing back to the manifest. It is not 104db and uses no null-padding.
+ * Format_Scope:    MFDB only (104a manifest + 104 entity files; NOT 104db)
+ * Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+ *                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+ *                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+ * Version:         2.1.4
  * Release_Version: 300
+ * Date:            2026-10-02
+ * Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+ * Format_Creator:  Elton Boehnen
+ * RELATIONAL_ID:   9e8dbc98-466c-43b4-bf5a-0cb32647ecf9
  */
 
 'use strict';
@@ -49,6 +46,9 @@ const {
 } = BEJSON_ERRORS;
 
 class MFDBValidationError extends Error {
+  /**
+   * Error type for MFDB validation failures (MFDBValidationError); carries a numeric code.
+   */
   constructor(message, code) {
     super(message);
     this.name = 'MFDBValidationError';
@@ -63,16 +63,34 @@ class MFDBValidationError extends Error {
 let _mErrors   = [];
 let _mWarnings = [];
 
+/**
+ * Clears the module's error and warning lists before a validation run.
+ */
 function _mReset()                  { _mErrors = []; _mWarnings = []; }
+/**
+ * Records a hard MFDB error (structural failure) with an optional location.
+ */
 function _mAddError(msg, loc)       { _mErrors.push(   'ERROR'   + (loc ? ` | Location: ${loc}` : '') + ` | Message: ${msg}`); }
+/**
+ * Records a warning (convention failure, e.g. record_count drift) -- does not invalidate the MFDB.
+ */
 function _mAddWarning(msg, loc)     { _mWarnings.push( 'WARNING' + (loc ? ` | Location: ${loc}` : '') + ` | Message: ${msg}`); }
+/**
+ * True if any error was recorded.
+ */
 function _mHasErrors()              { return _mErrors.length   > 0; }
+/**
+ * True if any warning was recorded.
+ */
 function _mHasWarnings()            { return _mWarnings.length > 0; }
 
 // ---------------------------------------------------------------------------
 // Internal helpers (also exported for lib_bejson_Core_mfdb_core.js)
 // ---------------------------------------------------------------------------
 
+/**
+ * True when running under Node.js (file-system access available). In a browser the file-based validators cannot read files.
+ */
 // require('fs') and require('path') are Node.js-only. In browser environments
 // these helpers are non-functional. Guard all calls with a Node check so that importing
 // this module in a browser context does not throw immediately on function definition.
@@ -80,24 +98,28 @@ function _isNode() {
   return typeof process !== 'undefined' && process.versions && !!process.versions.node;
 }
 
-// Field-map warm-on-load comes from Core (optional: validator still works standalone).
-let _bejsonCore = null;
-try { _bejsonCore = (typeof require !== 'undefined') ? require('./lib_bejson_Core_bejson_core.js') : (window.BEJSON || null); } catch (e) { _bejsonCore = null; }
-
+/**
+ * Reads and parses a JSON file (Node only). Throws on failure.
+ */
 function _loadJson(filePath) {
   if (!_isNode()) {
     throw new MFDBValidationError('_loadJson is only available in Node.js environments', E_MFDB_ENTITY_NOT_FOUND);
   }
   const fs = require('fs');
-  const doc = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return _bejsonCore && _bejsonCore.bejson_core_warm ? _bejsonCore.bejson_core_warm(doc) : doc;
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+/**
+ * Turns a BEJSON document's Values into {fieldName: value} objects using Fields.
+ */
 function _rowsAsDicts(doc) {
   const names = doc.Fields.map(f => f.name);
   return doc.Values.map(row => Object.fromEntries(names.map((n, i) => [n, row[i]])));
 }
 
+/**
+ * Resolves an entity's file_path (relative to the manifest) against the manifest's directory.
+ */
 function _resolveEntityPath(manifestPath, filePathRel) {
   if (!_isNode()) {
     throw new MFDBValidationError('_resolveEntityPath is only available in Node.js environments', E_MFDB_ENTITY_NOT_FOUND);
@@ -106,6 +128,9 @@ function _resolveEntityPath(manifestPath, filePathRel) {
   return path.resolve(path.dirname(manifestPath), filePathRel);
 }
 
+/**
+ * File-existence check; assumes false in a browser.
+ */
 function _fileExists(filePath) {
   if (!_isNode()) return false;  // In browser: assume non-existent, caller handles
   const fs = require('fs');
@@ -116,6 +141,9 @@ function _fileExists(filePath) {
 // Archive Validation (v1.2 Feature)
 // ---------------------------------------------------------------------------
 
+/**
+ * Validates a .mfdb.zip archive as an MFDB container (manifest + entity files inside).
+ */
 function mfdb_validator_validate_archive(archivePath) {
   _mReset();
   const AdmZip = require('adm-zip');
@@ -145,6 +173,9 @@ function mfdb_validator_validate_archive(archivePath) {
 // Manifest Validation  (Spec §8.1)
 // ---------------------------------------------------------------------------
 
+/**
+ * Level 1: the manifest must be a BEJSON 104a document named *.mfdb.bejson with Records_Type ["mfdb"] and the required manifest headers/fields. A 104db file or a plain 104a is not an MFDB manifest.
+ */
 function mfdb_validator_validate_manifest(manifestPath) {
   _mReset();
   if (!_isNode()) {
@@ -228,6 +259,9 @@ function mfdb_validator_validate_manifest(manifestPath) {
 // Entity File Validation  (Spec §8.2)
 // ---------------------------------------------------------------------------
 
+/**
+ * Level 2: an entity file must be BEJSON 104 (one Records_Type) with Parent_Hierarchy; with checkBidirectional also confirms the manifest lists it back. Entity files have no Record_Type_Parent column and no null-padding.
+ */
 function mfdb_validator_validate_entity_file(entityPath, checkBidirectional = true) {
   const path = require('path');
   _mReset();
@@ -327,6 +361,9 @@ function mfdb_validator_validate_entity_file(entityPath, checkBidirectional = tr
 // Database-Level Validation  (Spec §8.3)
 // ---------------------------------------------------------------------------
 
+/**
+ * Level 3: whole MFDB -- manifest, every entity file, record_count accuracy and *_fk conventions. strictFk makes unresolved foreign-key values errors; MFDB itself does not enforce foreign keys.
+ */
 function mfdb_validator_validate_database(manifestPath, strictFk = false) {
   _mReset();
 
@@ -395,6 +432,9 @@ function mfdb_validator_validate_database(manifestPath, strictFk = false) {
 // Validation report
 // ---------------------------------------------------------------------------
 
+/**
+ * Runs validate_database and returns a human-readable report string.
+ */
 function mfdb_validator_get_report(manifestPath, strictFk = false) {
   let valid = false;
   try {
@@ -423,14 +463,14 @@ function mfdb_validator_get_report(manifestPath, strictFk = false) {
 // ---------------------------------------------------------------------------
 // MFDB 1.32 chunked-package validation
 // ---------------------------------------------------------------------------
-// Relocated from lib_bejson_Core_bejson_chunking.js (2026-07-13). The
-// chunking library still owns bejsonCoreChunkingCreateMfdb132Package/
-// bejsonCoreChunkingUnchunkMfdb132Package (packaging and IO), but calls back
-// into these functions for the actual validation — validation logic belongs
-// in the validator family, not the chunker.
+// The chunking library owns bejsonCoreChunkingCreateMfdb132Package/bejsonCoreChunkingUnchunkMfdb132Package
+// (packaging and IO) and calls these functions for validation; validation logic lives in the validator family.
 
 const MFDB_MANIFEST_FILENAME = "104a.mfdb.bejson";
 
+/**
+ * True if a Chunked-104a document is a packaged MFDB-132 (an MFDB stored in one chunk document).
+ */
 function mfdb_validator_is_mfdb132_package(doc) {
   return (
     doc.Format_Version === "104a" &&
@@ -441,6 +481,9 @@ function mfdb_validator_is_mfdb132_package(doc) {
   );
 }
 
+/**
+ * Level-1 check of an MFDB-132 package document (manifest row and entity rows present, paths consistent). Returns {valid, errors, warnings}.
+ */
 function mfdb_validator_validate_mfdb132_package(doc) {
   const errors = [];
   const warnings = [];
@@ -479,6 +522,9 @@ function mfdb_validator_validate_mfdb132_package(doc) {
   return { valid: errors.length === 0, errors, warnings };
 }
 
+/**
+ * Finds the chunk-document row whose Relative_Path matches; null if absent.
+ */
 function _mfdbValidatorFindRowByRelPath(doc, relPath) {
   const fields = doc.Fields || [];
   const fm = {};
@@ -491,6 +537,9 @@ function _mfdbValidatorFindRowByRelPath(doc, relPath) {
   return null;
 }
 
+/**
+ * Finds and validates an MFDB embedded in any Chunked-104a document; returns a report object.
+ */
 function mfdb_validator_detect_mfdb_in_chunk(doc) {
   const result = {
     mfdb_detected: false,
@@ -620,12 +669,33 @@ function mfdb_validator_detect_mfdb_in_chunk(doc) {
 // State accessors
 // ---------------------------------------------------------------------------
 
+/**
+ * Clears the validator's accumulated errors and warnings.
+ */
 function mfdb_validator_reset_state()      { _mReset(); }
+/**
+ * True if the last run recorded errors.
+ */
 function mfdb_validator_has_errors()       { return _mHasErrors(); }
+/**
+ * True if the last run recorded warnings.
+ */
 function mfdb_validator_has_warnings()     { return _mHasWarnings(); }
+/**
+ * Copy of the error list.
+ */
 function mfdb_validator_get_errors()       { return [..._mErrors]; }
+/**
+ * Copy of the warning list.
+ */
 function mfdb_validator_get_warnings()     { return [..._mWarnings]; }
+/**
+ * Number of errors.
+ */
 function mfdb_validator_error_count()      { return _mErrors.length; }
+/**
+ * Number of warnings.
+ */
 function mfdb_validator_warning_count()    { return _mWarnings.length; }
 
 // ---------------------------------------------------------------------------

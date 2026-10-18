@@ -2,12 +2,12 @@
 Library:        lib_bejson_Core_mfdb_core.py
 Family:         Core
 Description:    Multi-file database orchestrator managing manifests and entity synchronization.
-Version:        3.0.1
-Date:           2026-10-06
+Version:        3.0.3
+Date:           2026-10-12
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
-RELATIONAL_ID:  bb5ec227-9bba-4586-8ccc-a09c9815c7ef
+RELATIONAL_ID:  d528e5a4-de7d-4228-822e-99a93f48db5e
 Release_Version: 300
 
 CHANGE (2026-10-06): Consolidation re-merge -- the V6-PKG101 silent-exception
@@ -202,6 +202,10 @@ def _write_entity_doc(doc: dict, entity_path: str) -> None:
 def _write_manifest_doc(doc: dict, manifest_path: str) -> None:
     if not bejson_core_atomic_write(manifest_path, doc):
         raise MFDBCoreError(f"Failed to write manifest doc to {manifest_path}", E_MFDB_CORE_WRITE_FAILED)
+
+def _write_checked(doc: dict, path: str, label: str = "file") -> None:
+    if not bejson_core_atomic_write(path, doc):
+        raise MFDBCoreError(f"Failed to write {label} to {path}", E_MFDB_CORE_WRITE_FAILED)
 
 def _update_manifest_record_count(
     manifest_path: str, entity_name: str, count: int
@@ -563,7 +567,7 @@ def mfdb_core_self_heal(manifest_path: str) -> Dict[str, Any]:
                             doc["Values"][i] = row[:field_count]
                             repaired += 1
                     if repaired > 0:
-                        bejson_core_atomic_write(entity_path, doc)
+                        _write_entity_doc(doc, entity_path)
                         report["actions"].append(f"Repaired {repaired} positional violations in {entity}")
                 except Exception as e:
                     report["remaining_errors"].append(f"Failed to repair {entity}: {str(e)}")
@@ -595,7 +599,7 @@ def _mfdb_core_repair_hierarchy(entity_path: str, new_hierarchy: str) -> bool:
     try:
         doc = bejson_core_load_file(entity_path)
         doc["Parent_Hierarchy"] = new_hierarchy
-        bejson_core_atomic_write(entity_path, doc)
+        _write_entity_doc(doc, entity_path)
         return True
     except Exception as e:
         logging.debug(f"[MFDB_Core] Could not repair Parent_Hierarchy on {entity_path}: {e}")
@@ -942,7 +946,7 @@ def mfdb_core_create_entity_file(
         "Fields":           doc_fields,
         "Values":           [],
     }
-    bejson_core_atomic_write(resolved, entity_doc)
+    _write_entity_doc(entity_doc, resolved)
 
     manifest_doc = _load_json(manifest_path)
     fn_list      = [f["name"] for f in manifest_doc["Fields"]]
@@ -1031,7 +1035,7 @@ def mfdb_core_create_database(
         "Values":          manifest_values,
     }
 
-    bejson_core_atomic_write(manifest_path, manifest_doc)
+    _write_manifest_doc(manifest_doc, manifest_path)
 
     for entity_name, fp_rel, fields, fver in entity_defs_to_file:
         resolved   = os.path.normpath(os.path.join(root_dir, fp_rel))
@@ -1053,7 +1057,7 @@ def mfdb_core_create_database(
             "Fields":           doc_fields,
             "Values":           [],
         }
-        bejson_core_atomic_write(resolved, entity_doc)
+        _write_entity_doc(entity_doc, resolved)
 
     if debug_mode:
         mfdb_core_enable_debug(manifest_path, row_cap=debug_row_cap, debug_reads=debug_reads)
@@ -1069,6 +1073,8 @@ def mfdb_core_create_database(
 # section -- the entire 104-series CRUD path -- is touched by any of it.
 # ---------------------------------------------------------------------------
 
+VERSION = "3.0.4"
+RELATIONAL_ID = "4f8b2d19-6c3a-4e7f-9b5d-1a2c8e4f7b31"
 _105_SERIES = ("105", "105a", "105db")
 
 
@@ -1138,20 +1144,21 @@ def _mfdb_check_fk_write(manifest_path: str, from_entity: str, fk_field: dict, v
 
 
 def _mfdb_check_fk_writes_for_row(manifest_path: str, entity_name: str, entity_doc: dict, values: list) -> None:
-    """values is the caller-supplied row WITHOUT the record_uuid/discriminator
-    prefix (matching bejson_core_add_record_105's own contract). Checks every
-    declared FK field present in the row before the row is ever written."""
+    """values is the caller-supplied row WITHOUT the record_uuid prefix,
+    ordered exactly like Fields (matching bejson_core_add_record_105's own
+    contract). For 105db, values[0] is the Record_Type_Parent discriminator
+    and Fields[0] is Record_Type_Parent, so values[i] <-> Fields[i] for every
+    i with no shift. Checks every declared FK field present in the row before
+    the row is ever written."""
     fk_fields = _mfdb_get_fk_fields(entity_doc)
     if not fk_fields:
         return
     fields = entity_doc.get("Fields", [])
-    is_multi = entity_doc.get("Format_Version") == "105db"
-    field_values = values[1:] if is_multi else values  # skip the caller-supplied discriminator
     for fk_field in fk_fields:
         idx = next((i for i, f in enumerate(fields) if f["name"] == fk_field["name"]), None)
-        if idx is None or idx >= len(field_values):
+        if idx is None or idx >= len(values):
             continue
-        _mfdb_check_fk_write(manifest_path, entity_name, fk_field, field_values[idx])
+        _mfdb_check_fk_write(manifest_path, entity_name, fk_field, values[idx])
 
 
 def _mfdb_find_referencing_rows(manifest_path: str, target_entity: str, target_record_uuid: str) -> list:
@@ -1229,36 +1236,124 @@ def _mfdb_delete_record_105_raw(manifest_path: str, entity_name: str, record_uui
             _update_manifest_record_count(manifest_path, entity_name, len(doc["Values"]))
 
 
-def _mfdb_cascade_delete_dependents(manifest_path: str, entity_name: str, record_uuid: str, visited: set) -> None:
-    """Walks and resolves every OTHER row across the MFDB that references
-    (entity_name, record_uuid), per each referencing FK's declared
-    fk_on_delete. Does NOT delete (entity_name, record_uuid) itself -- the
-    caller does that after this returns cleanly. visited guards against a
-    cascade cycle (A references B references A)."""
+def _mfdb_plan_cascade_delete(
+    manifest_path: str, entity_name: str, record_uuid: str,
+    in_path: set, deleted: set, ops: list,
+) -> None:
+    """PHASE 1 of a cascade delete: pure in-memory traversal, ZERO disk writes.
+
+    Resolves every row that references (entity_name, record_uuid) per its FK's
+    fk_on_delete and appends the resulting operations to `ops` in a safe
+    execution order (children before parents):
+        ("null",   entity, record_uuid, fk_field_name)
+        ("delete", entity, record_uuid)
+    A restrict violation or a genuine cascade cycle raises BEFORE anything has
+    been touched, so a refused delete can never leave partial damage behind.
+
+    in_path  : the keys on the CURRENT recursion path (true cycle detection;
+               a record reached twice via two different parents -- a diamond --
+               is legitimate and is planned once, not reported as a cycle).
+    deleted  : keys already scheduled for deletion (dedupe across branches)."""
     key = (entity_name, record_uuid)
-    if key in visited:
+    if key in in_path:
         raise MFDBCoreError(
             f"Cascade cycle detected: {entity_name}#{record_uuid} revisited during cascade delete",
             E_MFDB_FK_CASCADE_CYCLE,
         )
-    visited.add(key)
+    in_path.add(key)
+    try:
+        for ref_entity, fk_field_name, ref_record_uuid in _mfdb_find_referencing_rows(
+            manifest_path, entity_name, record_uuid
+        ):
+            ref_key = (ref_entity, ref_record_uuid)
+            if ref_key in deleted:
+                continue  # already scheduled for deletion; its FK is moot
+            ref_doc = _load_entity_doc(manifest_path, ref_entity)
+            fk_field = next(f for f in ref_doc["Fields"] if f["name"] == fk_field_name)
+            on_delete = fk_field.get("fk_on_delete", "restrict")
 
-    for ref_entity, fk_field_name, ref_record_uuid in _mfdb_find_referencing_rows(manifest_path, entity_name, record_uuid):
-        ref_doc = _load_entity_doc(manifest_path, ref_entity)
-        fk_field = next(f for f in ref_doc["Fields"] if f["name"] == fk_field_name)
-        on_delete = fk_field.get("fk_on_delete", "restrict")
+            if on_delete == "restrict":
+                raise MFDBCoreError(
+                    f"Cannot delete {entity_name}#{record_uuid}: restricted by "
+                    f"{ref_entity}.{fk_field_name} -> record {ref_record_uuid}",
+                    E_MFDB_FK_RESTRICT_VIOLATION,
+                )
+            elif on_delete == "null":
+                ops.append(("null", ref_entity, ref_record_uuid, fk_field_name))
+            elif on_delete == "cascade":
+                _mfdb_plan_cascade_delete(manifest_path, ref_entity, ref_record_uuid, in_path, deleted, ops)
+                if ref_key not in deleted:
+                    deleted.add(ref_key)
+                    ops.append(("delete", ref_entity, ref_record_uuid))
+    finally:
+        in_path.discard(key)
 
-        if on_delete == "restrict":
-            raise MFDBCoreError(
-                f"Cannot delete {entity_name}#{record_uuid}: restricted by "
-                f"{ref_entity}.{fk_field_name} -> record {ref_record_uuid}",
-                E_MFDB_FK_RESTRICT_VIOLATION,
-            )
-        elif on_delete == "null":
-            _mfdb_write_cell_105(manifest_path, ref_entity, ref_record_uuid, fk_field_name, None)
-        elif on_delete == "cascade":
-            _mfdb_cascade_delete_dependents(manifest_path, ref_entity, ref_record_uuid, visited)
-            _mfdb_delete_record_105_raw(manifest_path, ref_entity, ref_record_uuid)
+
+def _mfdb_snapshot_files(paths: list) -> dict:
+    """Raw-bytes snapshot of every regular file in `paths` (missing/non-file
+    paths, e.g. a zip-hosted manifest, are skipped)."""
+    snap = {}
+    for path in paths:
+        if path not in snap and os.path.isfile(path):
+            with open(path, "rb") as fh:
+                snap[path] = fh.read()
+    return snap
+
+
+def _mfdb_restore_files(snap: dict) -> None:
+    """Atomically put every snapshotted file back byte-for-byte. Best effort per
+    file: a failure on one path is logged and does not stop the others."""
+    for path, data in snap.items():
+        try:
+            fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path) or ".", suffix=".rollback")
+            try:
+                with os.fdopen(fd, "wb") as fh:
+                    fh.write(data)
+                    fh.flush()
+                    os.fsync(fh.fileno())
+                os.replace(tmp, path)
+            except Exception:
+                if os.path.exists(tmp):
+                    os.unlink(tmp)
+                raise
+        except Exception as exc:
+            logging.error("[MFDB_CORE] Rollback failed for %s: %s", path, exc)
+
+
+def _mfdb_apply_cascade_ops(manifest_path: str, ops: list, deleted: set) -> None:
+    """PHASE 2: execute a plan produced by _mfdb_plan_cascade_delete."""
+    for op in ops:
+        if op[0] == "null":
+            if (op[1], op[2]) in deleted:
+                continue  # row is being deleted anyway
+            _mfdb_write_cell_105(manifest_path, op[1], op[2], op[3], None)
+        else:
+            _mfdb_delete_record_105_raw(manifest_path, op[1], op[2])
+
+
+def _mfdb_cascade_delete_dependents(manifest_path: str, entity_name: str, record_uuid: str, visited: set = None) -> None:
+    """Resolves every OTHER row across the MFDB that references
+    (entity_name, record_uuid), per each referencing FK's declared
+    fk_on_delete. Does NOT delete (entity_name, record_uuid) itself -- the
+    caller does that after this returns cleanly.
+
+    Two-phase: the whole cascade tree is planned in memory first (restrict
+    violations and cycles raise with nothing written), then committed; if the
+    commit itself fails part-way (I/O error, lock timeout) every touched file
+    is restored from a pre-commit snapshot. `visited` is accepted for
+    backward compatibility and ignored (cycle tracking is per-path now)."""
+    ops: list = []
+    deleted: set = set()
+    _mfdb_plan_cascade_delete(manifest_path, entity_name, record_uuid, set(), deleted, ops)
+    if not ops:
+        return
+    touched = [manifest_path] + [_get_entity_path(manifest_path, name) for name in {op[1] for op in ops}]
+    snap = _mfdb_snapshot_files(touched)
+    try:
+        _mfdb_apply_cascade_ops(manifest_path, ops, deleted)
+    except Exception:
+        _mfdb_restore_files(snap)
+        raise
 
 
 def mfdb_core_add_entity_record_105(manifest_path: str, entity_name: str, values: list, sync_count: bool = True) -> dict:
@@ -1358,15 +1453,29 @@ def mfdb_core_delete_entity_record_105(manifest_path: str, entity_name: str, rec
                 E_MFDB_CORE_INVALID_OPERATION,
             )
 
+        ops: list = []
+        deleted: set = set()
         if _mfdb_ref_integrity_enabled(manifest_path):
-            _mfdb_cascade_delete_dependents(manifest_path, entity_name, record_uuid, set())
+            # Phase 1: plan the whole cascade in memory. Raises (restrict /
+            # cycle) before ANY file has been touched.
+            _mfdb_plan_cascade_delete(manifest_path, entity_name, record_uuid, set(), deleted, ops)
 
-        with ResilientPIDLock(entity_path, timeout_seconds=10):
-            doc = _load_entity_doc(manifest_path, entity_name)
-            bejson_core_delete_record(doc, record_uuid)
-            _write_entity_doc(doc, entity_path)
-            if sync_count:
-                _update_manifest_record_count(manifest_path, entity_name, len(doc["Values"]))
+        # Phase 2: commit dependents + the record itself as one unit; any
+        # failure restores every touched file from the pre-commit snapshot.
+        touched = [manifest_path, entity_path] + [_get_entity_path(manifest_path, n) for n in {op[1] for op in ops}]
+        snap = _mfdb_snapshot_files(touched)  # always: the root write + manifest count sync must also be all-or-nothing
+        try:
+            _mfdb_apply_cascade_ops(manifest_path, ops, deleted)
+            with ResilientPIDLock(entity_path, timeout_seconds=10):
+                doc = _load_entity_doc(manifest_path, entity_name)
+                bejson_core_delete_record(doc, record_uuid)
+                _write_entity_doc(doc, entity_path)
+                if sync_count:
+                    _update_manifest_record_count(manifest_path, entity_name, len(doc["Values"]))
+        except Exception:
+            if snap:
+                _mfdb_restore_files(snap)
+            raise
         _success = True
         return doc
     finally:
@@ -1540,7 +1649,7 @@ def mfdb_federation_distill_logs(
 
         # Truncate local entity to max_rows
         doc["Values"] = kept
-        bejson_core_atomic_write(entity_path, doc)
+        _write_entity_doc(doc, entity_path)
 
         # Update record count in manifest
         manifest_doc = _load_json(slave_manifest_path)
@@ -1550,7 +1659,7 @@ def mfdb_federation_distill_logs(
             if row[fm.get("entity_name", 0)] == entity_name and "record_count" in fm:
                 row[fm["record_count"]] = len(kept)
                 break
-        bejson_core_atomic_write(slave_manifest_path, manifest_doc)
+        _write_manifest_doc(manifest_doc, slave_manifest_path)
 
         return True
 
@@ -1655,7 +1764,7 @@ def _mfdb_meta_log(
         with ResilientPIDLock(meta_path, timeout_seconds=5):
             doc = _load_json(meta_path)
             doc.setdefault("Values", []).append(row)
-            bejson_core_atomic_write(meta_path, doc)
+            _write_checked(doc, meta_path, "debug meta log")
 
         # Auto-trim if over cap
         _mfdb_meta_auto_trim(manifest_path, meta_name, meta_path)
@@ -1673,7 +1782,7 @@ def _mfdb_meta_auto_trim(manifest_path: str, meta_name: str, meta_path: str) -> 
         rows = doc.get("Values", [])
         if len(rows) > cap:
             doc["Values"] = rows[-cap:]
-            bejson_core_atomic_write(meta_path, doc)
+            _write_checked(doc, meta_path, "debug meta log")
             _update_manifest_record_count(manifest_path, meta_name, len(doc["Values"]))
     except Exception as e:
         logging.debug(f"[MFDB_DEBUG] Meta auto-trim failed for {meta_path}: {e}")
@@ -1735,7 +1844,7 @@ def mfdb_core_enable_debug(
     doc["Debug_Meta_Entity"] = meta_name
     doc["Debug_Row_Cap"]     = str(row_cap)
     doc["Debug_Reads"]       = "true" if debug_reads else "false"
-    bejson_core_atomic_write(manifest_path, doc)
+    _write_manifest_doc(doc, manifest_path)
 
     # Create meta entity file if it doesn't exist
     meta_fp_rel  = f"data/{meta_name}.bejson"
@@ -1754,7 +1863,7 @@ def mfdb_core_enable_debug(
             "Fields":           META_DEBUG_FIELDS,
             "Values":           [],
         }
-        bejson_core_atomic_write(meta_abs, meta_doc)
+        _write_checked(meta_doc, meta_abs, "debug meta entity")
 
         # Register in manifest if not already there
         entries = _get_manifest_entries(manifest_path)
@@ -1763,7 +1872,7 @@ def mfdb_core_enable_debug(
             doc2.setdefault("Values", []).append(
                 [meta_name, meta_fp_rel, "Debug audit log (auto-generated)", 0, "1.0", None]
             )
-            bejson_core_atomic_write(manifest_path, doc2)
+            _write_manifest_doc(doc2, manifest_path)
 
     # Initial schema snapshot as drift baseline
     _mfdb_debug_schema_snapshot(manifest_path, meta_name)
@@ -1774,7 +1883,7 @@ def mfdb_core_disable_debug(manifest_path: str) -> None:
     """Set Debug_Mode=false. Meta entity and its data are preserved."""
     doc = _load_json(manifest_path)
     doc["Debug_Mode"] = "false"
-    bejson_core_atomic_write(manifest_path, doc)
+    _write_manifest_doc(doc, manifest_path)
 
 
 def mfdb_core_get_debug_log(manifest_path: str) -> List[Dict[str, Any]]:
@@ -1823,7 +1932,7 @@ def mfdb_core_clear_debug_log(manifest_path: str) -> int:
             doc  = _load_json(meta_path)
             deleted = len(doc.get("Values", []))
             doc["Values"] = []
-            bejson_core_atomic_write(meta_path, doc)
+            _write_checked(doc, meta_path, "debug meta log")
         _update_manifest_record_count(manifest_path, meta_name, 0)
         return deleted
     except Exception as e:

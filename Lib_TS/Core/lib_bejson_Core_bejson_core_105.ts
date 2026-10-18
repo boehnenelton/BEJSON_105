@@ -89,11 +89,20 @@ const _105_SERIES = new Set(["105", "105a", "105db"]);
 function _isMulti(doc: BEJSONDocument): boolean {
   return doc.Format_Version === "105db";
 }
-function _offset(doc: BEJSONDocument): number {
-  return _isMulti(doc) ? 2 : 1;
-}
 function _uuidCol(doc: BEJSONDocument): number {
   return _isMulti(doc) ? 1 : 0;
+}
+/**
+ * Absolute Values-row column for Fields[fieldIdx].
+ * 105/105a: row = [record_uuid, ...Fields]               -> fieldIdx + 1
+ * 105db:    row = [Record_Type_Parent, record_uuid, ...Fields[1:]]
+ *           Fields[0] IS Record_Type_Parent (column 0); only Fields[1:] shift
+ *           by the single inserted record_uuid column: Fields[0] -> 0, Fields[i>=1] -> i + 1.
+ * (A flat "+2" for 105db mis-addresses every data field by one column.)
+ */
+function _absCol(doc: BEJSONDocument, fieldIdx: number): number {
+  if (_isMulti(doc)) return fieldIdx === 0 ? 0 : fieldIdx + 1;
+  return fieldIdx + 1;
 }
 function _assert105(doc: BEJSONDocument, fnName: string): void {
   if (!_105_SERIES.has(doc.Format_Version)) {
@@ -133,7 +142,6 @@ export type FieldTarget = string | { name?: string; field_uuid?: string };
  */
 export function resolveFieldIndex(doc: BEJSONDocument, target: FieldTarget): number {
   _assert105(doc, "resolveFieldIndex");
-  const offset = _offset(doc);
 
   const fmap = bejson_core_get_field_map_105(doc);
 
@@ -146,13 +154,13 @@ export function resolveFieldIndex(doc: BEJSONDocument, target: FieldTarget): num
         `name=${JSON.stringify(target.name)} resolves to ${byName}, field_uuid=${JSON.stringify(target.field_uuid)} resolves to ${byUuid}`
       );
     }
-    return byName + offset;
+    return _absCol(doc, byName);
   }
 
   const byUuidIdx = fmap.byUuid.get(target);
-  if (byUuidIdx !== undefined) return byUuidIdx + offset;
+  if (byUuidIdx !== undefined) return _absCol(doc, byUuidIdx);
   const byNameIdx = fmap.byName.get(target);
-  if (byNameIdx !== undefined) return byNameIdx + offset;
+  if (byNameIdx !== undefined) return _absCol(doc, byNameIdx);
 
   throw new BEJSONCoreError(E.FIELD_INTEGRITY_MISMATCH, `unresolvable target ${JSON.stringify(target)}`);
 }
@@ -193,7 +201,7 @@ export function writeCell(
     throw new BEJSONCoreError(E.RECORD_NOT_FOUND, `unknown record_uuid ${JSON.stringify(recordUuid)}`);
   }
 
-  const col = fieldIdx + _offset(doc);
+  const col = _absCol(doc, fieldIdx);
   const healed =
     (opts.expectedRow !== undefined && opts.expectedRow !== row) ||
     (opts.expectedCol !== undefined && opts.expectedCol !== col);
@@ -301,9 +309,15 @@ export function removeField(doc: BEJSONDocument, target: string): BEJSONDocument
   if (col === -1) {
     throw new BEJSONCoreError(E.FIELD_INTEGRITY_MISMATCH, `unknown field ${JSON.stringify(target)}`);
   }
-  const offset = _offset(doc);
+  if (_isMulti(doc) && col === 0) {
+    throw new BEJSONCoreError(
+      E.FIELD_INTEGRITY_MISMATCH,
+      "Record_Type_Parent is the 105db discriminator and cannot be removed"
+    );
+  }
+  const absCol = _absCol(doc, col);
   const newFields = doc.Fields.filter((_, i) => i !== col);
-  const newValues = doc.Values.map((row) => row.filter((_, i) => i !== col + offset));
+  const newValues = doc.Values.map((row) => row.filter((_, i) => i !== absCol));
 
   return _cloneWith(doc, { Fields: newFields, Values: newValues });
 }

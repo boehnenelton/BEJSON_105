@@ -73,3 +73,6 @@ export type { CreateManifestOptions as MFDBCreateManifestOptions } from "./lib_b
 
 // Schema management
 export * from "./lib_bejson_Core_bejson_schema";
+
+// Nested BEJSON 104
+export * from "./lib_bejson_Core_bejson_core_nesting";

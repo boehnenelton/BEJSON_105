@@ -1,36 +1,25 @@
-# Library:        lib_bejson_Core_bejson_errors.sh
-# Family:         Core
-# Description:    Centralized error code registry for all Bash BEJSON libraries. Mirrors lib_bejson_Core_bejson_errors.js and lib_bejson_Core_bejson_errors.py.
-# Version:        1.7.0
-# Date:           2026-09-25
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  78351cc8-b634-483e-b350-a90fafd1bfad
+# -----------------------------------------------------------------------------
+# Library:         lib_bejson_Core_bejson_errors.sh
+# Family:          Core
+# Module Purpose:  Unified numeric error-code registry shared by the BEJSON, MFDB and Nesting modules.
+# Architecture:    Shared numeric error-code registry. Codes are grouped by layer (BEJSON validation/core, MFDB, Nesting); a code name containing MFDB does not make the module that raises it MFDB-specific.
+# Format_Scope:    All layers (registry only)
+# Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+#                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+#                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+# Version:         1.7.0
 # Release_Version: 300
-#
+# Date:            2026-10-16
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   21a3adb9-7d03-4fd1-ba06-161643594e88
 # Changelog:
-#   1.7.0 - Removed 110-114 (Schema Constraints) per Be25. 43-47 (FK/
-#           cascade) and 80-85 (field identity guards) unchanged.
-#   1.6.0 - AUDIT FIX (H2): SH was three generations behind PY/TS/JS, ending
-#           at code 72. Added the three missing ranges verbatim from the
-#           canonical PY registry: 43-47 (MFDB Referential Integrity), 80-85
-#           (Format 105 Integrity Era), 110-114 (Format 105 Schema
-#           Constraints, added directly at the post-collision numbers --
-#           see C1). SH now has the same error surface as PY/JS/TS.
-#   1.5.0 - LEGACY ALIASES section deleted (Step 2 — 1.32 finalization).
-#           E_VAL_NOT_JSON, E_VAL_MISSING_KEY, E_VAL_BAD_FORMAT,
-#           E_VAL_BAD_VERSION, E_VAL_BAD_CREATOR, E_VAL_SCHEMA_MISMATCH,
-#           E_VAL_INVALID_TYPE removed. lib_bejson_Core_bejson_validator.sh
-#           updated to use primary unified codes at all return sites.
-#   1.4.0 - Removed Core_Nesting range (130-159) — that family now owns its
-#           codes in lib_bejson_CoreNesting_bejson_errors.sh. MFDB codes
-#           (30-49, 50-79) remain here: MFDB is implemented as part of the
-#           Core family, not a separate family directory.
+#   1.7.0 (2026-10-16) - Added the seven Core codes missing versus the Python registry: E_CORE_PARSE_ERROR (17), SERIALIZATION_ERROR (18), NULL_DOCUMENT (19), E_MFDB_CORE_DUPLICATE_ENTITY_NAME (57), RECORD_COUNT_SYNC_FAILED (58), NULL_MANIFEST (59), ENTITY_NOT_IN_MANIFEST (60).
+#           Bash now has every code the Python Core registry has (66), same names and values.
+#   1.6.0 (2026-10-16) - Added the Core nesting codes E_NESTING_* (130-139), moved here from the removed lib_bejson_Core_bejson_nesting_errors.sh.
+#           Core now resolves every error code through this single file. Codes, names and values unchanged.
+# -----------------------------------------------------------------------------
 
-# ===========================================================================
-# BEJSON VALIDATOR ERRORS (1–19)  — mirrors E_* in lib_bejson_Core_bejson_errors.js / .py
-# ===========================================================================
 [[ -v E_INVALID_JSON                ]] || readonly E_INVALID_JSON=1
 [[ -v E_MISSING_MANDATORY_KEY       ]] || readonly E_MISSING_MANDATORY_KEY=2
 [[ -v E_INVALID_FORMAT              ]] || readonly E_INVALID_FORMAT=3
@@ -47,6 +36,9 @@
 [[ -v E_PERMISSION_DENIED           ]] || readonly E_PERMISSION_DENIED=14
 [[ -v E_ATOMIC_WRITE_FAILED         ]] || readonly E_ATOMIC_WRITE_FAILED=15
 [[ -v E_INVALID_FORMAT_CREATOR      ]] || readonly E_INVALID_FORMAT_CREATOR=16
+[[ -v E_CORE_PARSE_ERROR         ]] || readonly E_CORE_PARSE_ERROR=17
+[[ -v E_CORE_SERIALIZATION_ERROR ]] || readonly E_CORE_SERIALIZATION_ERROR=18
+[[ -v E_CORE_NULL_DOCUMENT       ]] || readonly E_CORE_NULL_DOCUMENT=19
 
 # ===========================================================================
 # BEJSON CORE ERRORS (20–29)
@@ -80,17 +72,6 @@
 [[ -v E_MFDB_INVALID_ARCHIVE        ]] || readonly E_MFDB_INVALID_ARCHIVE=42
 
 # ===========================================================================
-# MFDB REFERENTIAL INTEGRITY (43–47) — AUDIT FIX (H2), added 2026-09-13
-# Mirrors PY 2.6.0 / TS 2.6.0. FK_UNRESOLVED (39) reused, not duplicated,
-# same as PY/TS did.
-# ===========================================================================
-[[ -v E_MFDB_FK_TARGET_ENTITY_UNKNOWN    ]] || readonly E_MFDB_FK_TARGET_ENTITY_UNKNOWN=43
-[[ -v E_MFDB_FK_RESTRICT_VIOLATION       ]] || readonly E_MFDB_FK_RESTRICT_VIOLATION=44
-[[ -v E_MFDB_FK_CASCADE_CYCLE            ]] || readonly E_MFDB_FK_CASCADE_CYCLE=45
-[[ -v E_MFDB_FK_ENTITY_STILL_REFERENCED  ]] || readonly E_MFDB_FK_ENTITY_STILL_REFERENCED=46
-[[ -v E_MFDB_FK_INVALID_ON_DELETE        ]] || readonly E_MFDB_FK_INVALID_ON_DELETE=47
-
-# ===========================================================================
 # MFDB CORE ERRORS (50–79)
 # ===========================================================================
 # MFDB Core error codes — aligned with canonical PY/JS registry
@@ -101,24 +82,40 @@
 [[ -v E_MFDB_CORE_INVALID_OPERATION ]] || readonly E_MFDB_CORE_INVALID_OPERATION=54
 [[ -v E_MFDB_CORE_INDEX_OUT_OF_BOUNDS ]] || readonly E_MFDB_CORE_INDEX_OUT_OF_BOUNDS=55
 [[ -v E_MFDB_CORE_JOIN_FAILED       ]] || readonly E_MFDB_CORE_JOIN_FAILED=56
+[[ -v E_MFDB_CORE_DUPLICATE_ENTITY_NAME    ]] || readonly E_MFDB_CORE_DUPLICATE_ENTITY_NAME=57
+[[ -v E_MFDB_CORE_RECORD_COUNT_SYNC_FAILED ]] || readonly E_MFDB_CORE_RECORD_COUNT_SYNC_FAILED=58
+[[ -v E_MFDB_CORE_NULL_MANIFEST            ]] || readonly E_MFDB_CORE_NULL_MANIFEST=59
+[[ -v E_MFDB_CORE_ENTITY_NOT_IN_MANIFEST   ]] || readonly E_MFDB_CORE_ENTITY_NOT_IN_MANIFEST=60
 [[ -v E_MFDB_CORE_ARCHIVE_ERROR     ]] || readonly E_MFDB_CORE_ARCHIVE_ERROR=70
 [[ -v E_MFDB_CORE_MOUNT_CONFLICT    ]] || readonly E_MFDB_CORE_MOUNT_CONFLICT=71
 [[ -v E_MFDB_CORE_CREATE_FAILED     ]] || readonly E_MFDB_CORE_CREATE_FAILED=72
 
+
 # ===========================================================================
-# FORMAT 105 INTEGRITY ERA (80–85) — AUDIT FIX (H2), added 2026-09-13
-# Mirrors PY 2.5.0 / TS 2.5.0. 86–89 held unassigned, same as PY.
+# CORE NESTING ERRORS (130-159) - nested BEJSON 104; part of Core, no separate errors file
 # ===========================================================================
+[[ -v E_NESTING_INVALID_CELL       ]] || readonly E_NESTING_INVALID_CELL=130
+[[ -v E_NESTING_NOT_BEJSON         ]] || readonly E_NESTING_NOT_BEJSON=131
+[[ -v E_NESTING_DEPTH_EXCEEDED     ]] || readonly E_NESTING_DEPTH_EXCEEDED=132
+[[ -v E_NESTING_CACHE_MISS         ]] || readonly E_NESTING_CACHE_MISS=133
+[[ -v E_NESTING_SCHEMA_MISMATCH    ]] || readonly E_NESTING_SCHEMA_MISMATCH=134
+[[ -v E_NESTING_CIRCULAR_REF       ]] || readonly E_NESTING_CIRCULAR_REF=135
+[[ -v E_NESTING_VALIDATION_FAILED  ]] || readonly E_NESTING_VALIDATION_FAILED=136
+[[ -v E_NESTING_FIELD_MAP_FAILED   ]] || readonly E_NESTING_FIELD_MAP_FAILED=137
+[[ -v E_NESTING_QUERY_INVALID_PATH ]] || readonly E_NESTING_QUERY_INVALID_PATH=138
+[[ -v E_NESTING_QUERY_EMPTY_PATH   ]] || readonly E_NESTING_QUERY_EMPTY_PATH=139
+
+# 140-159 reserved for future Core nesting codes.
+
+# --- Format 105 & MFDB v1.40 Referential Integrity ---
+[[ -v E_MFDB_FK_TARGET_ENTITY_UNKNOWN    ]] || readonly E_MFDB_FK_TARGET_ENTITY_UNKNOWN=43
+[[ -v E_MFDB_FK_RESTRICT_VIOLATION       ]] || readonly E_MFDB_FK_RESTRICT_VIOLATION=44
+[[ -v E_MFDB_FK_CASCADE_CYCLE            ]] || readonly E_MFDB_FK_CASCADE_CYCLE=45
+[[ -v E_MFDB_FK_ENTITY_STILL_REFERENCED  ]] || readonly E_MFDB_FK_ENTITY_STILL_REFERENCED=46
+[[ -v E_MFDB_FK_INVALID_ON_DELETE        ]] || readonly E_MFDB_FK_INVALID_ON_DELETE=47
 [[ -v E_FIELD_INTEGRITY_MISMATCH    ]] || readonly E_FIELD_INTEGRITY_MISMATCH=80
 [[ -v E_FORMAT_UNSUPPORTED          ]] || readonly E_FORMAT_UNSUPPORTED=81
 [[ -v E_RECORD_NOT_FOUND            ]] || readonly E_RECORD_NOT_FOUND=82
 [[ -v E_UPGRADE_VALIDATION_FAILED   ]] || readonly E_UPGRADE_VALIDATION_FAILED=83
 [[ -v E_DUPLICATE_FIELD_NAME        ]] || readonly E_DUPLICATE_FIELD_NAME=84
 [[ -v E_DUPLICATE_FIELD_UUID        ]] || readonly E_DUPLICATE_FIELD_UUID=85
-
-# FORMAT 105 SCHEMA CONSTRAINTS (110-114) REMOVED 2026-09-25 per Be25 --
-# value-level schema constraints were never wanted as a permanent
-# feature. Field UUIDs (84-85) and FK/cascade referential integrity
-# (43-47 above) are the entire kept 105-series feature set now.
-
-# Core_Nesting codes moved to lib_bejson_CoreNesting_bejson_errors.sh (v1.4.0)

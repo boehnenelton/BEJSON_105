@@ -1,0 +1,93 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104db",
+  "Format_Creator": "Elton Boehnen",
+  "Records_Type": [
+    "Document_Categories",
+    "Chunks"
+  ],
+  "Fields": [
+    {
+      "name": "Record_Type_Parent",
+      "type": "string"
+    },
+    {
+      "name": "category_name",
+      "type": "string",
+      "Record_Type_Parent": "Document_Categories"
+    },
+    {
+      "name": "category_index_pos",
+      "type": "integer",
+      "Record_Type_Parent": "Document_Categories"
+    },
+    {
+      "name": "category_locked",
+      "type": "string",
+      "Record_Type_Parent": "Document_Categories"
+    },
+    {
+      "name": "chunk_id",
+      "type": "string",
+      "Record_Type_Parent": "Chunks"
+    },
+    {
+      "name": "chunk_label",
+      "type": "string",
+      "Record_Type_Parent": "Chunks"
+    },
+    {
+      "name": "chunk_content",
+      "type": "string",
+      "Record_Type_Parent": "Chunks"
+    },
+    {
+      "name": "parent_category",
+      "type": "string",
+      "Record_Type_Parent": "Chunks"
+    },
+    {
+      "name": "chunk_index_pos",
+      "type": "integer",
+      "Record_Type_Parent": "Chunks"
+    },
+    {
+      "name": "chunk_tags",
+      "type": "string",
+      "Record_Type_Parent": "Chunks"
+    },
+    {
+      "name": "chunk_status",
+      "type": "string",
+      "Record_Type_Parent": "Chunks"
+    }
+  ],
+  "Values": [
+    [
+      "Document_Categories",
+      "Policy",
+      1,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "Chunks",
+      null,
+      null,
+      null,
+      "2c6e010e",
+      "React",
+      "This is a chunk",
+      "Policy",
+      1,
+      "",
+      "final"
+    ]
+  ]
+}

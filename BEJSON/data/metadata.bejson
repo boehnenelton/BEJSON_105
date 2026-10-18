@@ -1,0 +1,133 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104",
+  "Format_Creator": "Elton Boehnen",
+  "Parent_Hierarchy": "../104a.mfdb.bejson",
+  "Records_Type": [
+    "Metadata"
+  ],
+  "Fields": [
+    {
+      "name": "RECORD_TYPE",
+      "type": "string"
+    },
+    {
+      "name": "LIBRARY_FAMILY",
+      "type": "string"
+    },
+    {
+      "name": "LANGUAGE",
+      "type": "string"
+    },
+    {
+      "name": "KEY",
+      "type": "string"
+    },
+    {
+      "name": "VALUE",
+      "type": "string"
+    },
+    {
+      "name": "DESCRIPTION",
+      "type": "string"
+    }
+  ],
+  "Values": [
+    [
+      "VERSION",
+      "ECOSYSTEM",
+      "ALL",
+      "CURRENT_VERSION",
+      "2.0.48",
+      "2026-08-26: Phase 6 TS port -- 105-series Referential Integrity in TypeScript (checkReferentialIntegrity standalone audit, checkFKWrite/checkEntityDroppable/resolveDeleteDependents enforcement helpers, advisory Ref_Integrity switch). TS is now fully caught up to Python's Phase 2/3/4/6/8 status. Two more pre-existing bugs found and flagged (not fixed, outside scope): registerEntity() crashes on omitted record_count (parseInt(null) coercion bug), and the fs/path/require Node-only functions bug flagged earlier this session."
+    ],
+    [
+      "VERSION",
+      "Core",
+      "PY",
+      "CURRENT_VERSION",
+      "2.5.0",
+      "2.5.0: Format 105 Integrity Era support added (bejson_core.py 3.0.0, bejson_validator.py 3.0.0, new bejson_upgrade.py 1.0.0). 104-series untouched."
+    ],
+    [
+      "VERSION",
+      "Core",
+      "JS",
+      "CURRENT_VERSION",
+      "2.3.0",
+      ""
+    ],
+    [
+      "VERSION",
+      "Core",
+      "TS",
+      "CURRENT_VERSION",
+      "2.2.0",
+      "2.2.0: Phase 6 Referential Integrity ported (mfdb_core.ts enforcement helpers + mfdb_validators.ts standalone audit). TS Core now at full parity with Python's Format 105 work (Phases 2/3/4/6/8)."
+    ],
+    [
+      "VERSION",
+      "Core",
+      "SH",
+      "CURRENT_VERSION",
+      "1.4.0",
+      ""
+    ],
+    [
+      "RULE",
+      "Core",
+      "ALL",
+      "LANGUAGE_PARITY_REQUIRED",
+      "true",
+      "Core is the only family required to be implemented in parity across all four language systems (PY/JS/TS/SH). Confirmed by Elton Boehnen, 2026-07-18."
+    ],
+    [
+      "RULE",
+      "ALL",
+      "ALL",
+      "MFDB_IS_PART_OF_CORE",
+      "true",
+      "MFDB is implemented as part of the Core family, not a separate family directory or a family requiring its own errors file. Confirmed by Elton Boehnen, 2026-07-18."
+    ],
+    [
+      "RULE",
+      "ALL",
+      "ALL",
+      "FAMILY_OWNS_ITS_ERROR_CODES",
+      "true",
+      "Each family maintains its own lib_bejson_<Family>_bejson_errors.<ext> file. Core must not hold error codes belonging to another family."
+    ],
+    [
+      "RULE",
+      "ALL",
+      "ALL",
+      "BEJSON_ACRONYM_DEFINITION",
+      "BOEHNEN ELTON JSON",
+      "BEJSON stands for BOEHNEN ELTON JSON. This is the sole authoritative definition; no other expansion of the acronym is valid. Confirmed by Elton Boehnen, 2026-07-21. Also stated verbatim in the header of all four Core language files (PY/JS/TS/SH)."
+    ],
+    [
+      "VERSION",
+      "ECOSYSTEM",
+      "ALL",
+      "CURRENT_VERSION",
+      "2.0.43",
+      "Overall library ecosystem version (bumped for 2026-08-15 registry-drift cleanup: 13 VERSION rows backfilled, families/dependencies/errors registries reconciled, Terminal_Menus error codes renumbered)"
+    ],
+    [
+      "VERSION",
+      "Core",
+      "PY",
+      "CURRENT_VERSION",
+      "2.4.0",
+      ""
+    ],
+    [
+      "VERSION",
+      "Core",
+      "TS",
+      "CURRENT_VERSION",
+      "2.4.0",
+      ""
+    ]
+  ]
+}

@@ -1,13 +1,16 @@
-#!/bin/bash
-# Library:        bash_kinetic_demo.sh
-# Family:         Core
-# Description:    Kinetic Shell (Animations/Spinners) demonstration for Bash. Relational ID: gcli-bash-showcase-kinetic-001
-# Version:        2.0.3
-# Date:           Unknown
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  c8d98394-cef1-437f-8259-0076fd790187
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Library:         bash_kinetic_demo.sh
+# Family:          showcase
+# Module Purpose:  Implements bash script runtime functionality for bash_kinetic_demo.sh.
+# Architecture:    BEJSON Core provides foundational format parsing, schema enforcement, path security, positional field map caching, and multi-format integration across runtime environments.
+# Version:         2.0.3
+# Release_Version: 300
+# Date:            2026-09-14
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   c8d98394-cef1-437f-8259-0076fd790187
+# -----------------------------------------------------------------------------
 
 run_demo() {
     CURRENT_STATE="KINETIC"

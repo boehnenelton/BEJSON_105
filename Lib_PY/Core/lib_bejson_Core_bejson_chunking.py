@@ -343,6 +343,8 @@ def _set_chunk_doc_headers(chunk_doc_path: str, is_mounted: bool, mount_path: st
         with open(chunk_doc_path, "r", encoding="utf-8") as f:
             doc = json.load(f)
         doc["Session_Is_Mounted"] = bool(is_mounted)
+        doc.pop("_bejson_field_map", None)  # never rewrite an in-memory cache to disk
+        doc.pop("_bejson_field_map_fp", None)
         doc.pop("Is_Mounted", None)  # migrate any doc still on the old key
         doc["Mount_Path"] = mount_path
         with open(chunk_doc_path, "w", encoding="utf-8") as f:

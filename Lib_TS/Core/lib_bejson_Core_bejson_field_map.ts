@@ -2,12 +2,12 @@
  * Library:        lib_bejson_Core_bejson_field_map.ts
  * Family:         Core
  * Description:    TypeScript implementation of the Field Map Cache.
- * Version:        2.4.0
- * Date:           2026-10-03
+ * Version:        2.4.1
+ * Date:           2026-10-09
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  09778540-7d4b-448b-9412-fa8988dca743
+ * RELATIONAL_ID:  5b9b9119-137e-44c6-bce9-9dbb7af2dab5
  * Release_Version: 300
  *
  * Changelog:
@@ -40,7 +40,8 @@ export type FieldMap = { [key: string]: number };
 /**
  * UUID-aware Field Map (105-series). byName / byUuid -> index into Fields;
  * byNameRow -> index into a ROW (adds the reserved leading columns: 0 for
- * 104-series, 1 for 105/105a record_uuid, 2 for 105db discriminator+uuid),
+ * 104-series, 1 for 105/105a record_uuid; for 105db Fields[0]=Record_Type_Parent
+ * stays at 0 and Fields[i>=1] sit at i+1),
  * so row[byNameRow.get(name)] is right on every Format_Version.
  */
 export type FieldMap105 = {
@@ -57,9 +58,15 @@ type _Entry = { fp: string; map: FieldMap105; plain: FieldMap };
 // never needs to be cleared for correctness (every read self-validates).
 let _CACHE: WeakMap<object, _Entry> = new WeakMap();
 
-function _rowOffset(doc: BEJSONDocument): number {
+/**
+ * Absolute row column for Fields[i]. 105/105a: i + 1. 105db: Fields[0] IS
+ * Record_Type_Parent at column 0, Fields[i>=1] at i + 1 (only the inserted
+ * record_uuid column shifts them). 104-series: i.
+ */
+function _absCol(doc: BEJSONDocument, i: number): number {
     const v = doc.Format_Version;
-    return v === '105db' ? 2 : (_105_SERIES.indexOf(v as string) !== -1 ? 1 : 0);
+    if (v === '105db') return i === 0 ? 0 : i + 1;
+    return _105_SERIES.indexOf(v as string) !== -1 ? i + 1 : i;
 }
 
 function _fingerprint(doc: BEJSONDocument): string {
@@ -79,10 +86,9 @@ function _entry(doc: BEJSONDocument): _Entry {
 
     const map: FieldMap105 = { byName: new Map(), byUuid: new Map(), byNameRow: new Map() };
     const plain: FieldMap = Object.create(null);
-    const offset = _rowOffset(doc);
     ((doc && doc.Fields) || []).forEach((f, i) => {
         map.byName.set(f.name, i);
-        map.byNameRow.set(f.name, i + offset);
+        map.byNameRow.set(f.name, _absCol(doc, i));
         plain[f.name] = i;
         const u = (f as any).field_uuid;
         if (u !== undefined) map.byUuid.set(u, i);

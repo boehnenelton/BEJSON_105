@@ -5,12 +5,12 @@
 #                 do not restate or reinterpret this acronym elsewhere.
 # MFDB:           MFDB stands for Multi File Database. Authoritative definition;
 #                 do not restate or reinterpret this acronym elsewhere.
-# Version:        2.1.0
-# Date:           2026-10-03
+# Version:        2.1.1
+# Date:           2026-10-09
 # Author:         Elton Boehnen
 # Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 # Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  a6913b04-bce3-436e-b4f3-56c36187a3fd
+# RELATIONAL_ID:  800cf1af-4368-4dff-b33f-bd7f6810fb79
 # Release_Version: 300
 
 #===============================================================================
@@ -163,7 +163,7 @@ bejson_core_load_file() {
 #     doc), so any change to the doc is simply a different key;
 #   * file lookups are validated with [[ file -nt cache ]] (builtin, no fork)
 #     and the cache entry is dropped on atomic_write / backup restore.
-# 105-series row offsets (105/105a +1, 105db +2) are included: column 3 of an
+# 105-series row positions (105/105a idx+1; 105db RTP=0, idx>=1 -> idx+1) are included: column 3 of an
 # entry is the ROW position, so row[map[name]] is right on every version.
 # Entry format (one field per line): name<TAB>fields_idx<TAB>row_idx<TAB>field_uuid
 #-------------------------------------------------------------------------------
@@ -196,10 +196,14 @@ __bejson_fm_digest() {
 # One jq call builds the whole map, written atomically (tmp + mv).
 __bejson_fm_build() {
     local cf="$1" doc="$2" src="${3:-}" tmp="$1.$$.tmp"
+    # Row column: 105/105a -> idx+1. 105db: Fields[0] IS Record_Type_Parent at
+    # column 0 and only Fields[1:] shift by the inserted record_uuid -> idx+1 for
+    # idx>=1 (a flat +2 would mis-address every data field by one column).
     local prog='(.Format_Version // "") as $v
-        | (if $v == "105db" then 2 elif ($v == "105" or $v == "105a") then 1 else 0 end) as $o
         | (.Fields // []) | to_entries[]
-        | [.value.name, .key, (.key + $o), (.value.field_uuid // "")] | @tsv'
+        | (if $v == "105db" then (if .key == 0 then 0 else .key + 1 end)
+           elif ($v == "105" or $v == "105a") then .key + 1 else .key end) as $r
+        | [.value.name, .key, $r, (.value.field_uuid // "")] | @tsv'
     {
         printf '#bejson_fm_v1\n'
         if [[ -n "$src" ]]; then jq -r "$prog" "$src"

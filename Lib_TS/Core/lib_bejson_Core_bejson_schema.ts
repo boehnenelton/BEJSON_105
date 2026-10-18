@@ -1,14 +1,18 @@
 /**
- * Library:        lib_bejson_Core_bejson_schema.ts
- * Family:         Core
- * Description:    Schema management and enforcement for TypeScript.
- * Version:        2.0.2
- * Date:           2026-05-21
- * Author:         Elton Boehnen
- * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
- * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  990f4fa1-413c-4467-8500-40f3ef2acc17
+ * Library:         lib_bejson_Core_bejson_schema.ts
+ * Family:          Core
+ * Module Purpose:  Schema extraction and validate-against helpers for BEJSON documents.
+ * Architecture:    Format-level BEJSON layer that works on any BEJSON document (104, 104a, 104db) through positional Fields/Values and the field-map cache. It does not orchestrate MFDB and is not specific to 104db.
+ * Format_Scope:    104 | 104a | 104db (generic)
+ * Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+ *                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+ *                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+ * Version:         2.0.4
  * Release_Version: 300
+ * Date:            2026-10-02
+ * Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+ * Format_Creator:  Elton Boehnen
+ * RELATIONAL_ID:   f50ebfb3-2ef6-4058-8f57-1316144c992f
  */
 
 import {
@@ -19,6 +23,9 @@ import {
 
 export const BEJSONSchema = {
     /**
+     * Returns a schema copy of a document: all header keys and Fields, Values emptied. Any BEJSON version.
+     */
+    /**
      * Extracts the schema (structure) from a BEJSON document.
      */
     extract(doc: BEJSONDocument): BEJSONDocument {
@@ -27,6 +34,9 @@ export const BEJSONSchema = {
         return schema;
     },
 
+    /**
+     * Compares a document's Format_Version and Fields (names, types, order) with a schema. Structure comparison only; it does not apply the 104/104a/104db validity rules.
+     */
     /**
      * Validates a BEJSON document against a specific schema.
      */
@@ -94,6 +104,9 @@ export const BEJSONSchema = {
     },
 
     /**
+     * {fieldName: field definition} for a schema (definitions, not column indices).
+     */
+    /**
      * Returns a mapping of field names to their definitions.
      */
     getFieldMap(schema: BEJSONDocument): Record<string, BEJSONField> {
@@ -105,6 +118,9 @@ export const BEJSONSchema = {
         return map;
     },
 
+    /**
+     * Creates an empty schema document for the given Records_Type and Fields; version defaults to '104a'.
+     */
     /**
      * Utility to create a schema object from scratch.
      */

@@ -6,12 +6,12 @@ BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
-Version:        3.5.1
-Date:           2026-10-06
+Version:        3.5.3
+Date:           2026-10-12
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
-RELATIONAL_ID:  b530a553-d89f-453a-a2c0-7c0fb9172d14
+RELATIONAL_ID:  8e6f6b84-5a76-491c-aabc-f507435815c2
 Release_Version: 300
 
 Changelog:
@@ -118,44 +118,156 @@ class BEJSONCoreError(Exception):
         self.code = code
 
 class ResilientPIDLock:
+    """Cross-process mutex built on an atomic mkdir() lock directory.
+
+    Stale-lock recovery (owner PID dead) is race-safe:
+      * the lock directory is *renamed* to a unique tombstone (atomic -- only
+        one reclaimer can win) and only then deleted; there is no
+        check-then-rmdir window in which a freshly acquired lock can be
+        destroyed;
+      * the owner that was observed dead is re-verified from the tombstone
+        (per-acquisition token); if it turns out the directory had been
+        replaced by a live owner in the meantime, it is renamed straight back;
+      * release() only ever removes a lock whose token is the caller's own, so
+        a holder that was (wrongly or rightly) reclaimed can never rmdir the
+        lock now owned by someone else.
+    """
+    _NO_META_GRACE_SECONDS = 5.0  # owner may be between mkdir() and writing meta
+
     def __init__(self, target_path: Union[str, Path], timeout_seconds: int = 10):
         self.target    = Path(target_path)
         self.lock_dir  = Path(f"{target_path}.lockdir")
         self.meta_file = self.lock_dir / "lock_meta.json"
         self.timeout   = timeout_seconds
+        self._token: Optional[str] = None  # set only while WE hold the lock
 
+    # -- helpers ------------------------------------------------------------
+    @staticmethod
+    def _pid_alive(pid) -> bool:
+        if not isinstance(pid, int) or pid <= 0:
+            return False
+        if os.name == "nt":
+            return True  # os.kill(pid, 0) is not a liveness probe on Windows
+        try:
+            os.kill(pid, 0)  # Signal 0: existence check only
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True      # process exists, owned by another user -- NOT dead
+        except OSError:
+            return False
+        return True
+
+    @staticmethod
+    def _read_meta_at(meta_path: Path) -> Optional[dict]:
+        try:
+            meta = json.loads(meta_path.read_text())
+            return meta if isinstance(meta, dict) else None
+        except (OSError, ValueError):
+            return None
+
+    def _lock_dir_is_stale(self, meta: Optional[dict]) -> bool:
+        if meta is None:
+            # No readable meta: either the owner is mid-acquire or it crashed
+            # right after mkdir(). Only call it stale after a grace period.
+            try:
+                age = time.time() - self.lock_dir.stat().st_mtime
+            except OSError:
+                return False
+            return age > self._NO_META_GRACE_SECONDS
+        return not self._pid_alive(meta.get("pid"))
+
+    _GUARD_STALE_SECONDS = 5.0  # a reclaim guard is held for microseconds; older = its holder died
+
+    def _reclaim_stale(self, observed: Optional[dict]) -> None:
+        """Remove a lock directory observed to be stale -- identity-checked.
+
+        Reclaimers are serialised by a short-lived guard directory and RE-VERIFY,
+        while holding it, that the lock directory still carries the very owner
+        (token + pid) that was observed dead. While that owner's directory
+        exists nobody can mkdir() a new lock, and only guard holders remove
+        directories, so a live owner's fresh lock can never be renamed away
+        (the check-then-rename window of a guard-less reclaim)."""
+        guard = Path(f"{self.lock_dir}.reclaim")
+        try:
+            guard.mkdir(exist_ok=False)
+        except FileExistsError:
+            try:
+                if time.time() - guard.stat().st_mtime > self._GUARD_STALE_SECONDS:
+                    dead = Path(f"{guard}.dead-{_uuid.uuid4().hex}")
+                    os.rename(guard, dead)          # abandoned guard (holder died)
+                    shutil.rmtree(dead, ignore_errors=True)
+            except OSError:
+                pass
+            return                                   # let the caller retry
+        except OSError:
+            return
+        try:
+            current = self._read_meta_at(self.meta_file)
+            same_owner = (
+                (current is None and observed is None)
+                or (current is not None and observed is not None
+                    and current.get("token") == observed.get("token")
+                    and current.get("pid") == observed.get("pid"))
+            )
+            if not same_owner or not self.lock_dir.exists() or not self._lock_dir_is_stale(current):
+                return                               # replaced or revived since we looked
+            tomb = Path(f"{self.lock_dir}.stale-{_uuid.uuid4().hex}")
+            try:
+                os.rename(self.lock_dir, tomb)
+            except OSError:
+                return
+            shutil.rmtree(tomb, ignore_errors=True)
+        finally:
+            try:
+                guard.rmdir()
+            except OSError:
+                pass
+
+    # -- public API ---------------------------------------------------------
     def acquire(self) -> bool:
         start_time = time.time()
         while time.time() - start_time < self.timeout:
             try:
                 self.lock_dir.mkdir(exist_ok=False)
+            except FileExistsError:
+                observed = self._read_meta_at(self.meta_file)
+                if self._lock_dir_is_stale(observed):
+                    self._reclaim_stale(observed)
+                    continue
+                time.sleep(0.1)
+                continue
+            token = _uuid.uuid4().hex
+            try:
                 self.meta_file.write_text(json.dumps({
                     "pid":       os.getpid(),
-                    "timestamp": int(time.time())
+                    "timestamp": int(time.time()),
+                    "token":     token,
                 }))
-                return True
-            except FileExistsError:
-                if self.meta_file.exists():
-                    try:
-                        meta      = json.loads(self.meta_file.read_text())
-                        owner_pid = meta.get("pid")
-                        if owner_pid:
-                            os.kill(owner_pid, 0)  # Signal 0: check if alive
-                    except (ProcessLookupError, OSError):
-                        # Owner is dead — safely reclaim
-                        self.release()
-                        continue
-                    except Exception as e:
-                        logging.debug(f"[Core] Could not verify lock-owner liveness, will retry: {e}")
-                time.sleep(0.1)
+            except OSError:
+                if not self.lock_dir.exists():
+                    continue  # our directory was removed under us -- lost the race, retry
+                try:
+                    self.lock_dir.rmdir()
+                except OSError:
+                    pass
+                raise
+            self._token = token
+            return True
         return False
 
     def release(self):
-        if self.meta_file.exists():
-            try:
-                self.meta_file.unlink()
-            except OSError:
-                pass
+        if self._token is None:
+            return  # we do not hold this lock -- never touch someone else's
+        meta = self._read_meta_at(self.meta_file)
+        owned = meta is not None and meta.get("token") == self._token
+        self._token = None
+        if not owned:
+            return  # reclaimed and/or re-acquired by another process: leave it alone
+        try:
+            self.meta_file.unlink()
+        except OSError:
+            pass
         try:
             self.lock_dir.rmdir()
         except OSError:
@@ -171,11 +283,44 @@ class ResilientPIDLock:
 
 from lib_bejson_Core_bejson_env import resolve_path
 
+FIELD_MAP_CACHE_KEY = "_bejson_field_map"
+
+class _FieldMap(dict):
+    """Provenance marker for engine-built field maps."""
+    __slots__ = ()
+
+def bejson_core_strip_persisted_cache(doc: Any) -> Any:
+    """Discards a persisted field-map cache from a freshly loaded document (untrusted input)."""
+    if isinstance(doc, dict):
+        if doc.pop(FIELD_MAP_CACHE_KEY, None) is not None:
+            logging.warning("[BEJSON_CORE] Discarded persisted %s (untrusted cache)", FIELD_MAP_CACHE_KEY)
+        doc.pop("_bejson_field_map_fp", None)
+    return doc
+
+def _field_name(f: Any) -> str:
+    return f.get("name", "") if isinstance(f, dict) else str(f)
+
+def bejson_core_field_map_is_fresh(doc: dict) -> bool:
+    """O(1) provenance + shape + boundary probe for an attached 104 field map."""
+    cached = doc.get(FIELD_MAP_CACHE_KEY)
+    fields = doc.get("Fields")
+    if not isinstance(cached, _FieldMap) or not isinstance(fields, list):
+        return False
+    n = len(fields)
+    if len(cached) != n:
+        return False
+    if n == 0:
+        return True
+    mid = n >> 1
+    return (
+        cached.get(_field_name(fields[0])) == 0
+        and cached.get(_field_name(fields[mid])) == mid
+        and cached.get(_field_name(fields[n - 1])) == n - 1
+    )
+
 def _bejson_warm_on_load(doc):
-    """105-series documents get their field map built the moment they are
-    read, so the first lookup is already warm. 104-series documents are left
-    untouched on load (standing contract) -- their map is built lazily, and
-    self-validated, on the first lookup. Anything else is untouched."""
+    """Strips any persisted cache first, then warms 105-series documents."""
+    bejson_core_strip_persisted_cache(doc)
     if isinstance(doc, dict) and doc.get("Format_Version") in _105_SERIES and isinstance(doc.get("Fields"), list):
         _bejson_get_field_map_cache(doc)
     return doc
@@ -255,30 +400,19 @@ def bejson_core_get_field_map(doc: dict) -> Dict[str, int]:
     # it was built from, so add_field / an out-of-band Fields edit can never
     # leave a stale map behind (3.5.0 -- this was the 104-series half of the
     # self-maintaining design; 105 got it in 3.4.0).
+    if bejson_core_field_map_is_fresh(doc):
+        return doc[FIELD_MAP_CACHE_KEY]
+
     fields = doc.get("Fields", [])
-    if not fields:
-        return {}
-    fp = _bejson_fields_fingerprint(doc)
-    cached = doc.get("_bejson_field_map")
-    if (isinstance(cached, dict) and not _bejson_is_105_cache(cached)
-            and doc.get("_bejson_field_map_fp") == fp):
-        return cached
+    if not isinstance(fields, list) or not fields:
+        doc.pop(FIELD_MAP_CACHE_KEY, None)
+        return _FieldMap()
 
-    # Create a unique key for this field structure for the global cache
-    field_names = tuple(f["name"] for f in fields)
-    cache_key = (doc.get("Format_Version"), field_names)
-
-    if cache_key in _FIELD_MAP_CACHE:
-        field_map = _FIELD_MAP_CACHE[cache_key]
-    else:
-        # Build and update global cache
-        field_map = {f["name"]: i for i, f in enumerate(fields)}
-        _FIELD_MAP_CACHE[cache_key] = field_map
+    field_map = _FieldMap((_field_name(f), i) for i, f in enumerate(fields))
 
     # Inject into document for subsequent O(1) lookups
     try:
-        doc["_bejson_field_map"] = field_map
-        doc["_bejson_field_map_fp"] = fp
+        doc[FIELD_MAP_CACHE_KEY] = field_map
     except Exception as e:
         logging.debug(f"[Core] Could not attach field-map cache to document (immutable or not a dict): {e}")
 
@@ -396,10 +530,23 @@ def _bejson_content_hash(doc: dict) -> str:
 
 def _bejson_row_offset(doc: dict) -> int:
     """Reserved leading columns in a row that Fields does not describe:
-    0 for 104-series, 1 for 105/105a (record_uuid), 2 for 105db
-    (discriminator + record_uuid)."""
+    0 for 104-series, 1 for 105/105a (record_uuid). For 105db this is 1 for
+    every field EXCEPT Fields[0] -- see _bejson_core_abs_col(); never add this
+    offset blindly to a 105db field index."""
     fmt = doc.get("Format_Version")
-    return 2 if fmt == "105db" else (1 if fmt in ("105", "105a") else 0)
+    return 1 if fmt in ("105", "105a", "105db") else 0
+
+def _bejson_core_abs_col(doc: dict, field_idx: int) -> int:
+    """Absolute Values-row column for Fields[field_idx].
+    104-series: field_idx.   105/105a: row = [record_uuid, *Fields] -> field_idx + 1.
+    105db: row = [Record_Type_Parent, record_uuid, *Fields[1:]]. Fields[0] IS
+    Record_Type_Parent and already lives at column 0, so only Fields[1:] shift
+    by the single inserted record_uuid column: Fields[0] -> 0, Fields[i>=1] -> i + 1.
+    (A flat "+2" for 105db mis-addresses every data field by one column.)"""
+    fmt = doc.get("Format_Version")
+    if fmt == "105db":
+        return 0 if field_idx == 0 else field_idx + 1
+    return field_idx + (1 if fmt in ("105", "105a") else 0)
 
 def _bejson_fields_fingerprint(doc: dict) -> tuple:
     """Cheap identity of the field layout (version + name/uuid per field).
@@ -413,11 +560,10 @@ def _bejson_core_build_field_map(doc: dict) -> dict:
     for idx, field in enumerate(doc.get("Fields", [])):
         by_name[field["name"]] = idx
         by_uuid[field.get("field_uuid")] = idx
-    offset = _bejson_row_offset(doc)
     return {
         "by_name": by_name,                                     # name -> Fields index
         "by_uuid": by_uuid,                                     # field_uuid -> Fields index
-        "by_name_row": {n: i + offset for n, i in by_name.items()},  # name -> row position
+        "by_name_row": {n: _bejson_core_abs_col(doc, i) for n, i in by_name.items()},  # name -> row position
         "content_hash": _bejson_content_hash(doc),
         "fingerprint": _bejson_fields_fingerprint(doc),
     }
@@ -500,7 +646,6 @@ def bejson_core_resolve_field_index(doc: dict, field_target: Union[str, Dict[str
         )
 
     field_map = _bejson_get_field_map_cache(doc)
-    offset = 2 if fmt == "105db" else 1  # 105db reserves index 0 (discriminator) + 1 (record_uuid)
 
     if isinstance(field_target, dict):
         name, fuuid = field_target.get("name"), field_target.get("field_uuid")
@@ -512,12 +657,12 @@ def bejson_core_resolve_field_index(doc: dict, field_target: Union[str, Dict[str
                 f"field_uuid={fuuid!r} resolves to {by_uuid!r}",
                 code=E_FIELD_INTEGRITY_MISMATCH,
             )
-        return by_name + offset
+        return _bejson_core_abs_col(doc, by_name)
 
     if field_target in field_map["by_uuid"]:
-        return field_map["by_uuid"][field_target] + offset
+        return _bejson_core_abs_col(doc, field_map["by_uuid"][field_target])
     if field_target in field_map["by_name"]:
-        return field_map["by_name"][field_target] + offset
+        return _bejson_core_abs_col(doc, field_map["by_name"][field_target])
 
     raise BEJSONCoreError(
         f"E_FIELD_INTEGRITY_MISMATCH: unresolvable target {field_target!r}",
@@ -559,8 +704,7 @@ def bejson_core_write_cell(
         raise BEJSONCoreError(f"E_RECORD_NOT_FOUND: unknown record_uuid {record_uuid!r}",
                                code=E_RECORD_NOT_FOUND)
 
-    offset = 2 if doc["Format_Version"] == "105db" else 1
-    abs_col = col + offset
+    abs_col = _bejson_core_abs_col(doc, col)
 
     healed = False
     if expected_row is not None and expected_row != row:
@@ -667,10 +811,16 @@ def bejson_core_remove_field(doc: dict, field_target: str) -> None:
         raise BEJSONCoreError(f"E_FIELD_INTEGRITY_MISMATCH: unknown field {field_target!r}",
                                code=E_FIELD_INTEGRITY_MISMATCH)
 
+    if doc["Format_Version"] == "105db" and col == 0:
+        raise BEJSONCoreError(
+            "E_FIELD_INTEGRITY_MISMATCH: Record_Type_Parent is the 105db discriminator "
+            "and cannot be removed",
+            code=E_FIELD_INTEGRITY_MISMATCH,
+        )
+    abs_col = _bejson_core_abs_col(doc, col)
     del doc["Fields"][col]
-    offset = 2 if doc["Format_Version"] == "105db" else 1
     for row in doc["Values"]:
-        del row[col + offset]
+        del row[abs_col]
 
     _bejson_core_invalidate_cache(doc)
 

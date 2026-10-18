@@ -1,24 +1,31 @@
 /**
- * Library:        lib_bejson_Core_bejson_state.js
- * Family:         Core
- * Description:    State management and persistence layer for BEJSON documents.
- * Version:        2.1.0
- * Date:           2026-05-18
- * Author:         Elton Boehnen
- * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
- * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  3b72d0a1-2f7b-4e19-8a7e-01e8eb54c9db
+ * Library:         lib_bejson_Core_bejson_state.js
+ * Family:          Core
+ * Module Purpose:  Browser state manager with undo history kept in one BEJSON 104db document; blocks prototype-pollution keys.
+ * Architecture:    BEJSON 104db: ONE file holding 2+ entity types, with a Record_Type_Parent discriminator in column 0, per-field Record_Type_Parent ownership, and null-padding for non-applicable fields. A single-file format; it is not MFDB.
+ * Format_Scope:    104db only (single file; NOT MFDB)
+ * Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+ *                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+ *                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+ * Version:         2.1.4
  * Release_Version: 300
+ * Date:            2026-10-02
+ * Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+ * Format_Creator:  Elton Boehnen
+ * RELATIONAL_ID:   ca89e756-ed77-440b-83f9-5422ab22b231
  */
 
 if (typeof window !== 'undefined') {
     window.BEJSON = window.BEJSON || {};
 }
 
-// R3-SEC-02: Block prototype pollution keys. These names, if set on a plain
-// object via Object.assign, can overwrite Object.prototype in older runtimes.
+// Prototype-pollution guard: these names, if set on a plain object via Object.assign, can
+// overwrite Object.prototype in older runtimes.
 const _DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
+/**
+ * Removes dangerous keys (__proto__, constructor, prototype) from a plain object before it is stored or restored.
+ */
 function _sanitizeObject(obj) {
     if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return obj;
     const safe = Object.create(null);
@@ -30,6 +37,9 @@ function _sanitizeObject(obj) {
 }
 
 class BEJSONState {
+    /**
+     * Creates the state manager: a reactive Proxy state object plus ONE BEJSON 104db document (StateNode + History records) that mirrors it. Options control history size.
+     */
     constructor(initialState = {}, options = {}) {
         // Sanitize initial state before proxying
         initialState = _sanitizeObject(initialState) ?? {};
@@ -67,6 +77,9 @@ class BEJSONState {
         this._saveHistory();
     }
 
+    /**
+     * Wraps a state object in a Proxy that notifies listeners and re-syncs the 104db document when a value changes.
+     */
     _createProxy(target, path) {
         const self = this;
         return new Proxy(target, {
@@ -86,7 +99,7 @@ class BEJSONState {
                 return value;
             },
             set(obj, prop, value) {
-                // R3-SEC-02: block prototype pollution via proxy setter
+                // block prototype pollution via proxy setter
                 if (_DANGEROUS_KEYS.has(String(prop))) return true;
                 const fullPath = path ? `${path}.${prop}` : prop;
                 const oldValue = obj[prop];
@@ -102,6 +115,9 @@ class BEJSONState {
         });
     }
 
+    /**
+     * Removes an effect's dependency registrations.
+     */
     _cleanupEffect(effect) {
         const paths = this._effectDeps.get(effect);
         if (paths) {
@@ -116,6 +132,9 @@ class BEJSONState {
         }
     }
 
+    /**
+     * Computes the field indices used by sync and history from the document's Fields (no fixed positions).
+     */
     _buildFieldIdx() {
         // Pre-compute all field indices used by _syncToBEJSON and _saveHistory (FM3)
         const fields = this.bejson.Fields;
@@ -128,10 +147,13 @@ class BEJSONState {
         };
     }
 
+    /**
+     * Rebuilds the StateNode rows of the 104db document from the current state.
+     */
     _syncToBEJSON() {
         const fields = this.bejson.Fields;
         const fieldCount = fields.length;
-        // use cached indices instead of findIndex on every call
+        // cached field indices
         const { rtp: rtpIdx, key: keyIdx, value: valIdx } = this._fieldIdx;
 
         // Clear StateNodes
@@ -147,6 +169,9 @@ class BEJSONState {
         }
     }
 
+    /**
+     * Appends a History row (JSON snapshot + timestamp).
+     */
     _saveHistory() {
         const fields = this.bejson.Fields;
         const fieldCount = fields.length;
@@ -164,11 +189,17 @@ class BEJSONState {
         this._historyIndex = historyRows.length - 1;
     }
 
+    /**
+     * Calls the listeners subscribed to a path.
+     */
     _notify(path, newValue, oldValue) {
         if (this._listeners.has(path)) this._listeners.get(path).forEach(cb => cb(newValue, oldValue, path));
         if (this._listeners.has('*')) this._listeners.get('*').forEach(cb => cb(newValue, oldValue, path));
     }
 
+    /**
+     * Re-runs the effects that depend on a changed path.
+     */
     _triggerEffects(path) {
         const effectsToRun = new Set();
         if (this._dependencyGraph.has(path)) {
@@ -188,12 +219,18 @@ class BEJSONState {
         effectsToRun.forEach(effect => effect());
     }
 
+    /**
+     * Registers a callback for changes at a state path; returns an unsubscribe function.
+     */
     subscribe(path, callback) {
         if (!this._listeners.has(path)) this._listeners.set(path, new Set());
         this._listeners.get(path).add(callback);
         return () => this._listeners.get(path).delete(callback);
     }
 
+    /**
+     * Runs fn immediately and again whenever a state path it read changes.
+     */
     effect(fn) {
         const runner = () => {
             this._cleanupEffect(runner);
@@ -207,10 +244,11 @@ class BEJSONState {
         runner();
     }
 
+    /**
+     * Restores the previous History snapshot (sanitized); no-op at the oldest.
+     */
     undo() {
-        // previously used hardcoded positional index [4] for the snapshot field.
-        // This silently returns garbage if a field is ever inserted before snapshot.
-        // Now resolved dynamically via the field map.
+        // snapshot column index is resolved through the field map (not a fixed position)
         const historyRows = this.bejson.Values.filter(r => r[0] === "History");
         if (this._historyIndex <= 0) return false;
         const snIdx = this.bejson.Fields.findIndex(f => f.name === "snapshot");
@@ -220,8 +258,11 @@ class BEJSONState {
         return true;
     }
 
+    /**
+     * Replaces the current state with a snapshot after sanitizing it.
+     */
     _restore(snapshot) {
-        // R3-SEC-02: sanitize before restoring to prevent prototype pollution
+        // sanitize before restoring to prevent prototype pollution
         const safe = _sanitizeObject(snapshot) ?? {};
         Object.keys(this.state).forEach(k => delete this.state[k]);
         Object.assign(this.state, safe);

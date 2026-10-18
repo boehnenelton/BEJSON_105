@@ -1,16 +1,20 @@
-# Library:        lib_bejson_Core_bejson_parse.sh
-# Family:         Core
-# Description:    Rapid indexing and retrieval engine for dense tabular data.
-# Version:        2.0.2
-# Date:           2026-06-02
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  e7728b93-48e7-4896-a413-bd4f468f0fe7
+# -----------------------------------------------------------------------------
+# Library:         lib_bejson_Core_bejson_parse.sh
+# Family:          Core
+# Module Purpose:  Tolerant JSON extraction from raw text and project-file extraction/saving from a parsed BEJSON document.
+# Architecture:    Format-level BEJSON layer that works on any BEJSON document (104, 104a, 104db) through positional Fields/Values and the field-map cache. It does not orchestrate MFDB and is not specific to 104db.
+# Format_Scope:    104 | 104a | 104db (generic)
+# Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+#                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+#                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+# Version:         2.0.4
 # Release_Version: 300
+# Date:            2026-10-02
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   0984cc7f-c18d-459b-a7b2-9dfd0704d98c
+# -----------------------------------------------------------------------------
 
-# NOTE: set -o nounset intentionally omitted — library files must not modify
-# global shell options; doing so breaks host scripts that source this file. (SH3)
 set -o pipefail
 
 BEJSON_PARSE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,6 +33,7 @@ BEJSON_PROJECT_NAME="My_Project"
 BEJSON_FILES_NAMES=()
 BEJSON_FILES_CONTENTS=()
 
+# Extracts a JSON object from raw text (strips fences/preambles) and echoes it.
 bejson_parse_json() {
     local text="$1"
     if declare -f bejson_validator_check_dependencies >/dev/null 2>&1; then
@@ -65,6 +70,7 @@ bejson_parse_json() {
     return 1
 }
 
+# Reads a project-style BEJSON document and extracts the project metadata and file rows.
 bejson_extract_data() {
     local json="$1"
     BEJSON_PROJECT_NAME="My_Project"
@@ -127,6 +133,7 @@ bejson_extract_data() {
     return 0
 }
 
+# Writes the extracted project files to disk with a boundary check on each relative path.
 bejson_save_files() {
     local proj="${1:-My_Project}"
     local base_dir="${2:-$BEJSON_PARSE_DEFAULT_OUT}"

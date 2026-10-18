@@ -1,9 +1,12 @@
 dev/
-Backups/
+logs/
+log/
+backups/
 __pycache__/
 *.pyc
 *.tmp
 .DS_Store
-libraries_105.zip
-Chunked5/
-chunked5/
+AGENTS.md
+dist/
+chunk/
+.bejson_project.json

@@ -1,13 +1,16 @@
-#!/bin/bash
-# Library:        bash_statement_demo.sh
-# Family:         Core
-# Description:    Advanced Statement Management demonstration for Bash. Relational ID: gcli-bash-showcase-statement-001
-# Version:        2.0.3
-# Date:           Unknown
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  e86d64be-4ab7-45b5-a847-4d3b92a06101
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Library:         bash_statement_demo.sh
+# Family:          showcase
+# Module Purpose:  Implements bash script runtime functionality for bash_statement_demo.sh.
+# Architecture:    BEJSON 104a provides fast primitive metadata and manifest configuration with O(1) field map caching.
+# Version:         2.0.3
+# Release_Version: 300
+# Date:            2026-09-14
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   e86d64be-4ab7-45b5-a847-4d3b92a06101
+# -----------------------------------------------------------------------------
 
 run_demo() {
     CURRENT_STATE="STATEMENTS"

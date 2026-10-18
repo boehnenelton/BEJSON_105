@@ -1,14 +1,18 @@
 /**
- * Library:        lib_bejson_Core_bejson_secure_zip.js
- * Family:         Core
- * Description:    Secure ZIP extraction logic to mitigate Zip Slip vulnerabilities.
- * Version:        1.1.0
- * Date:           2026-06-02
- * Author:         Elton Boehnen
- * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
- * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  23361dd0-b2ae-45cb-94d6-9c2895534b29
+ * Library:         lib_bejson_Core_bejson_secure_zip.js
+ * Family:          Core
+ * Module Purpose:  Zip-entry path normalization and validation that blocks root-escaping paths (secure_zip_validate).
+ * Architecture:    Runtime or environment helper. It defines no BEJSON format rules.
+ * Format_Scope:    None (not a format module)
+ * Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+ *                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+ *                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+ * Version:         1.1.4
  * Release_Version: 300
+ * Date:            2026-10-02
+ * Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+ * Format_Creator:  Elton Boehnen
+ * RELATIONAL_ID:   ccd1d678-119a-4f91-aed3-acd108894e90
  */
 
 'use strict';
@@ -16,9 +20,11 @@
 const _nodePath = (typeof require !== 'undefined') ? (() => { try { return require('path'); } catch { return null; } })() : null;
 
 /**
+ * Normalizes a zip-entry path (slashes, '.' and '..' segments) so it can be compared with the target directory.
+ */
+/**
  * Pure-JS POSIX path normalizer — stack-based, zero Node.js dependency.
  * Resolves `.` and `..` segments. Never produces a path that escapes root.
- * R4-NEW-10: replaces the WebView/browser early-return bypass.
  * @param {string} rawPath
  * @returns {string} normalized path (always starts with "/")
  */
@@ -33,6 +39,9 @@ function _normalizePath(rawPath) {
     return '/' + stack.join('/');
 }
 
+/**
+ * Checks every entry of a zip against targetDir and rejects any that would extract outside it (Zip Slip). Generic zip safety; no BEJSON format rules.
+ */
 /**
  * Validates entries in a ZIP archive to ensure they do not escape the target directory.
  * Works in Node.js, Android WebView, and all browser environments.

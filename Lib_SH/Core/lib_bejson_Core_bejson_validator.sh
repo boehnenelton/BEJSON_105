@@ -106,6 +106,16 @@ bejson_validator_validate_file() {
         return $E_RECORD_LENGTH_MISMATCH
     fi
 
+    # 4b. The '_' prefix is reserved for in-memory caches; a file never carries one
+    if jq -e 'keys | map(select(startswith("_"))) | length > 0' "$file_path" >/dev/null 2>&1; then
+        return $E_RESERVED_KEY_COLLISION
+    fi
+
+    # 5. Field names must be unique
+    if ! jq -e '(.Fields | map(.name)) as $n | ($n | length) == ($n | unique | length)' "$file_path" >/dev/null 2>&1; then
+        return $E_INVALID_FIELDS
+    fi
+
     return 0
 }
 

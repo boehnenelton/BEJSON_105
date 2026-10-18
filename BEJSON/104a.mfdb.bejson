@@ -8,7 +8,7 @@
   "Schema_Version": "2.6.1",
   "Author": "Elton Boehnen",
   "Created_At": "2026-07-18T06:45:04Z",
-  "Modified_At": "2026-09-11T00:00:00Z",
+  "Modified_At": "2026-10-18T07:15:00Z",
   "Network_Role": "Master",
   "Records_Type": [
     "mfdb"
@@ -44,7 +44,7 @@
       "Errors",
       "data/errors.bejson",
       "Global cross-family error code map (read-only aggregate; each family's own errors file is the source of truth)",
-      238,
+      278,
       "2.2",
       null
     ],
@@ -52,7 +52,7 @@
       "Metadata",
       "data/metadata.bejson",
       "Library versioning AND governance rules hub (EAV-style: RECORD_TYPE is VERSION or RULE), keyed by LIBRARY_FAMILY + LANGUAGE + KEY. Includes the Core-parity, MFDB-is-part-of-Core, BEJSON acronym, and PMS-deprecation rules.",
-      9,
+      12,
       "3.3",
       null
     ],
@@ -60,7 +60,7 @@
       "Library_Changes",
       "data/library_changes.bejson",
       "Library change log, keyed by LIBRARY_FAMILY + LANGUAGE + LIBRARY_FILE",
-      83,
+      116,
       "2.2",
       null
     ],
@@ -76,7 +76,7 @@
       "Dependencies",
       "data/dependencies.bejson",
       "Import/require/source edges between library files across all four languages, so an AI or tool can check for breakage before deleting, moving, or renaming a file",
-      55,
+      59,
       "1.1",
       null
     ],

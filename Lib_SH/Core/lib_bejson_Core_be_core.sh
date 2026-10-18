@@ -1,21 +1,27 @@
-# Library:        lib_bejson_System_be_core.sh
-# Family:         Core
-# Description:    BE-specific core system abstractions and utility wrappers.
-# Version:        2.2.1
-# Date:           2026-06-04
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  baffaf1b-6503-471c-a0df-1ac66754dff9
+# -----------------------------------------------------------------------------
+# Library:         lib_bejson_Core_be_core.sh
+# Family:          Core
+# Module Purpose:  Root-path resolution, environment sourcing and state save/load for shell tools.
+# Architecture:    Runtime or environment helper. It defines no BEJSON format rules.
+# Format_Scope:    None (not a format module)
+# Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+#                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+#                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+# Version:         2.2.5
 # Release_Version: 300
+# Date:            2026-10-02
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   e1671aeb-816a-4608-88f3-493d9739b69f
+# -----------------------------------------------------------------------------
 
-# Get the root path of the Admin workspace dynamically
+# Echoes the root path: ADMIN_ROOT, or BEJSON_STORAGE_ROOT when ADMIN_ROOT is unset.
 bec_core_get_root() {
     if [[ -n "${ADMIN_ROOT:-}" ]]; then
         echo "$ADMIN_ROOT"
         return 0
     fi
-    # Removed hardcoded Brain-Container and legacy SC_ROOT (Phase 6.5)
+    # BEJSON_STORAGE_ROOT must be set when ADMIN_ROOT is not
     local storage_root="${BEJSON_STORAGE_ROOT:-}"
     if [[ -z "$storage_root" ]]; then
         echo "ERROR: BEJSON_STORAGE_ROOT is not set." >&2
@@ -31,6 +37,7 @@ bec_core_get_root() {
     fi
 }
 
+# Sources the environment files and exports ADMIN_ROOT if it is not set.
 # Export ADMIN_ROOT if not set
 bec_core_source_env() {
     if [[ -z "${ADMIN_ROOT:-}" ]]; then
@@ -38,6 +45,7 @@ bec_core_source_env() {
     fi
 }
 
+# Saves one key/value pair to a manager state file. Shell-tool state; not a BEJSON format feature.
 # State Management - Save a key-value pair to a manager state file
 bec_core_save_state() {
     local manager="$1" # "bash" or "python"
@@ -55,6 +63,7 @@ bec_core_save_state() {
     fi
 }
 
+# Prints the value stored for a key in a manager state file.
 # State Management - Load a value by key from a manager state file
 bec_core_load_state() {
     local manager="$1"

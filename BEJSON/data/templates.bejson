@@ -1,0 +1,75 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104",
+  "Format_Creator": "Elton Boehnen",
+  "Parent_Hierarchy": "../104a.mfdb.bejson",
+  "Records_Type": [
+    "Templates"
+  ],
+  "Fields": [
+    {
+      "name": "TEMPLATE_NAME",
+      "type": "string"
+    },
+    {
+      "name": "LANGUAGE",
+      "type": "string"
+    },
+    {
+      "name": "TEMPLATE_TYPE",
+      "type": "string"
+    },
+    {
+      "name": "TEMPLATE_BODY",
+      "type": "string"
+    },
+    {
+      "name": "DESCRIPTION",
+      "type": "string"
+    }
+  ],
+  "Values": [
+    [
+      "PY_File_Header",
+      "PY",
+      "file_header",
+      "\"\"\"\nLibrary:        {LIBRARY_NAME}\nFamily:         {FAMILY}\nDescription:    {DESCRIPTION}\nBEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;\n                do not restate or reinterpret this acronym elsewhere.\nVersion:        {VERSION}\nDate:           {DATE}\nAuthor:         Elton Boehnen\nContact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton\nFormat_Creator: Elton Boehnen\nRELATIONAL_ID:  {RELATIONAL_ID}\n\"\"\"",
+      "Standard triple-quoted docstring header for every .py library file across all families."
+    ],
+    [
+      "JS_TS_File_Header",
+      "ALL",
+      "file_header",
+      "/**\n * Library:        {LIBRARY_NAME}\n * Family:         {FAMILY}\n * Description:    {DESCRIPTION}\n * BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;\n *                 do not restate or reinterpret this acronym elsewhere.\n * Version:        {VERSION}\n * Date:           {DATE}\n * Author:         Elton Boehnen\n * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton\n * Format_Creator: Elton Boehnen\n * RELATIONAL_ID:  {RELATIONAL_ID}\n */",
+      "Standard /** ... */ block comment header for every .js and .ts library file (identical shape in both languages)."
+    ],
+    [
+      "SH_File_Header",
+      "SH",
+      "file_header",
+      "# Library:        {LIBRARY_NAME}\n# Family:         {FAMILY}\n# Description:    {DESCRIPTION}\n# BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;\n#                 do not restate or reinterpret this acronym elsewhere.\n# Version:        {VERSION}\n# Date:           {DATE}\n# Author:         Elton Boehnen\n# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton\n# Format_Creator: Elton Boehnen\n# RELATIONAL_ID:  {RELATIONAL_ID}",
+      "Standard '#'-prefixed line-comment header for every .sh library file."
+    ],
+    [
+      "New_Family_Errors_Skeleton_PY",
+      "PY",
+      "new_family_errors",
+      "\"\"\"\nLibrary:        lib_bejson_{FAMILY}_bejson_errors.py\nFamily:         {FAMILY}\nDescription:    Error registry for the {FAMILY} family. Created as part of the\n                 library-wide \"each family owns its own error codes\" pass \u2014\n                 no codes have been allocated to {FAMILY} yet. Add new\n                 E_{FAMILY_UPPER}_* constants here as they're introduced; do not\n                 define family error codes anywhere else.\nVersion:        1.0.0\nDate:           {DATE}\nAuthor:         Elton Boehnen\nContact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton\nFormat_Creator: Elton Boehnen\nRELATIONAL_ID:  {RELATIONAL_ID}\n\"\"\"\n\n# No {FAMILY} error codes allocated yet.",
+      "Skeleton for lib_bejson_<Family>_bejson_errors.py when scaffolding a brand-new family with no codes allocated yet. Pattern used for AI/CMS/Chunker/Gaming/HTML/System/Utility (PY) and equivalents (JS/TS/SH) on 2026-07-18."
+    ],
+    [
+      "New_MFDB_Entity_Skeleton",
+      "ALL",
+      "new_mfdb_entity",
+      "{\n  \"Format\": \"BEJSON\",\n  \"Format_Version\": \"104\",\n  \"Format_Creator\": \"Elton Boehnen\",\n  \"Parent_Hierarchy\": \"../104a.mfdb.bejson\",\n  \"Records_Type\": [\n    \"{ENTITY_NAME}\"\n  ],\n  \"Fields\": [\n    {\n      \"name\": \"{FIELD_NAME}\",\n      \"type\": \"{FIELD_TYPE}\"\n    }\n  ],\n  \"Values\": []\n}",
+      "Skeleton for a new MFDB entity file (Format 104): Parent_Hierarchy points back to the manifest, Records_Type is a single-element array matching the manifest's entity_name, Fields/Values follow the standard BEJSON shape."
+    ],
+    [
+      "New_MFDB_Manifest_Skeleton",
+      "ALL",
+      "new_mfdb_manifest",
+      "{\n  \"Format\": \"BEJSON\",\n  \"Format_Version\": \"104a\",\n  \"Format_Creator\": \"Elton Boehnen\",\n  \"MFDB_Version\": \"{MFDB_VERSION}\",\n  \"DB_Name\": \"{DB_NAME}\",\n  \"DB_Description\": \"{DB_DESCRIPTION}\",\n  \"Schema_Version\": \"{SCHEMA_VERSION}\",\n  \"Author\": \"Elton Boehnen\",\n  \"Created_At\": \"{CREATED_AT}\",\n  \"Modified_At\": \"{MODIFIED_AT}\",\n  \"Network_Role\": \"Master\",\n  \"Records_Type\": [\n    \"mfdb\"\n  ],\n  \"Fields\": [\n    {\n      \"name\": \"entity_name\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"file_path\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"description\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"record_count\",\n      \"type\": \"integer\"\n    },\n    {\n      \"name\": \"schema_version\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"primary_key\",\n      \"type\": \"string\"\n    }\n  ],\n  \"Values\": []\n}",
+      "Skeleton for a new 104a.mfdb.bejson manifest: fixed Fields (entity_name/file_path/description/record_count/schema_version/primary_key), empty Values to be populated as entities are registered."
+    ]
+  ]
+}

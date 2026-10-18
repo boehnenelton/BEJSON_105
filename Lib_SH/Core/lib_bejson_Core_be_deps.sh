@@ -1,16 +1,21 @@
-# Library:        lib_bejson_Core_be_deps.sh
-# Family:         Core
-# Description:    Shell-based dependency and environment validator.
-# Version:        2.1.0
-# Date:           2026-06-04
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  584de7fb-334e-4614-a3fc-4065f29989e9
+# -----------------------------------------------------------------------------
+# Library:         lib_bejson_Core_be_deps.sh
+# Family:          Core
+# Module Purpose:  Connectivity check and dependency installation for shell tools.
+# Architecture:    Runtime or environment helper. It defines no BEJSON format rules.
+# Format_Scope:    None (not a format module)
+# Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+#                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+#                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+# Version:         2.1.2
 # Release_Version: 300
+# Date:            2026-10-02
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   c255ae9e-ebe3-42a8-957d-863e5adc4857
+# -----------------------------------------------------------------------------
 
-# JURISDICTIONS: ["BASH", "CORE_COMMAND"]
-
+# Returns 0 when the network is reachable.
 check_internet() {
     # Ping Google DNS with 2s timeout
     if ping -c 1 -W 2 8.8.8.8 > /dev/null 2>&1; then
@@ -20,6 +25,7 @@ check_internet() {
     fi
 }
 
+# Installs the packages the shell tools need (e.g. jq) with the platform package manager.
 install_dependencies() {
     local deps=("rsync" "jq" "figlet" "toilet" "python3" "git")
     local missing=()

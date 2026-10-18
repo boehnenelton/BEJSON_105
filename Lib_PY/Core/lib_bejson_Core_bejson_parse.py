@@ -2,12 +2,12 @@
 Library:        lib_bejson_Core_bejson_parse.py
 Family:         Core
 Description:    Rapid indexing and retrieval engine for dense tabular data.
-Version:        2.1.1
-Date:           2026-09-15
+Version:        2.1.2
+Date:           2026-10-09
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
-RELATIONAL_ID:  5aabb1e7-4375-4500-a211-ec0a3c20029c
+RELATIONAL_ID:  affd461f-b009-44c4-93bc-380e3f557004
 Release_Version: 300
 
 Changelog:
@@ -83,10 +83,15 @@ def parse_json(text):
     try:
         return json.loads(text)
     except json.JSONDecodeError:
+        # Zero-copy extraction: raw_decode parses in place from the first "{"
+        # instead of materialising a multi-megabyte text[start:end+1] copy.
         start = text.find("{")
-        end = text.rfind("}")
-        if start != -1 and end != -1 and end > start:
-            return json.loads(text[start:end+1])
+        if start != -1:
+            try:
+                obj, _end = json.JSONDecoder().raw_decode(text, start)
+                return obj
+            except json.JSONDecodeError:
+                pass
         raise
 
 def extract_data(data):

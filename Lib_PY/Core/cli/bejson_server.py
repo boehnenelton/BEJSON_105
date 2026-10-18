@@ -1,13 +1,14 @@
 """
-Library:        bejson_server.py
-Family:         Core
-Description:    API server implementation for BEJSON data distribution.
-Version:        2.1.1
-Date:           2026-06-06
-Author:         Elton Boehnen
-Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-Format_Creator: Elton Boehnen
-RELATIONAL_ID:  3b0a2eae-d14c-4307-b64e-a71307f28888
+Library:         bejson_server.py
+Family:          cli
+Module Purpose:  API server implementation for BEJSON data distribution.
+Architecture:    BEJSON Core provides foundational format parsing, schema enforcement, path security, positional field map caching, and multi-format integration across runtime environments.
+Version:         2.1.1
+Release_Version: 300
+Date:            2026-06-06
+Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+Format_Creator:  Elton Boehnen
+RELATIONAL_ID:   3b0a2eae-d14c-4307-b64e-a71307f28888
 """
 
 import os

@@ -1,13 +1,16 @@
-#!/bin/bash
-# Library:        bash_bridge_demo.sh
-# Family:         Core
-# Description:    Secondary Library Bridge (Integration) demonstration for Bash. Relational ID: gcli-bash-showcase-bridge-001
-# Version:        2.0.3
-# Date:           Unknown
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  220e8b12-0bb3-42ac-bf08-d0e68839f56b
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Library:         bash_bridge_demo.sh
+# Family:          showcase
+# Module Purpose:  Implements bash script runtime functionality for bash_bridge_demo.sh.
+# Architecture:    BEJSON Core provides foundational format parsing, schema enforcement, path security, positional field map caching, and multi-format integration across runtime environments.
+# Version:         2.0.3
+# Release_Version: 300
+# Date:            2026-09-14
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   220e8b12-0bb3-42ac-bf08-d0e68839f56b
+# -----------------------------------------------------------------------------
 
 run_demo() {
     CURRENT_STATE="BRIDGE"

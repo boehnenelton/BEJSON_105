@@ -87,6 +87,9 @@ function parse_json(text) {
     }
   }
 
+  // The field-map cache is in-memory only; a parsed copy is untrusted and discarded.
+  if (doc && typeof doc === "object") delete doc._bejson_field_map;
+
   // 3. Structural Validation Enforcement
   if (typeof bejson_core_is_valid === 'function') {
       if (!bejson_core_is_valid(doc)) {

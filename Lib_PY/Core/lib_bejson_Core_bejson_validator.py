@@ -80,6 +80,8 @@ VALID_VERSIONS = {
 }
 VALID_FIELD_TYPES = {"string", "integer", "number", "boolean", "array", "object"}
 MANDATORY_KEYS = ("Format", "Format_Version", "Format_Creator", "Records_Type", "Fields", "Values")
+IN_MEMORY_ONLY_KEYS = frozenset({"_nesting_field_map", "_bejson_field_map_fp", "_bejson_txn_active", "_bejson_txn_dirty"})
+FIELD_MAP_CACHE_KEY = "_bejson_field_map"
 
 @dataclass
 class ValidationResult:
@@ -200,14 +202,43 @@ def bejson_validator_check_values(doc, version, fields_count):
             elif ftype == "object" and not isinstance(val, dict):
                  raise BEJSONValidationError(f"Type mismatch at row {i}, col {j} ({fields[j]['name']}): expected object", E_TYPE_MISMATCH)
 
-def bejson_validator_check_custom_headers(doc, version):
+def bejson_validator_check_field_names_unique(doc):
+    """Every field name in Fields must be unique."""
+    seen = set()
+    for f in doc.get("Fields", []):
+        name = f.get("name") if isinstance(f, dict) else str(f)
+        if name in seen:
+            raise BEJSONValidationError(f"Duplicate field name: '{name}'", E_INVALID_FIELDS)
+        seen.add(name)
+
+def bejson_validator_check_field_map_cache(doc, persisted=True):
+    """Rejects a persisted _bejson_field_map (file or string input). On a dict, an attached
+    in-memory copy must agree with Fields or downstream lookups read wrong columns."""
+    if FIELD_MAP_CACHE_KEY not in doc:
+        return
+    if persisted:
+        raise BEJSONValidationError(
+            f"Reserved key '{FIELD_MAP_CACHE_KEY}' must not be persisted (in-memory cache only)", E_RESERVED_KEY_COLLISION)
+    cached, fields = doc[FIELD_MAP_CACHE_KEY], doc["Fields"]
+    expected = {(f.get("name") if isinstance(f, dict) else str(f)): i for i, f in enumerate(fields)}
+    if isinstance(cached, dict) and "by_name" in cached and doc.get("Format_Version") in ("105", "105a", "105db"):
+        ok = cached.get("by_name") == expected and len(expected) == len(fields)
+    else:
+        ok = isinstance(cached, dict) and dict(cached) == expected and len(expected) == len(fields)
+    if not ok:
+        raise BEJSONValidationError(f"In-memory '{FIELD_MAP_CACHE_KEY}' does not match Fields (stale or forged)", E_RESERVED_KEY_COLLISION)
+
+def bejson_validator_check_custom_headers(doc, version, persisted=True):
     mandatory_set = set(MANDATORY_KEYS)
     for key in doc:
-        if key in mandatory_set or key == "Parent_Hierarchy": continue
-        if version in ("104", "104db"):
+        if key in mandatory_set or key == "Parent_Hierarchy" or key == FIELD_MAP_CACHE_KEY:
+            continue
+        if isinstance(key, str) and key.startswith("_"):
+            if persisted or key not in IN_MEMORY_ONLY_KEYS:
+                raise BEJSONValidationError(f"Reserved key collision: '{key}' uses the reserved '_' prefix", E_RESERVED_KEY_COLLISION)
+            continue
+        if version in ("104", "104db", "105", "105db"):
             raise BEJSONValidationError(f"Custom key '{key}' forbidden in {version}", E_RESERVED_KEY_COLLISION)
-        # 104a: Custom headers allowed, no strict PascalCase enforcement
-        # Audit 2 Finding: Removed warning to avoid conflict with 104db rigidity.
 
 def bejson_validator_check_105_strict_integrity(doc: dict) -> list:
     """
@@ -273,10 +304,13 @@ def validate_bejson(input_data: Union[str, dict], is_file: bool = False) -> Vali
     try:
         doc = bejson_validator_check_json_syntax(input_data, res, is_file=is_file)
         version = bejson_validator_check_mandatory_keys(doc)
-        bejson_validator_check_custom_headers(doc, version)
+        persisted = is_file or not isinstance(input_data, dict)
+        bejson_validator_check_custom_headers(doc, version, persisted)
         bejson_validator_check_records_type(doc, version)
         bejson_validator_check_record_type_parent(doc, version)
         fields_count = bejson_validator_check_fields_structure(doc, version)
+        bejson_validator_check_field_names_unique(doc)
+        bejson_validator_check_field_map_cache(doc, persisted)
         if version in ("105", "105a", "105db"):
             for err in bejson_validator_check_105_strict_integrity(doc):
                 res.add_error(f"[{err['code']}] {err['detail']}")

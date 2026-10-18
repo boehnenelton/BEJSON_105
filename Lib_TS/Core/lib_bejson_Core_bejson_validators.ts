@@ -35,6 +35,29 @@ import {
   BEJSON_VALIDATION_CODES as E,
 } from "./lib_bejson_Core_bejson_types";
 
+const FIELD_MAP_KEY = "_bejson_field_map";
+const IN_MEMORY_ONLY_KEYS: ReadonlySet<string> = new Set(["_nestingFieldMap"]);
+
+function _checkFieldMapCache(d: Record<string, unknown>, r: ValidationResult): void {
+  if (!(FIELD_MAP_KEY in d)) return;
+  const cached = d[FIELD_MAP_KEY];
+  const fields = Array.isArray(d.Fields) ? (d.Fields as Array<{ name?: unknown }>) : [];
+  const ok = cached !== null && typeof cached === "object" && !Array.isArray(cached)
+    && Object.keys(cached as object).length === fields.length
+    && fields.every((f, i) => !!f && (cached as Record<string, unknown>)[String(f.name)] === i);
+  if (!ok) {
+    _err(r, E.RESERVED_KEY_COLLISION, "In-memory \"" + FIELD_MAP_KEY + "\" does not match Fields (stale or forged).", FIELD_MAP_KEY);
+  }
+}
+
+function _checkReservedKeys(d: Record<string, unknown>, r: ValidationResult): void {
+  for (const key of Object.keys(d)) {
+    if (key.startsWith("_") && key !== FIELD_MAP_KEY && !IN_MEMORY_ONLY_KEYS.has(key)) {
+      _err(r, E.RESERVED_KEY_COLLISION, "Key \"" + key + "\" uses the reserved \"_\" prefix.", key);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -49,6 +72,9 @@ export function validateDocument(doc: unknown): ValidationResult {
   }
 
   const d = doc as Record<string, unknown>;
+
+  _checkFieldMapCache(d, result);
+  _checkReservedKeys(d, result);
 
   // Step 2: mandatory keys
   _checkMandatoryKeys(d, result);
@@ -330,7 +356,7 @@ function _check104Specific(doc: BEJSONDocument, r: ValidationResult): void {
 
   // No custom top-level keys (Parent_Hierarchy is the only exception)
   for (const key of Object.keys(doc)) {
-    if (!FORBIDDEN_CUSTOM_KEYS_104.has(key as typeof MANDATORY_KEYS[number]) && key !== "Parent_Hierarchy") {
+    if (!FORBIDDEN_CUSTOM_KEYS_104.has(key as typeof MANDATORY_KEYS[number]) && key !== "Parent_Hierarchy" && !key.startsWith("_")) {
       _err(r, E.FORBIDDEN_CUSTOM_KEY, "BEJSON 104 forbids custom top-level key: \"" + key + "\".", key);
     }
   }
@@ -366,6 +392,7 @@ function _check104aSpecific(doc: BEJSONDocument, r: ValidationResult): void {
   // Custom keys: must be PascalCase, must not collide with mandatory keys
   for (const key of Object.keys(doc)) {
     if (FORBIDDEN_CUSTOM_KEYS_104.has(key as typeof MANDATORY_KEYS[number])) continue;
+    if (key.startsWith("_")) continue; // checked by _checkFieldMapCache / _checkReservedKeys
     if (key === "Parent_Hierarchy") {
       // Parent_Hierarchy is not defined for 104a but not strictly forbidden;
       // emit a warning rather than an error since the spec is silent here.
@@ -390,7 +417,7 @@ function _check104dbSpecific(doc: BEJSONDocument, r: ValidationResult): void {
 
   // No custom top-level keys (not even Parent_Hierarchy)
   for (const key of Object.keys(doc)) {
-    if (!FORBIDDEN_CUSTOM_KEYS_104.has(key as typeof MANDATORY_KEYS[number])) {
+    if (!FORBIDDEN_CUSTOM_KEYS_104.has(key as typeof MANDATORY_KEYS[number]) && !key.startsWith("_")) {
       _err(r, E.FORBIDDEN_CUSTOM_KEY, "BEJSON 104db forbids custom top-level key: \"" + key + "\".", key);
     }
   }

@@ -6,12 +6,12 @@
  *                 do not restate or reinterpret this acronym elsewhere.
  * MFDB:           MFDB stands for Multi File Database. Authoritative definition;
  *                 do not restate or reinterpret this acronym elsewhere.
- * Version:        2.2.1
- * Date:           2026-10-06
+ * Version:        2.2.2
+ * Date:           2026-10-09
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  1ebf2e4c-0d38-408d-8645-36bd4f320a6e
+ * RELATIONAL_ID:  78d11421-179b-4ebf-a152-96d74be2b03f
  * Release_Version: 300
  *
  * CHANGE (2026-10-06): Consolidation re-merge -- the V6-PKG101 silent-catch
@@ -99,10 +99,31 @@ class BEJSONEngine {
 const _KEY_CACHE_MAX_SLOTS = 12;
 const _keyCache = [];
 
+// SECURITY (adversarial review, finding 5): the cache must never retain the
+// plaintext password. Entries are looked up by an HMAC-SHA-256 fingerprint of
+// (salt, password) computed under a random per-process, NON-extractable key,
+// so a heap dump yields neither the password nor an offline-crackable hash.
+let _cacheMacKeyPromise = null;
+function _getCacheMacKey() {
+    if (!_cacheMacKeyPromise) {
+        _cacheMacKeyPromise = crypto.subtle.generateKey({ name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    }
+    return _cacheMacKeyPromise;
+}
+async function _cacheFingerprint(password, saltB64) {
+    const macKey = await _getCacheMacKey();
+    const data = new TextEncoder().encode(saltB64 + "\u0000" + password);
+    const sig = await crypto.subtle.sign("HMAC", macKey, data);
+    return CryptoUtils.ab2base64(sig);
+}
+/** Drop every cached derived key (call when a session/document is closed). */
+function clearKeyCache() { _keyCache.length = 0; }
+
 async function _getOrDeriveKey(password, salt, providedKey = null) {
     if (providedKey) return providedKey;
     const saltB64 = CryptoUtils.ab2base64(salt);
-    const hitIdx = _keyCache.findIndex((e) => e.password === password && e.salt === saltB64);
+    const fp = await _cacheFingerprint(password, saltB64);
+    const hitIdx = _keyCache.findIndex((e) => e.fp === fp);
     if (hitIdx !== -1) {
         const [hit] = _keyCache.splice(hitIdx, 1);
         _keyCache.push(hit); // move to most-recently-used end
@@ -112,7 +133,7 @@ async function _getOrDeriveKey(password, salt, providedKey = null) {
     if (_keyCache.length >= _KEY_CACHE_MAX_SLOTS) {
         _keyCache.shift(); // evict least-recently-used
     }
-    _keyCache.push({ password, salt: saltB64, key });
+    _keyCache.push({ fp, key });
     return key;
 }
 
@@ -256,9 +277,18 @@ function _bejson_hide(doc, key, value) {
     }
 }
 
-function _bejson_row_offset(doc) {
+/**
+ * Absolute Values-row column for Fields[fieldIdx].
+ * 105/105a: row = [record_uuid, ...Fields] -> fieldIdx + 1.
+ * 105db: row = [Record_Type_Parent, record_uuid, ...Fields[1:]]. Fields[0] IS
+ * Record_Type_Parent (column 0); only Fields[1:] shift by the single inserted
+ * record_uuid column: Fields[0] -> 0, Fields[i>=1] -> i + 1.
+ * (A flat "+2" for 105db mis-addresses every data field by one column.)
+ */
+function _bejson_abs_col(doc, fieldIdx) {
     const v = doc.Format_Version;
-    return v === "105db" ? 2 : (_105_SERIES.includes(v) ? 1 : 0);
+    if (v === "105db") return fieldIdx === 0 ? 0 : fieldIdx + 1;
+    return _105_SERIES.includes(v) ? fieldIdx + 1 : fieldIdx;
 }
 
 function _bejson_fields_fingerprint(doc) {
@@ -272,10 +302,9 @@ function _bejson_fields_fingerprint(doc) {
 
 function _bejson_build_field_cache(doc) {
     const by_name = {}, by_uuid = {}, by_name_row = {};
-    const offset = _bejson_row_offset(doc);
     (doc.Fields || []).forEach((f, i) => {
         by_name[f.name] = i;
-        by_name_row[f.name] = i + offset;
+        by_name_row[f.name] = _bejson_abs_col(doc, i);
         if (f.field_uuid !== undefined) by_uuid[f.field_uuid] = i;
     });
     return { by_name, by_uuid, by_name_row, fingerprint: _bejson_fields_fingerprint(doc) };
@@ -302,6 +331,16 @@ function bejson_core_get_field_cache(doc) {
  * every Format_Version. 104-series: plain Fields index, validated against
  * the live layout on every read.
  */
+const _BEJSON_OWNED_MAPS = new WeakMap();
+function _bejson_core_field_map_is_fresh(cached, fields) {
+    if (!cached || typeof cached !== "object" || !Array.isArray(fields)) return false;
+    const count = fields.length;
+    if (_BEJSON_OWNED_MAPS.get(cached) !== count) return false;
+    if (count === 0) return true;
+    const last = count - 1, mid = count >> 1;
+    return cached[fields[0].name] === 0 && cached[fields[last].name] === last && cached[fields[mid].name] === mid;
+}
+
 function bejson_core_get_field_map(doc) {
     if (!doc || !Array.isArray(doc.Fields)) return {};
     if (_105_SERIES.includes(doc.Format_Version)) {
@@ -309,18 +348,16 @@ function bejson_core_get_field_map(doc) {
     }
     if (!doc.Fields.length) return {};
 
-    const fp = _bejson_fields_fingerprint(doc);
-    const cached = doc._bejson_field_map;
-    if (cached && !cached.by_name && doc._bejson_field_map_fp === fp) return cached;
-
-    let fieldMap = _FIELD_MAP_CACHE.get(fp);
-    if (!fieldMap) {
-        fieldMap = {};
-        doc.Fields.forEach((f, i) => { fieldMap[f.name] = i; });
-        _FIELD_MAP_CACHE.set(fp, fieldMap);
+    if (_bejson_core_field_map_is_fresh(doc._bejson_field_map, doc.Fields)) {
+        return doc._bejson_field_map;
     }
+
+    const fieldMap = {};
+    for (let i = 0; i < doc.Fields.length; i++) {
+        fieldMap[doc.Fields[i].name] = i;
+    }
+    _BEJSON_OWNED_MAPS.set(fieldMap, Object.keys(fieldMap).length);
     _bejson_hide(doc, "_bejson_field_map", fieldMap);
-    _bejson_hide(doc, "_bejson_field_map_fp", fp);
     return fieldMap;
 }
 
@@ -375,7 +412,7 @@ function bejson_core_serialize(doc, indent = 2) {
 // 105-SERIES UUID-ADDRESSED CRUD (Phase 6 prerequisite, JS port of PY core)
 // Added 2026-10-03. Mirrors PY bejson_core_find_row_by_uuid / resolve_field_index
 // / write_cell / add_record_105 / delete_record exactly: same offsets (105 -> 1,
-// 105db -> 2), same error codes (80-82), same "never address by row offset"
+// 105db -> Fields[0] at col 0, Fields[i>=1] at i+1), same error codes (80-82), same "never address by row offset"
 // contract. 104-series documents raise E_FORMAT_UNSUPPORTED (81).
 // ---------------------------------------------------------------------------
 const _E_FIELD_INTEGRITY_MISMATCH = (BEJSON_ERRORS.E_FIELD_INTEGRITY_MISMATCH !== undefined) ? BEJSON_ERRORS.E_FIELD_INTEGRITY_MISMATCH : 80;
@@ -417,7 +454,6 @@ function bejson_core_find_row_by_uuid(doc, recordUuid) {
 function bejson_core_resolve_field_index(doc, target) {
     _bejson_require_105(doc, "resolve_field_index");
     const fm = bejson_core_get_field_cache(doc);
-    const offset = doc.Format_Version === "105db" ? 2 : 1;
     const has = (o, k) => k !== undefined && k !== null && Object.prototype.hasOwnProperty.call(o, k);
     if (target && typeof target === 'object') {
         const byName = has(fm.by_name, target.name) ? fm.by_name[target.name] : undefined;
@@ -427,10 +463,10 @@ function bejson_core_resolve_field_index(doc, target) {
                 `E_FIELD_INTEGRITY_MISMATCH: name=${JSON.stringify(target.name)} resolves to ${byName}, field_uuid=${JSON.stringify(target.field_uuid)} resolves to ${byUuid}`,
                 _E_FIELD_INTEGRITY_MISMATCH);
         }
-        return byName + offset;
+        return _bejson_abs_col(doc, byName);
     }
-    if (has(fm.by_uuid, target)) return fm.by_uuid[target] + offset;
-    if (has(fm.by_name, target)) return fm.by_name[target] + offset;
+    if (has(fm.by_uuid, target)) return _bejson_abs_col(doc, fm.by_uuid[target]);
+    if (has(fm.by_name, target)) return _bejson_abs_col(doc, fm.by_name[target]);
     throw new BEJSONCoreError(`E_FIELD_INTEGRITY_MISMATCH: unresolvable target ${JSON.stringify(target)}`, _E_FIELD_INTEGRITY_MISMATCH);
 }
 
@@ -445,7 +481,7 @@ function bejson_core_write_cell(doc, recordUuid, fieldUuid, newValue, opts = {})
     if (row === null) {
         throw new BEJSONCoreError(`E_RECORD_NOT_FOUND: unknown record_uuid ${JSON.stringify(recordUuid)}`, _E_RECORD_NOT_FOUND);
     }
-    const absCol = fm.by_uuid[fieldUuid] + (doc.Format_Version === "105db" ? 2 : 1);
+    const absCol = _bejson_abs_col(doc, fm.by_uuid[fieldUuid]);
     const healed = (opts.expected_row !== undefined && opts.expected_row !== row) ||
                    (opts.expected_col !== undefined && opts.expected_col !== absCol);
     doc.Values[row][absCol] = newValue;
@@ -482,6 +518,7 @@ const CoreExports = {
     BEJSONCoreError,
     BEJSONEngine,
     Crypto: CryptoUtils,
+    clearKeyCache,
     bejson_core_is_valid,
     bejson_core_get_version,
     bejson_core_get_stats,

@@ -265,8 +265,8 @@ function bejson_validator_check_mandatory_keys(doc) {
     throw new BEJSONValidationError(`Invalid version: ${version}`, E_INVALID_VERSION);
   }
 
-  if (typeof doc['Format_Creator'] !== 'string') {
-    _state.addError("Invalid 'Format_Creator': Must be a string", 'Top-Level Keys/Format_Creator');
+  if (doc['Format_Creator'] !== 'Elton Boehnen') {
+    _state.addError("Invalid 'Format_Creator': Must be 'Elton Boehnen'", 'Top-Level Keys/Format_Creator');
     throw new BEJSONValidationError('Invalid Format_Creator', E_INVALID_FORMAT);
   }
 
@@ -593,19 +593,50 @@ function bejson_validator_check_105_strict_integrity(doc) {
 
 const _PASCAL_CASE = /^[A-Z][a-zA-Z0-9_]*$/;
 
-function bejson_validator_check_custom_headers(doc, version) {
+const IN_MEMORY_ONLY_KEYS = new Set(['_nestingFieldMap', '_bejson_field_map_fp']);
+function bejson_validator_check_custom_headers(doc, version, persisted = true) {
   const mandatorySet = new Set(MANDATORY_KEYS);
   for (const key of Object.keys(doc)) {
-    if (mandatorySet.has(key) || key === 'Parent_Hierarchy') continue;
-    if (version === '104' || version === '104db') {
+    if (mandatorySet.has(key) || key === 'Parent_Hierarchy' || key === '_bejson_field_map') continue;
+    if (key.startsWith('_')) {
+      if (persisted || !IN_MEMORY_ONLY_KEYS.has(key)) {
+        _state.addError(`Reserved key '${key}' uses the reserved '_' prefix.`, `Top-Level Keys/${key}`);
+        throw new BEJSONValidationError(`Reserved key collision: ${key}`, E_RESERVED_KEY_COLLISION);
+      }
+      continue;
+    }
+    if (version === '104' || version === '104db' || version === '105' || version === '105db') {
       _state.addError(
         `For BEJSON ${version}, custom top-level key '${key}' is not permitted.`,
         `Top-Level Keys/${key}`,
       );
       throw new BEJSONValidationError(`Unexpected key: ${key}`, E_RESERVED_KEY_COLLISION);
     }
-    // 104a: Custom headers allowed, no strict naming enforcement
-    // Audit 2 Finding: Removed PascalCase warning to avoid conflict with 104db rigidity.
+  }
+  return true;
+}
+
+function bejson_validator_check_field_map_cache(doc, persisted) {
+  if (!Object.prototype.hasOwnProperty.call(doc, '_bejson_field_map')) return;
+  if (persisted) {
+    _state.addError("Reserved key '_bejson_field_map' must not be persisted (in-memory cache only)", "Top-Level Keys/_bejson_field_map");
+    throw new BEJSONValidationError("Reserved key '_bejson_field_map' must not be persisted", E_RESERVED_KEY_COLLISION);
+  }
+  const cached = doc._bejson_field_map;
+  const fields = Array.isArray(doc.Fields) ? doc.Fields : [];
+  if (cached && typeof cached === "object" && cached.by_name && VERSIONS_105.has(doc.Format_Version)) {
+    const ok = Object.keys(cached.by_name).length === fields.length && fields.every((f, i) => f && cached.by_name[f.name] === i);
+    if (!ok) {
+      _state.addError("In-memory '_bejson_field_map' does not match Fields", "Top-Level Keys/_bejson_field_map");
+      throw new BEJSONValidationError("In-memory '_bejson_field_map' does not match Fields", E_RESERVED_KEY_COLLISION);
+    }
+    return;
+  }
+  const ok = cached && typeof cached === 'object' && Object.keys(cached).length === fields.length
+    && fields.every((f, i) => f && cached[f.name] === i);
+  if (!ok) {
+    _state.addError("In-memory '_bejson_field_map' does not match Fields (stale or forged)", "Top-Level Keys/_bejson_field_map");
+    throw new BEJSONValidationError("In-memory '_bejson_field_map' does not match Fields", E_RESERVED_KEY_COLLISION);
   }
 }
 
@@ -618,13 +649,37 @@ function bejson_validator_validate_string(jsonString) {
   bejson_validator_reset_state();
   const doc          = bejson_validator_check_json_syntax(jsonString, false);
   const version      = bejson_validator_check_mandatory_keys(doc);
-  bejson_validator_check_custom_headers(doc, version);
+  const persisted    = typeof jsonString === 'string';
+  bejson_validator_check_field_map_cache(doc, persisted);
+  bejson_validator_check_custom_headers(doc, version, persisted);
   bejson_validator_check_records_type(doc, version);
   const fieldsCount  = bejson_validator_check_fields_structure(doc, version);
   if (version === '104db') bejson_validator_check_record_type_parent(doc);
   if (VERSIONS_105.has(version)) bejson_validator_check_105_strict_integrity(doc);
   bejson_validator_check_values(doc, version, fieldsCount);
   return true;
+}
+
+function bejson_validator_validate_object(doc) {
+  const saved = { errors: _state.errors, warnings: _state.warnings, currentFile: _state.currentFile };
+  let valid = true;
+  let errors = [];
+  let warnings = [];
+  try {
+    try {
+      bejson_validator_validate_string(doc);
+    } catch (_) {
+      valid = false;
+    }
+    errors = _state.getErrors();
+    warnings = _state.getWarnings();
+    if (errors.length) valid = false;
+  } finally {
+    _state.errors = saved.errors;
+    _state.warnings = saved.warnings;
+    _state.currentFile = saved.currentFile;
+  }
+  return { valid, errors, warnings };
 }
 
 function bejson_validator_validate_file(filePath) {
@@ -684,7 +739,7 @@ const ValidatorExports = {
   bejson_validator_check_mandatory_keys, bejson_validator_check_records_type,
   bejson_validator_check_fields_structure, bejson_validator_check_record_type_parent,
   bejson_validator_check_values, bejson_validator_check_105_strict_integrity, bejson_validator_check_custom_headers,
-  bejson_validator_validate_string, bejson_validator_validate_file,
+  bejson_validator_check_field_map_cache, bejson_validator_validate_string, bejson_validator_validate_object, bejson_validator_validate_file,
   bejson_validator_get_report,
 };
 if (typeof module !== 'undefined' && module.exports) {

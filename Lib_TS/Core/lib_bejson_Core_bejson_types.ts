@@ -365,3 +365,20 @@ export const MFDB_CORE_CODES = {
 } as const;
 
 // CORE_NESTING_CODES moved to lib_bejson_CoreNesting_bejson_errors.ts (v2.4.0)
+
+// Core nesting (130-159) - nested BEJSON 104; part of Core, resolved here (no separate nesting errors file).
+export const CORE_NESTING_ERRORS = {
+  E_NESTING_INVALID_CELL:       130,
+  E_NESTING_NOT_BEJSON:         131,
+  E_NESTING_DEPTH_EXCEEDED:     132,
+  E_NESTING_CACHE_MISS:         133,
+  E_NESTING_SCHEMA_MISMATCH:    134,
+  E_NESTING_CIRCULAR_REF:       135,
+  E_NESTING_VALIDATION_FAILED:  136,
+  E_NESTING_FIELD_MAP_FAILED:   137,
+  E_NESTING_QUERY_INVALID_PATH: 138,
+  E_NESTING_QUERY_EMPTY_PATH:   139,
+  // 140-159 reserved for future Core nesting codes.
+} as const;
+
+export type CoreNestingErrorCode = typeof CORE_NESTING_ERRORS[keyof typeof CORE_NESTING_ERRORS];

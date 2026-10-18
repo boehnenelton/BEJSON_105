@@ -1,13 +1,14 @@
 """
-Library:        core_demo.py
-Family:         Core
-Description:    
-Version:        2.0.3
-Date:           Unknown
-Author:         Elton Boehnen
-Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-Format_Creator: Elton Boehnen
-RELATIONAL_ID:  e4e9191b-0ebb-4ba9-afa7-e859b29933d4
+Library:         core_demo.py
+Family:          showcase
+Module Purpose:  Version: 2.0.3
+Architecture:    BEJSON Core provides foundational format parsing, schema enforcement, path security, positional field map caching, and multi-format integration across runtime environments.
+Version:         2.0.3
+Release_Version: 300
+Date:            2026-09-14
+Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+Format_Creator:  Elton Boehnen
+RELATIONAL_ID:   e4e9191b-0ebb-4ba9-afa7-e859b29933d4
 """
 
 #!/usr/bin/env python3

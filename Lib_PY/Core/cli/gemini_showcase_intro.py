@@ -1,14 +1,14 @@
 """
-Library:        gemini_showcase_intro.py
-Family:         Core
-Description:    Cinematic terminal showcase for the Gemini CLI ecosystem.
-Version:        2.0.4
-Date:           2026-06-12
-Author:         Elton Boehnen
-Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-Format_Creator: Elton Boehnen
-RELATIONAL_ID:  b618a553-f98d-41b1-8407-d099b29f00ea
+Library:         gemini_showcase_intro.py
+Family:          cli
+Module Purpose:  Version: 2.0.3
+Architecture:    MFDB provides multi-file database federation coordinating a 104a central manifest (104a.mfdb.bejson) with dense 104 entity tables, supporting atomic transaction locks and cross-disk relational foreign keys.
+Version:         2.0.3
 Release_Version: 300
+Date:            2026-09-14
+Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+Format_Creator:  Elton Boehnen
+RELATIONAL_ID:   87227baa-cba4-4263-b3df-609716dee068
 """
 
 #!/usr/bin/env python3

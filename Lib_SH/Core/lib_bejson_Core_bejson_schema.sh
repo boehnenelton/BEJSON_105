@@ -1,23 +1,29 @@
-#!/bin/bash
-# Library:        lib_bejson_Core_bejson_schema.sh
-# Family:         Core
-# Description:    Schema management for Shell using jq.
-# Version:        2.0.1
-# Date:           2026-05-21
-# Author:         Elton Boehnen
-# Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-# Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  31acf9e7-94ba-4e85-ac2c-9627a3c03c29
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Library:         lib_bejson_Core_bejson_schema.sh
+# Family:          Core
+# Module Purpose:  Schema extract, validate-against and infer helpers for BEJSON documents.
+# Architecture:    Format-level BEJSON layer that works on any BEJSON document (104, 104a, 104db) through positional Fields/Values and the field-map cache. It does not orchestrate MFDB and is not specific to 104db.
+# Format_Scope:    104 | 104a | 104db (generic)
+# Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
+#                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
+#                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
+# Version:         2.0.3
 # Release_Version: 300
+# Date:            2026-10-02
+# Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+# Format_Creator:  Elton Boehnen
+# RELATIONAL_ID:   ca1ea901-63ec-48b2-97a5-8dddbd24544e
+# -----------------------------------------------------------------------------
 
-# Depends on lib_bejson_Core_bejson_core.sh for jq wrappers
-
+# Echoes a document's schema: header keys and Fields with Values emptied (any BEJSON version).
 function bejson_schema_extract() {
     local input_file="$1"
     # Extract all except Values, set Values to []
     jq 'del(.Values) | .Values = []' "$input_file"
 }
 
+# Compares a document's Fields with a schema (names, types, order). Structure comparison only; not the 104/104a/104db validity rules.
 function bejson_schema_validate_against() {
     local doc_file="$1"
     local schema_file="$2"
@@ -50,6 +56,7 @@ function bejson_schema_validate_against() {
     return 0
 }
 
+# Builds a schema document from field names/types.
 function bejson_schema_infer() {
     local record_type="$1"
     local fields_json="$2" # Expected as JSON array string
