@@ -1,12 +1,54 @@
+# Development tracking notes and reports
 dev/
+notes/
+*.notes.md
+*notes*.md
+auditreport*.md
+*auditreport*.md
+*checklist*.md
+*checklist*.bejson
+TODO.md
+
+# Secrets and credentials
+.env
+.env.*
+*.secret
+*.secrets
+*credentials*
+*.pem
+*.pfx
+*.p12
+
+# Nested archives and chunks
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.bak
+*.chunk
+*.chunk.*
+*.chunks.*
+*.bejson.txt
+*.104a.bejson.txt
+*.mfdb132.bejson
+backups/
+chunk/
+chunks/
+
+# Logs, caches, and runtime junk
 logs/
 log/
-backups/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 *.tmp
+*.swp
+*~
 .DS_Store
 AGENTS.md
 dist/
-chunk/
+build/
+.pytest_cache/
+.coverage
 .bejson_project.json

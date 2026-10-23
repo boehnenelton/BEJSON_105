@@ -221,7 +221,7 @@ Per architectural governance ([`clarification.md`](file:///storage/emulated/0/Ad
 | **Supported Formats** | `104`, `104a`, `104db`, Nested `104`, `MFDB v1.31`/`v1.32`/`v1.39` | **All `104`-series formats** PLUS **`105`, `105a`, `105db`, and `MFDB v1.40` (Phase 6 Referential Integrity)** |
 
 > [!IMPORTANT]
-> **Strict `Core`-Only Boundary in `libraries_105`**: Non-Core vertical domain families (`AI`, `Gaming`, `CMS`, `Lists`, `Diagrams`, `BEHTML`, `Bookmaker`, etc.) never reside in `libraries_105`. Applications that require vertical domain libraries alongside Format 105 Core capabilities load `Core` from `$ADMIN_LIBRARIES_105` and vertical families from `$ADMIN_LIBRARIES_104`.
+> **`Core`-Only Boundary in `libraries_105` (with one sanctioned exemption)**: The `Scaffold` and `Taxonomies` families are exempt per [`clarification.md`](file:///storage/emulated/0/Admin/Libraries/libraries_105/clarification.md) §1.3 and live in `libraries_105`. No other non-Core family is. Non-Core vertical domain families (`AI`, `Gaming`, `CMS`, `Lists`, `Diagrams`, `BEHTML`, `Bookmaker`, etc.) never reside in `libraries_105`. Applications that require vertical domain libraries alongside Format 105 Core capabilities load `Core` from `$ADMIN_LIBRARIES_105` and vertical families from `$ADMIN_LIBRARIES_104`.
 
 ### 2.2 104-Series Baseline Parity Inside `libraries_105`
 

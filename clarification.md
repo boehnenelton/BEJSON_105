@@ -2,10 +2,10 @@
 
 - **Name**: `clarification.md`
 - **Description**: Authoritative record of architectural boundaries, ecosystem separation rules, directory standards, GitHub repository mappings, and technical BEJSON/MFDB invariants clarified and established across the `libraries_104` and `libraries_105` audits.
-- **Version**: `1.0.0` (`VERSION = 100`)
+- **Version**: `1.1.1` (`VERSION = 111`)
 - **Release_Version**: `301` (`libraries_105` — Integrity Era)
 - **Date Created**: `2026-10-18`
-- **RELATIONAL_ID**: `3c9f1a84-2e7b-4d50-9b16-8e4c2a6f9d11`
+- **RELATIONAL_ID**: `e4f5b1a1-d227-40c9-85b6-279bcde75f3b`
 - **Author Credit**: Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 
 ---
@@ -25,14 +25,22 @@
 
 ### 1.1 Two Distinct Library Ecosystems
 - **`libraries_104` (Release 300 — Foundational Era)** and **`libraries_105` (Release 301 — Integrity Era)** are maintained as **separate ecosystems** with distinct scopes and responsibilities.
-- **`libraries_105` Scope (Strictly `Core`-Only)**:
+- **`libraries_105` Scope (`Core` plus the explicitly exempted families in §1.3)**:
   - Non-Core 104 vertical families (`AI`, `Gaming`, `CMS`, `Lists`, `BEHTML`, `Diagrams`, `Bookmaker`, `HTML`, `Terminal_Menus`, etc.) **do not belong in `libraries_105`**.
-  - `libraries_105` contains **only** the `Core` library family (`Lib_PY/Core`, `Lib_JS/Core` + `Lib_JS/External/jszip.min.js`, `Lib_TS/Core`, `Lib_SH/Core`) and the `BEJSON/` database tracking `Core` entities (`BEJSON/data/*.bejson` and `BEJSON/104a.mfdb.bejson`).
+  - Apart from the families exempted in §1.3, `libraries_105` contains **only** the `Core` library family (`Lib_PY/Core`, `Lib_JS/Core` + `Lib_JS/External/jszip.min.js`, `Lib_TS/Core`, `Lib_SH/Core`) and the `BEJSON/` database tracking `Core` entities (`BEJSON/data/*.bejson` and `BEJSON/104a.mfdb.bejson`).
 - **`libraries_104` Scope**: Houses the Foundational Era **`Core`** family (`104`, `104a`, `104db`, Nested 104, and MFDB v1.31/v1.32/v1.39) **plus all vertical domain library families** across Python (`Lib_PY`), JavaScript (`Lib_JS`), TypeScript (`Lib_TS`), and Bash (`Lib_SH`).
 
 ### 1.2 104-Portion Parity Mandate Inside `libraries_105` Core
 - While vertical families are excluded from `libraries_105`, the **104-series portion of `Core` inside `libraries_105` must maintain 100% functional and security parity with `libraries_104/Lib_*/Core`**.
 - The recommended engineering procedure when synchronizing major `libraries_104` Core updates into `libraries_105` is to stage from the verified `libraries_104` `Core` baseline in a staging directory (`libraries_105_stage`), layer the Format 105 (`105`, `105a`, `105db`) and MFDB v1.40 Phase 6 Referential Integrity capabilities on top, verify 100% pass rates across both 104 and 105 test suites in all four languages, and then promote the staged build into `/storage/emulated/0/Admin/Libraries/libraries_105`.
+
+### 1.3 Sanctioned Exemption: `Scaffold` and `Taxonomies` Families (added 2026-10-20)
+
+- By explicit owner override, the library families **`Scaffold`** (`lib_bejson_Scaffold_*`) and **`Taxonomies`** (`lib_bejson_Taxonomies_*`) are **exempt** from the Core-only boundary in §1.1 and reside in `libraries_105` at `Lib_{PY,JS,TS,SH}/Scaffold/` and `Lib_{PY,JS,TS,SH}/Taxonomies/`.
+- The exemption is **per family, not general**: no other non-Core vertical family (`AI`, `Gaming`, `CMS`, `Lists`, `BEHTML`, `Diagrams`, `Bookmaker`, `HTML`, `Terminal_Menus`, etc.) is admitted by it. Any further family requires its own recorded override.
+- Both families are standalone modules that import `Core` primitives; `Core` is never modified by them.
+- Both families implement the **`lattice`** taxonomy (prefix `lattice_` on every field, `Lattice` on every entity, `lattice_*` on files and `DB_Name`). Phase 1 data contracts: `lib_bejson_Lattice_Plan` V1.0.2-PKG102.
+- Deployment kinds: `rebuild` (master built from scratch from a taxonomy) and `prebuilt` (instantiated from a prebuilt snapshot). A prebuilt node may be a master or a slave and may follow its own slightly different (variant) taxonomy; every taxonomy must still register the `_uuid_fk` and `_slot` suffixes.
 
 ---
 
@@ -107,6 +115,12 @@ All host storage paths are standardized under `/storage/emulated/0/Admin` (repla
 ### 5.5 Logging & Header Compliance
 - Library modules must never use `print(..., file=sys.stderr)` for operational warnings; Python modules must use `logging.warning(...)` per Policy §7.3.
 - Every BEJSON data file must carry `"Format": "BEJSON"`, a valid `"Format_Version"`, and `"Format_Creator": "Elton Boehnen"`.
+
+### 5.6 Sanctioned Use of Core Private Helpers by Exempted Families (added 2026-10-20)
+
+- `Scaffold` and `Taxonomies` are **granted** permission to call Core's private cache helper `_bejson_core_invalidate_cache(doc)` (Python; the JS/TS/SH equivalents by parity) after an in-memory field rename, so the provenance-guarded `by_name` / `by_uuid` / `by_name_row` cache is rebuilt and dual-key resolution (`E_FIELD_INTEGRITY_MISMATCH`) stays consistent.
+- The grant covers **calling** the helper only. Core source files remain frozen and unmodified; no new Core function is added.
+- No other Core private symbol is covered by this grant.
 
 ---
 
