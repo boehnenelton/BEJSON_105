@@ -1066,6 +1066,304 @@ function mfdb_core_delete_entity_record_105(manifestPath, entityName, recordUuid
 }
 
 // ---------------------------------------------------------------------------
+// UUID generator helper
+// ---------------------------------------------------------------------------
+function _uuidv4() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  try {
+    const c = require('crypto');
+    if (c.randomUUID) return c.randomUUID();
+  } catch (_) {}
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Whole-Database Creation & Maintenance
+// ---------------------------------------------------------------------------
+
+function mfdb_core_create_database(rootDir, dbName, entities, options = {}) {
+  if (!_isNode()) {
+    throw new MFDBCoreError('mfdb_core_create_database is only available in Node.js environments', E_MFDB_CORE_INVALID_OPERATION);
+  }
+  const fs = require('fs');
+  const path = require('path');
+  fs.mkdirSync(rootDir, { recursive: true });
+  const manifestPath = path.join(rootDir, '104a.mfdb.bejson');
+  const mfdbVersion = (typeof options === 'string') ? options : (options.mfdb_version || '1.31');
+  const networkRole = options.network_role || 'Master';
+  const dbDescription = options.db_description || '';
+  const schemaVersion = options.schema_version || '1.0.0';
+  const author = options.author || 'Elton Boehnen';
+  const debugMode = !!options.debug_mode;
+
+  const manifestFields = [
+    { name: 'entity_name',    type: 'string' },
+    { name: 'file_path',      type: 'string' },
+    { name: 'description',    type: 'string' },
+    { name: 'record_count',   type: 'integer' },
+    { name: 'schema_version', type: 'string' },
+    { name: 'primary_key',    type: 'string' },
+  ];
+
+  const manifestValues = [];
+  const entityDefsToFile = [];
+
+  for (const entity of entities) {
+    const name = entity.name;
+    const fpRel = entity.file_path || `data/${name.toLowerCase()}.bejson`;
+    const desc = entity.description || null;
+    const pk = entity.primary_key || null;
+    const sv = entity.schema_version || '1.0';
+    const fields = entity.fields || [];
+    const fver = entity.format_version || '104';
+    if (fver !== '104' && fver !== '105') {
+      throw new MFDBCoreError(
+        `Entity '${name}': format_version must be '104' or '105', got ${JSON.stringify(fver)}`,
+        E_MFDB_CORE_INVALID_OPERATION
+      );
+    }
+    manifestValues.push([name, fpRel, desc, 0, sv, pk]);
+    entityDefsToFile.push({ name, fpRel, fields, fver });
+  }
+
+  const createdAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+  const manifestDoc = {
+    Format: 'BEJSON',
+    Format_Version: '104a',
+    Format_Creator: 'Elton Boehnen',
+    MFDB_Version: mfdbVersion,
+    Network_Role: networkRole,
+    DB_Name: dbName,
+    DB_Description: dbDescription,
+    Schema_Version: schemaVersion,
+    Author: author,
+    Created_At: createdAt,
+    Records_Type: ['mfdb'],
+    Fields: manifestFields,
+    Values: manifestValues,
+  };
+
+  _writeBejson(manifestPath, manifestDoc);
+
+  for (const { name, fpRel, fields, fver } of entityDefsToFile) {
+    const resolved = path.normalize(path.join(rootDir, fpRel));
+    const entityDir = path.dirname(resolved);
+    fs.mkdirSync(entityDir, { recursive: true });
+    const relToManifest = path.relative(entityDir, manifestPath).split(path.sep).join('/');
+
+    let docFields = fields;
+    if (fver === '105') {
+      docFields = fields.map(f => ({ ...f, field_uuid: _uuidv4() }));
+    }
+
+    const entityDoc = {
+      Format: 'BEJSON',
+      Format_Version: fver,
+      Format_Creator: 'Elton Boehnen',
+      Parent_Hierarchy: relToManifest,
+      Records_Type: [name],
+      Fields: docFields,
+      Values: [],
+    };
+    _writeBejson(resolved, entityDoc);
+  }
+
+  if (debugMode) {
+    mfdb_core_enable_debug(manifestPath, options);
+  }
+
+  return manifestPath;
+}
+
+function mfdb_core_load_entity(manifestPath, entityName) {
+  const p = _mfdbGetEntityPath(manifestPath, entityName);
+  const doc = _loadJson(p);
+  if (!doc || typeof doc !== 'object') {
+    throw new MFDBCoreError(`Failed to load entity: ${entityName} (not an object)`, E_MFDB_CORE_ENTITY_NOT_FOUND);
+  }
+  return _rowsAsDicts(doc);
+}
+
+function mfdb_core_add_entity_record(manifestPath, entityName, values, syncCount = true) {
+  const p = _mfdbGetEntityPath(manifestPath, entityName);
+  const doc = _loadJson(p);
+  const core = _riCore();
+  if (!core.bejson_core_add_record(doc, values)) {
+    throw new MFDBCoreError(`Failed to add record to ${entityName}`, E_MFDB_CORE_WRITE_FAILED);
+  }
+  _writeBejson(p, doc);
+  if (syncCount) {
+    mfdb_core_sync_count(manifestPath, entityName, doc.Values.length);
+  }
+  return doc;
+}
+
+function mfdb_core_discover(filePath) {
+  if (!_isNode()) {
+    throw new MFDBCoreError('mfdb_core_discover is only available in Node.js environments', E_MFDB_CORE_INVALID_OPERATION);
+  }
+  const fs = require('fs');
+  const path = require('path');
+  if (!fs.existsSync(filePath)) {
+    throw new MFDBCoreError(`File not found: ${filePath}`, E_MFDB_CORE_MANIFEST_NOT_FOUND);
+  }
+  const filename = path.basename(filePath);
+  if (filename.endsWith('.zip') && filename.includes('.mfdb')) {
+    return 'archive';
+  }
+  let doc;
+  try {
+    doc = _loadJson(filePath);
+  } catch (e) {
+    return 'standalone';
+  }
+  if (!doc || typeof doc !== 'object') return 'standalone';
+  const version = doc.Format_Version || '';
+  if (version === '104a' && filename.endsWith('.mfdb.bejson')) {
+    return 'manifest';
+  }
+  if ((version === '104' || ['105', '105a', '105db'].includes(version)) && doc.Parent_Hierarchy) {
+    return 'entity';
+  }
+  return 'standalone';
+}
+
+function mfdb_core_deep_verify(manifestPath) {
+  if (!_isNode()) {
+    throw new MFDBCoreError('mfdb_core_deep_verify is only available in Node.js environments', E_MFDB_CORE_INVALID_OPERATION);
+  }
+  const fs = require('fs');
+  const path = require('path');
+  const findings = [];
+  const manifestDoc = _loadJson(manifestPath);
+  const entries = _rowsAsDicts(manifestDoc);
+  const core = _riCore();
+
+  for (const entry of entries) {
+    const entityName = entry.entity_name;
+    const filePathRel = entry.file_path;
+    const expectedCount = entry.record_count;
+
+    const entityPath = path.resolve(path.dirname(manifestPath), filePathRel);
+    if (!fs.existsSync(entityPath)) {
+      findings.push({ entity: entityName, error: 'MISSING_FILE', path: filePathRel });
+      continue;
+    }
+
+    try {
+      const entityDoc = _loadJson(entityPath);
+      const fields = entityDoc.Fields || [];
+      const is105 = ['105', '105a', '105db'].includes(entityDoc.Format_Version);
+      const fieldCount = fields.length + (is105 ? 1 : 0);
+      const values = entityDoc.Values || [];
+      const actualCount = values.length;
+
+      if (expectedCount !== undefined && expectedCount !== null && expectedCount !== actualCount) {
+        findings.push({
+          entity: entityName,
+          warning: 'COUNT_MISMATCH',
+          expected: expectedCount,
+          actual: actualCount,
+        });
+      }
+
+      for (let i = 0; i < values.length; i++) {
+        const row = values[i];
+        if (row.length !== fieldCount) {
+          findings.push({
+            entity: entityName,
+            error: 'POSITIONAL_VIOLATION',
+            row: i,
+            expected: fieldCount,
+            actual: row.length,
+          });
+          continue;
+        }
+
+        for (let j = 0; j < fields.length; j++) {
+          const col = core._bejson_core_abs_col ? core._bejson_core_abs_col(entityDoc, j) : (is105 ? (entityDoc.Format_Version === '105db' ? (j === 0 ? 0 : j + 1) : j + 1) : j);
+          const val = row[col];
+          if (val === null || val === undefined) continue;
+          const fType = fields[j].type;
+          if (fType === 'integer' && (!Number.isInteger(val) || typeof val !== 'number')) {
+            findings.push({ entity: entityName, warning: 'TYPE_MISMATCH', row: i, field: fields[j].name, expected: 'integer', actual: typeof val });
+          } else if (fType === 'number' && (typeof val !== 'number' || Number.isNaN(val))) {
+            findings.push({ entity: entityName, warning: 'TYPE_MISMATCH', row: i, field: fields[j].name, expected: 'number', actual: typeof val });
+          } else if (fType === 'boolean' && typeof val !== 'boolean') {
+            findings.push({ entity: entityName, warning: 'TYPE_MISMATCH', row: i, field: fields[j].name, expected: 'boolean', actual: typeof val });
+          }
+        }
+      }
+    } catch (e) {
+      findings.push({ entity: entityName, error: 'CORRUPT_JSON', message: e.message || String(e) });
+    }
+  }
+
+  return findings;
+}
+
+function mfdb_core_self_heal(manifestPath) {
+  const report = { actions: [], remaining_errors: [] };
+  const findings = mfdb_core_deep_verify(manifestPath);
+
+  for (const f of findings) {
+    const entity = f.entity;
+    try {
+      if (f.warning === 'COUNT_MISMATCH') {
+        const actual = f.actual;
+        if (actual === undefined || actual === null) {
+          report.remaining_errors.push(`Skipped COUNT_MISMATCH heal for ${entity}: finding has no 'actual' value`);
+          continue;
+        }
+        mfdb_core_sync_count(manifestPath, entity, actual);
+        report.actions.push(`Resynced record_count for ${entity} to ${actual}`);
+      } else if (f.error === 'POSITIONAL_VIOLATION') {
+        const entityPath = _mfdbGetEntityPath(manifestPath, entity);
+        try {
+          const doc = _loadJson(entityPath);
+          if (['105', '105a', '105db'].includes(doc.Format_Version)) {
+            report.remaining_errors.push(
+              `${entity}: positional violation in a 105-series entity -- not auto-repaired ` +
+              `(manual fix; self_heal only repairs 104-series rows)`
+            );
+            continue;
+          }
+          const fieldCount = (doc.Fields || []).length;
+          let repaired = 0;
+          for (let i = 0; i < (doc.Values || []).length; i++) {
+            const row = doc.Values[i];
+            if (row.length < fieldCount) {
+              doc.Values[i] = row.concat(new Array(fieldCount - row.length).fill(null));
+              repaired++;
+            } else if (row.length > fieldCount) {
+              doc.Values[i] = row.slice(0, fieldCount);
+              repaired++;
+            }
+          }
+          if (repaired > 0) {
+            _writeBejson(entityPath, doc);
+            report.actions.push(`Repaired ${repaired} positional violations in ${entity}`);
+          }
+        } catch (e) {
+          report.remaining_errors.push(`Failed to repair ${entity}: ${e.message || String(e)}`);
+        }
+      } else if (f.error === 'MISSING_FILE') {
+        report.remaining_errors.push(`Could not resurrect ${entity}`);
+      } else if (f.error) {
+        report.remaining_errors.push(`${entity}: ${f.error} - ${f.message || ''}`);
+      }
+    } catch (e) {
+      report.remaining_errors.push(`Unexpected error healing finding for ${entity}: ${e.message || String(e)}`);
+    }
+  }
+
+  return report;
+}
+
+// ---------------------------------------------------------------------------
 // Exports — combined: MFDBArchive (zip mount/commit) + manifest/entity
 // manipulation functions (merged from engine dump). Non-overlapping
 // responsibilities, both retained.
@@ -1087,10 +1385,18 @@ const exports_ = {
   MFDBArchive,
   // Manifest / entity functions
   mfdb_core_create_manifest,
+  mfdb_core_create_database,
+  mfdb_core_load_entity,
+  mfdb_core_add_entity_record,
   mfdb_core_register_entity,
   mfdb_core_sync_count,
   mfdb_core_sync_all_counts,
   mfdb_core_init_entity_file,
+  mfdb_core_discover,
+  mfdb_core_deep_verify,
+  mfdb_core_self_heal,
+  _get_entity_path: _mfdbGetEntityPath,
+  _mfdbGetEntityPath,
   // Federation
   CONNECTED_SLAVE_SCHEMA,
   mfdb_core_create_connected_slave_entity,

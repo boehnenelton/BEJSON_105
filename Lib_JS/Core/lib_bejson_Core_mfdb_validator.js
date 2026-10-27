@@ -111,10 +111,25 @@ function _loadJson(filePath) {
 
 /**
  * Turns a BEJSON document's Values into {fieldName: value} objects using Fields.
+ * 105-series aware: surfaces record_uuid and Record_Type_Parent without column misalignment.
  */
 function _rowsAsDicts(doc) {
-  const names = doc.Fields.map(f => f.name);
-  return doc.Values.map(row => Object.fromEntries(names.map((n, i) => [n, row[i]])));
+  const names = (doc.Fields || []).map(f => f.name);
+  const fmt = doc.Format_Version;
+  if (['105', '105a', '105db'].includes(fmt)) {
+    const isMulti = fmt === '105db';
+    const offset = isMulti ? 2 : 1;
+    const dataNames = isMulti ? names.slice(1) : names;
+    return (doc.Values || []).map(row => {
+      const d = Object.fromEntries(dataNames.map((n, i) => [n, row[offset + i]]));
+      d.record_uuid = isMulti ? row[1] : row[0];
+      if (isMulti) {
+        d.Record_Type_Parent = row[0];
+      }
+      return d;
+    });
+  }
+  return (doc.Values || []).map(row => Object.fromEntries(names.map((n, i) => [n, row[i]])));
 }
 
 /**
@@ -126,6 +141,27 @@ function _resolveEntityPath(manifestPath, filePathRel) {
   }
   const path = require('path');
   return path.resolve(path.dirname(manifestPath), filePathRel);
+}
+
+/**
+ * Relative-depth path traversal check.
+ * Normalizes separators then counts directory depth segment by segment.
+ * Returns true (unsafe) if any '..' drops depth below 0.
+ */
+function _bejson_mfdb_escapes_root(relativePath) {
+  if (!relativePath || typeof relativePath !== 'string') return false;
+  const normalized = relativePath.replace(/\\/g, '/');
+  const parts = normalized.split('/');
+  let depth = 0;
+  for (const part of parts) {
+    if (part === '..') {
+      depth -= 1;
+      if (depth < 0) return true;
+    } else if (part !== '.' && part !== '') {
+      depth += 1;
+    }
+  }
+  return false;
 }
 
 /**
@@ -211,8 +247,8 @@ function mfdb_validator_validate_manifest(manifestPath) {
   const fieldNames = (doc.Fields || []).map(f => f.name);
   for (const required of ['entity_name', 'file_path']) {
     if (!fieldNames.includes(required)) {
-      _mAddError(`Manifest Fields must include '${required}'`, 'Fields');
-      throw new MFDBValidationError(`Missing required field '${required}'`, E_MFDB_MISSING_REQUIRED_FIELD);
+      _mAddError(`[${E_MFDB_MISSING_REQUIRED_FIELD}] Missing required field: ${required}`, 'Fields');
+      throw new MFDBValidationError(`Missing required field: ${required}`, E_MFDB_MISSING_REQUIRED_FIELD);
     }
   }
 
@@ -225,29 +261,30 @@ function mfdb_validator_validate_manifest(manifestPath) {
     const entityName = entry.entity_name;
     const filePath   = entry.file_path;
 
-    if (!entityName) {
-      _mAddError(`Record ${i}: entity_name is null or missing`, `Values[${i}]`);
-      throw new MFDBValidationError('Null entity_name', E_MFDB_NULL_REQUIRED);
-    }
-    if (!filePath) {
-      _mAddError(`Record ${i}: file_path is null or missing`, `Values[${i}]`);
-      throw new MFDBValidationError('Null file_path', E_MFDB_NULL_REQUIRED);
+    if (!entityName || !filePath) {
+      _mAddError(`[${E_MFDB_NULL_REQUIRED}] Record ${i}: null entity_name or file_path`, `Values[${i}]`);
+      throw new MFDBValidationError('Null entity_name or file_path', E_MFDB_NULL_REQUIRED);
     }
     if (seenNames.has(entityName)) {
-      _mAddError(`Duplicate entity_name: '${entityName}'`, `Values[${i}]`);
-      throw new MFDBValidationError(`Duplicate entity_name: ${entityName}`, E_MFDB_DUPLICATE_ENTRY);
+      _mAddError(`[${E_MFDB_DUPLICATE_ENTRY}] Duplicate entity: ${entityName}`, `Values[${i}]`);
+      throw new MFDBValidationError(`Duplicate entity: ${entityName}`, E_MFDB_DUPLICATE_ENTRY);
     }
     seenNames.add(entityName);
 
     if (seenPaths.has(filePath)) {
-      _mAddError(`Duplicate file_path: '${filePath}'`, `Values[${i}]`);
-      throw new MFDBValidationError(`Duplicate file_path: ${filePath}`, E_MFDB_DUPLICATE_ENTRY);
+      _mAddError(`[${E_MFDB_DUPLICATE_ENTRY}] Duplicate path: ${filePath}`, `Values[${i}]`);
+      throw new MFDBValidationError(`Duplicate path: ${filePath}`, E_MFDB_DUPLICATE_ENTRY);
     }
     seenPaths.add(filePath);
 
+    if (_bejson_mfdb_escapes_root(filePath)) {
+      _mAddError(`[${E_MFDB_ENTITY_NOT_FOUND}] Path escapes root: ${filePath}`, `Values[${i}]/file_path`);
+      throw new MFDBValidationError(`Path escapes root: ${filePath}`, E_MFDB_ENTITY_NOT_FOUND);
+    }
+
     const resolved = _resolveEntityPath(manifestPath, filePath);
     if (!_fileExists(resolved)) {
-      _mAddError(`Entity file '${filePath}' not found (resolved: ${resolved})`, `Values[${i}]/file_path`);
+      _mAddError(`[${E_MFDB_ENTITY_NOT_FOUND}] Entity file not found: ${filePath}`, `Values[${i}]/file_path`);
       throw new MFDBValidationError(`Entity file not found: ${resolved}`, E_MFDB_ENTITY_NOT_FOUND);
     }
   }
@@ -260,34 +297,35 @@ function mfdb_validator_validate_manifest(manifestPath) {
 // ---------------------------------------------------------------------------
 
 /**
- * Level 2: an entity file must be BEJSON 104 (one Records_Type) with Parent_Hierarchy; with checkBidirectional also confirms the manifest lists it back. Entity files have no Record_Type_Parent column and no null-padding.
+ * Level 2: an entity file must be BEJSON 104 or 105 (one Records_Type) with Parent_Hierarchy;
+ * with checkBidirectional also confirms the manifest lists it back.
  */
-function mfdb_validator_validate_entity_file(entityPath, checkBidirectional = true) {
+function mfdb_validator_validate_entity_file(entityPath, checkBidirectional = true, expectedEntityName = null, expectedManifest = null) {
   const path = require('path');
   _mReset();
 
   if (!_fileExists(entityPath)) {
-    _mAddError(`Entity file not found: ${entityPath}`, 'File System');
+    _mAddError(`[${E_MFDB_ENTITY_NOT_FOUND}] Entity file not found: ${entityPath}`, 'File System');
     throw new MFDBValidationError(`File not found: ${entityPath}`, E_MFDB_ENTITY_NOT_FOUND);
   }
 
   try {
     bejson_validator_validate_file(entityPath);
   } catch (exc) {
-    _mAddError(`BEJSON 104 validation failed: ${exc.message}`, 'BEJSON Validation');
+    _mAddError(`[${E_MFDB_NOT_ENTITY_FILE}] BEJSON validation failed: ${exc.message}`, 'BEJSON Validation');
     throw new MFDBValidationError(exc.message, E_MFDB_NOT_ENTITY_FILE);
   }
 
   const doc = _loadJson(entityPath);
 
-  if (doc.Format_Version !== '104') {
-    _mAddError("Entity file must be Format_Version '104'", 'Format_Version');
-    throw new MFDBValidationError('Entity file must be 104', E_MFDB_NOT_ENTITY_FILE);
+  if (doc.Format_Version !== '104' && doc.Format_Version !== '105') {
+    _mAddError(`[${E_MFDB_NOT_ENTITY_FILE}] Entity file must be Format_Version 104 or 105`, 'Format_Version');
+    throw new MFDBValidationError('Entity file must be 104 or 105', E_MFDB_NOT_ENTITY_FILE);
   }
 
   const parentHierarchy = doc.Parent_Hierarchy;
   if (!parentHierarchy) {
-    _mAddError('Entity file must contain Parent_Hierarchy pointing to the manifest', 'Parent_Hierarchy');
+    _mAddError(`[${E_MFDB_NO_PARENT_HIERARCHY}] Missing Parent_Hierarchy`, 'Structure');
     throw new MFDBValidationError('Missing Parent_Hierarchy', E_MFDB_NO_PARENT_HIERARCHY);
   }
 
@@ -296,10 +334,10 @@ function mfdb_validator_validate_entity_file(entityPath, checkBidirectional = tr
 
   if (!_fileExists(manifestPath)) {
     _mAddError(
-      `Parent_Hierarchy '${parentHierarchy}' resolves to '${manifestPath}' which does not exist`,
+      `[${E_MFDB_MANIFEST_NOT_FOUND}] Manifest not found at ${manifestPath} (orphan entity)`,
       'Parent_Hierarchy',
     );
-    throw new MFDBValidationError(`Manifest not found: ${manifestPath}`, E_MFDB_MANIFEST_NOT_FOUND);
+    throw new MFDBValidationError(`Manifest not found at ${manifestPath} (orphan entity)`, E_MFDB_MANIFEST_NOT_FOUND);
   }
 
   if (!path.basename(manifestPath).endsWith('.mfdb.bejson')) {
@@ -310,47 +348,63 @@ function mfdb_validator_validate_entity_file(entityPath, checkBidirectional = tr
   }
 
   const rt = doc.Records_Type || [];
-  if (rt.length !== 1) {
-    _mAddError(`Entity file Records_Type must have exactly one entry. Found: ${JSON.stringify(rt)}`, 'Records_Type');
-    throw new MFDBValidationError('Entity Records_Type must be single-entry', E_MFDB_NOT_ENTITY_FILE);
+  if (!Array.isArray(rt) || rt.length !== 1 || typeof rt[0] !== 'string' || !rt[0]) {
+    _mAddError(`[${E_MFDB_ENTITY_NAME_MISMATCH}] Records_Type must contain exactly one string (the entity name)`, 'Records_Type');
+    throw new MFDBValidationError('Entity Records_Type must be single-entry', E_MFDB_ENTITY_NAME_MISMATCH);
   }
 
   const entityName = rt[0];
 
-  let manifestDoc, entries, manifestEntityNames;
-  try {
-    manifestDoc        = _loadJson(manifestPath);
-    entries            = _rowsAsDicts(manifestDoc);
-    manifestEntityNames = entries.map(e => e.entity_name);
-  } catch (exc) {
-    _mAddError(`Could not read manifest: ${exc.message}`, 'Manifest');
-    throw new MFDBValidationError(`Cannot read manifest: ${exc.message}`, E_MFDB_MANIFEST_NOT_FOUND);
+  if (expectedManifest !== null && expectedManifest !== undefined) {
+    if (path.resolve(manifestPath) !== path.resolve(expectedManifest)) {
+      _mAddError(
+        `[${E_MFDB_BIDIRECTIONAL_FAIL}] Parent_Hierarchy points to ${manifestPath}, not to the manifest that lists this file (${expectedManifest})`,
+        'Parent_Hierarchy',
+      );
+      throw new MFDBValidationError('Bidirectional check failed', E_MFDB_BIDIRECTIONAL_FAIL);
+    }
   }
 
-  if (!manifestEntityNames.includes(entityName)) {
-    _mAddError(
-      `Records_Type '${entityName}' does not appear as entity_name in the manifest`,
-      'Records_Type vs Manifest',
-    );
-    throw new MFDBValidationError(
-      `Entity '${entityName}' not registered in manifest`, E_MFDB_ENTITY_NAME_MISMATCH,
-    );
+  if (expectedEntityName !== null && expectedEntityName !== undefined) {
+    if (entityName !== expectedEntityName) {
+      _mAddError(
+        `[${E_MFDB_ENTITY_NAME_MISMATCH}] Records_Type '${entityName}' does not match manifest entity_name '${expectedEntityName}' (case-sensitive)`,
+        'Records_Type',
+      );
+      throw new MFDBValidationError(`Records_Type '${entityName}' does not match manifest entity_name '${expectedEntityName}'`, E_MFDB_ENTITY_NAME_MISMATCH);
+    }
   }
 
   if (checkBidirectional) {
-    const match = entries.find(e => e.entity_name === entityName);
-    if (match) {
-      const manifestDir    = path.dirname(path.resolve(manifestPath));
-      const fromManifest   = path.resolve(manifestDir, match.file_path || '');
-      const thisFile       = path.resolve(entityPath);
-      if (fromManifest !== thisFile) {
-        _mAddError(
-          `Bidirectional check failed for entity '${entityName}': ` +
-          `manifest points to '${fromManifest}', but this file is '${thisFile}'`,
-          'Bidirectional Path Check',
-        );
-        throw new MFDBValidationError('Bidirectional path check failed', E_MFDB_BIDIRECTIONAL_FAIL);
+    let manifestDoc, entries;
+    try {
+      manifestDoc = _loadJson(manifestPath);
+      if (manifestDoc.Format_Version !== '104a' || JSON.stringify(manifestDoc.Records_Type) !== JSON.stringify(['mfdb'])) {
+        _mAddError(`[${E_MFDB_NOT_MANIFEST}] Parent_Hierarchy target is not an MFDB manifest`, 'Parent_Hierarchy');
+        throw new MFDBValidationError('Parent_Hierarchy target is not an MFDB manifest', E_MFDB_NOT_MANIFEST);
       }
+      entries = _rowsAsDicts(manifestDoc);
+    } catch (exc) {
+      if (exc instanceof MFDBValidationError) throw exc;
+      _mAddError(`[${E_MFDB_NOT_MANIFEST}] Parent_Hierarchy target unreadable as a manifest: ${exc.message}`, 'Parent_Hierarchy');
+      throw new MFDBValidationError(`Cannot read manifest: ${exc.message}`, E_MFDB_NOT_MANIFEST);
+    }
+
+    const resolvedEntity = path.resolve(entityPath);
+    const mine = entries.filter(r => r.file_path && !_bejson_mfdb_escapes_root(r.file_path) && path.resolve(_resolveEntityPath(manifestPath, r.file_path)) === resolvedEntity);
+
+    if (mine.length === 0) {
+      _mAddError(
+        `[${E_MFDB_BIDIRECTIONAL_FAIL}] Bidirectional check failed: manifest ${manifestPath} has no file_path that resolves to this entity file`,
+        'Parent_Hierarchy',
+      );
+      throw new MFDBValidationError('Bidirectional check failed', E_MFDB_BIDIRECTIONAL_FAIL);
+    } else if (expectedEntityName === null && !mine.some(r => r.entity_name === entityName)) {
+      _mAddError(
+        `[${E_MFDB_ENTITY_NAME_MISMATCH}] Records_Type '${entityName}' does not match the manifest entity_name for this file ('${mine[0].entity_name}')`,
+        'Records_Type',
+      );
+      throw new MFDBValidationError('Records_Type mismatch', E_MFDB_ENTITY_NAME_MISMATCH);
     }
   }
 
@@ -362,7 +416,7 @@ function mfdb_validator_validate_entity_file(entityPath, checkBidirectional = tr
 // ---------------------------------------------------------------------------
 
 /**
- * Level 3: whole MFDB -- manifest, every entity file, record_count accuracy and *_fk conventions. strictFk makes unresolved foreign-key values errors; MFDB itself does not enforce foreign keys.
+ * Level 3: whole MFDB -- manifest, every entity file, record_count accuracy and *_fk conventions.
  */
 function mfdb_validator_validate_database(manifestPath, strictFk = false) {
   _mReset();
@@ -376,11 +430,6 @@ function mfdb_validator_validate_database(manifestPath, strictFk = false) {
   const manifestDoc = _loadJson(manifestPath);
   const entries     = _rowsAsDicts(manifestDoc);
 
-  const pkMap = {};
-  for (const e of entries) {
-    if (e.primary_key) pkMap[e.entity_name] = e.primary_key;
-  }
-
   for (const entry of entries) {
     const entityName    = entry.entity_name;
     const filePathRel   = entry.file_path;
@@ -389,43 +438,107 @@ function mfdb_validator_validate_database(manifestPath, strictFk = false) {
     const resolved = _resolveEntityPath(manifestPath, filePathRel);
 
     try {
-      mfdb_validator_validate_entity_file(resolved, true);
+      mfdb_validator_validate_entity_file(resolved, true, entityName, manifestPath);
     } catch (exc) {
       _mAddError(`Entity '${entityName}' failed validation: ${exc.message}`, `Entity/${entityName}`);
       throw exc;
     }
 
     if (declaredCount !== null && declaredCount !== undefined) {
-      const edoc        = _loadJson(resolved);
-      const actualCount = (edoc.Values || []).length;
-      if (actualCount !== declaredCount) {
-        _mAddWarning(
-          `Entity '${entityName}': manifest declares record_count=${declaredCount}, ` +
-          `actual=${actualCount}. Call mfdb_core_sync_all_counts() to correct.`,
-          `Entity/${entityName}/record_count`,
-        );
-      }
-    }
-
-    if (strictFk) {
-      const edoc    = _loadJson(resolved);
-      const fkFields = (edoc.Fields || []).filter(f => f.name.endsWith('_fk')).map(f => f.name);
-      for (const fkField of fkFields) {
-        const targetFound = Object.entries(pkMap).some(
-          ([en, pk]) => pk && (fkField.includes(pk) || fkField.toLowerCase().includes(en.toLowerCase()))
-        );
-        if (!targetFound) {
+      try {
+        const edoc        = _loadJson(resolved);
+        const actualCount = (edoc.Values || []).length;
+        if (actualCount !== declaredCount) {
           _mAddWarning(
-            `Entity '${entityName}': FK field '${fkField}' has no matching primary_key ` +
-            `declaration in the manifest. Consider adding a Relationships header (MFDB v1.1).`,
-            `Entity/${entityName}/${fkField}`,
+            `record_count ${declaredCount} in manifest != ${actualCount} rows in file`,
+            `Entity:${entityName}`,
           );
         }
+      } catch (e) {
+        _mAddWarning(`could not compare record_count: ${e.message}`, `Entity:${entityName}`);
       }
     }
   }
 
+  if (strictFk) {
+    const fkErrors = mfdb_validator_check_referential_integrity(manifestPath);
+    if (fkErrors && fkErrors.length > 0) {
+      for (const err of fkErrors) {
+        _mAddError(`[${err.code || E_MFDB_FK_UNRESOLVED}] ${err.detail || err.message || err}`, `Entity`);
+      }
+      throw new MFDBValidationError('Referential integrity validation failed', E_MFDB_FK_UNRESOLVED);
+    }
+  }
+
   return true;
+}
+
+function validate_mfdb_database(manifestPath, strictFk = false) {
+  const savedErrors = [..._mErrors];
+  const savedWarnings = [..._mWarnings];
+  let valid = true;
+  _mReset();
+  try {
+    mfdb_validator_validate_database(manifestPath, strictFk);
+  } catch (_) {
+    valid = false;
+  }
+  const errors = [..._mErrors];
+  const warnings = [..._mWarnings];
+  _mErrors = savedErrors;
+  _mWarnings = savedWarnings;
+  return { valid: valid && errors.length === 0, is_valid: valid && errors.length === 0, errors, warnings };
+}
+
+function validate_mfdb_entity_file(entityPath, checkBidirectional = true, expectedEntityName = null, expectedManifest = null) {
+  const savedErrors = [..._mErrors];
+  const savedWarnings = [..._mWarnings];
+  let valid = true;
+  _mReset();
+  try {
+    mfdb_validator_validate_entity_file(entityPath, checkBidirectional, expectedEntityName, expectedManifest);
+  } catch (_) {
+    valid = false;
+  }
+  const errors = [..._mErrors];
+  const warnings = [..._mWarnings];
+  _mErrors = savedErrors;
+  _mWarnings = savedWarnings;
+  return { valid: valid && errors.length === 0, is_valid: valid && errors.length === 0, errors, warnings };
+}
+
+function validate_mfdb_manifest(manifestPath) {
+  const savedErrors = [..._mErrors];
+  const savedWarnings = [..._mWarnings];
+  let valid = true;
+  _mReset();
+  try {
+    mfdb_validator_validate_manifest(manifestPath);
+  } catch (_) {
+    valid = false;
+  }
+  const errors = [..._mErrors];
+  const warnings = [..._mWarnings];
+  _mErrors = savedErrors;
+  _mWarnings = savedWarnings;
+  return { valid: valid && errors.length === 0, is_valid: valid && errors.length === 0, errors, warnings };
+}
+
+function validate_mfdb_archive(archivePath) {
+  const savedErrors = [..._mErrors];
+  const savedWarnings = [..._mWarnings];
+  let valid = true;
+  _mReset();
+  try {
+    mfdb_validator_validate_archive(archivePath);
+  } catch (_) {
+    valid = false;
+  }
+  const errors = [..._mErrors];
+  const warnings = [..._mWarnings];
+  _mErrors = savedErrors;
+  _mWarnings = savedWarnings;
+  return { valid: valid && errors.length === 0, is_valid: valid && errors.length === 0, errors, warnings };
 }
 
 // ---------------------------------------------------------------------------
@@ -725,6 +838,10 @@ const exports_ = {
   _resolveEntityPath,
   _fileExists,
   // Validation functions
+  validate_mfdb_archive,
+  validate_mfdb_manifest,
+  validate_mfdb_entity_file,
+  validate_mfdb_database,
   mfdb_validator_validate_archive,
   mfdb_validator_validate_manifest,
   mfdb_validator_validate_entity_file,

@@ -6,8 +6,8 @@
  *                 do not restate or reinterpret this acronym elsewhere.
  * MFDB:           MFDB stands for Multi File Database. Authoritative definition;
  *                 do not restate or reinterpret this acronym elsewhere.
- * Version:        2.2.2
- * Date:           2026-10-09
+ * Version:        3.6.0
+ * Date:           2026-10-27
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
@@ -470,6 +470,36 @@ function bejson_core_resolve_field_index(doc, target) {
     throw new BEJSONCoreError(`E_FIELD_INTEGRITY_MISMATCH: unresolvable target ${JSON.stringify(target)}`, _E_FIELD_INTEGRITY_MISMATCH);
 }
 
+function _getTypeProblem(val, type) {
+    try {
+        const V = (typeof require !== 'undefined') ? require('./lib_bejson_Core_bejson_validator.js') : window.BEJSON_VALIDATOR;
+        if (V && V._bejson_validator_type_problem) {
+            return V._bejson_validator_type_problem(val, type);
+        }
+    } catch (_) {}
+    if (val === null || val === undefined) return null;
+    if (type === 'string') return typeof val === 'string' ? null : 'expected string';
+    if (type === 'integer') return (typeof val === 'number' && Number.isInteger(val) && typeof val !== 'boolean') ? null : 'expected integer';
+    if (type === 'number') {
+        if (typeof val === 'boolean') return 'expected number, got bool';
+        return typeof val === 'number' ? null : 'expected number';
+    }
+    if (type === 'boolean') return typeof val === 'boolean' ? null : 'expected boolean';
+    if (type === 'array') return Array.isArray(val) ? null : 'expected array';
+    if (type === 'object') return (typeof val === 'object' && !Array.isArray(val)) ? null : 'expected object';
+    return null;
+}
+
+function _bejson_core_check_value_type(field, value, where) {
+    const problem = _getTypeProblem(value, field && field.type);
+    if (problem) {
+        throw new BEJSONCoreError(
+            `E_TYPE_MISMATCH: ${where} (${field && field.name}): ${problem}`,
+            BEJSON_ERRORS.E_TYPE_MISMATCH !== undefined ? BEJSON_ERRORS.E_TYPE_MISMATCH : 8
+        );
+    }
+}
+
 /** Write one cell addressed by (record_uuid, field_uuid). Returns {row, col, healed}. */
 function bejson_core_write_cell(doc, recordUuid, fieldUuid, newValue, opts = {}) {
     _bejson_require_105(doc, "write_cell");
@@ -481,7 +511,10 @@ function bejson_core_write_cell(doc, recordUuid, fieldUuid, newValue, opts = {})
     if (row === null) {
         throw new BEJSONCoreError(`E_RECORD_NOT_FOUND: unknown record_uuid ${JSON.stringify(recordUuid)}`, _E_RECORD_NOT_FOUND);
     }
-    const absCol = _bejson_abs_col(doc, fm.by_uuid[fieldUuid]);
+    const col = fm.by_uuid[fieldUuid];
+    const fieldDef = (doc.Fields || [])[col];
+    _bejson_core_check_value_type(fieldDef, newValue, `write_cell record ${recordUuid}`);
+    const absCol = _bejson_abs_col(doc, col);
     const healed = (opts.expected_row !== undefined && opts.expected_row !== row) ||
                    (opts.expected_col !== undefined && opts.expected_col !== absCol);
     doc.Values[row][absCol] = newValue;
@@ -494,6 +527,22 @@ function bejson_core_write_cell(doc, recordUuid, fieldUuid, newValue, opts = {})
  */
 function bejson_core_add_record_105(doc, values) {
     _bejson_require_105(doc, "add_record_105");
+    const fields = doc.Fields || [];
+    if (!Array.isArray(values) || values.length !== fields.length) {
+        throw new BEJSONCoreError(
+            `E_RECORD_LENGTH_MISMATCH: add_record_105 expects ${fields.length} values (one per field, WITHOUT record_uuid), got ${Array.isArray(values) ? values.length : typeof values}`,
+            BEJSON_ERRORS.E_RECORD_LENGTH_MISMATCH !== undefined ? BEJSON_ERRORS.E_RECORD_LENGTH_MISMATCH : 9
+        );
+    }
+    for (let j = 0; j < fields.length; j++) {
+        _bejson_core_check_value_type(fields[j], values[j], "add_record_105 value");
+    }
+    if (doc.Format_Version === "105db" && values && !((doc.Records_Type || []).includes(values[0]))) {
+        throw new BEJSONCoreError(
+            `E_FIELD_INTEGRITY_MISMATCH: Record_Type_Parent '${values[0]}' not in Records_Type`,
+            _E_FIELD_INTEGRITY_MISMATCH
+        );
+    }
     const recordUuid = _bejson_new_uuid();
     const row = doc.Format_Version === "105db"
         ? [values[0], recordUuid, ...values.slice(1)]
@@ -501,6 +550,68 @@ function bejson_core_add_record_105(doc, values) {
     if (!Array.isArray(doc.Values)) doc.Values = [];
     doc.Values.push(row);
     return recordUuid;
+}
+
+/** 104-series add_record: rejects 105-series documents with E_FORMAT_UNSUPPORTED (81). */
+function bejson_core_add_record(doc, record) {
+    if (doc && _105_SERIES.includes(doc.Format_Version)) {
+        throw new BEJSONCoreError(
+            `E_FORMAT_UNSUPPORTED: add_record is 104-series only, got '${doc.Format_Version}'. Use bejson_core_add_record_105().`,
+            _E_FORMAT_UNSUPPORTED
+        );
+    }
+    if (!Array.isArray(record) || !Array.isArray(doc.Fields) || record.length !== doc.Fields.length) {
+        return false;
+    }
+    if (!Array.isArray(doc.Values)) doc.Values = [];
+    doc.Values.push(record);
+    return true;
+}
+
+/** Field adder for 104 and 105 series. */
+function bejson_core_add_field(doc, name, fieldType) {
+    if (!doc || !_105_SERIES.includes(doc.Format_Version)) {
+        if (!doc.Fields) doc.Fields = [];
+        doc.Fields.push({ name, type: fieldType });
+        for (const row of (doc.Values || [])) row.push(null);
+        return null;
+    }
+    const validTypes = ['string', 'integer', 'number', 'boolean', 'array', 'object'];
+    if (!validTypes.includes(fieldType)) {
+        throw new BEJSONCoreError(
+            `E_FIELD_INTEGRITY_MISMATCH: field_type must be one of ${JSON.stringify(validTypes)}, got '${fieldType}'`,
+            _E_FIELD_INTEGRITY_MISMATCH
+        );
+    }
+    const existingNames = new Set((doc.Fields || []).map(f => f.name));
+    if (existingNames.has(name)) {
+        throw new BEJSONCoreError(
+            `E_DUPLICATE_FIELD_NAME: '${name}' already exists`,
+            BEJSON_ERRORS.E_DUPLICATE_FIELD_NAME !== undefined ? BEJSON_ERRORS.E_DUPLICATE_FIELD_NAME : 84
+        );
+    }
+    const newUuid = _bejson_new_uuid();
+    if (!doc.Fields) doc.Fields = [];
+    doc.Fields.push({ name, type: fieldType, field_uuid: newUuid });
+    for (const row of (doc.Values || [])) row.push(null);
+    return newUuid;
+}
+
+/** 105 integrity verification. */
+function bejson_core_verify_105_integrity(doc) {
+    if (!doc || !_105_SERIES.includes(doc.Format_Version)) {
+        return { ok: false, reason: "E_FORMAT_UNSUPPORTED", errors: [] };
+    }
+    const V = (typeof require !== 'undefined') ? require('./lib_bejson_Core_bejson_validator.js') : window.BEJSON_VALIDATOR;
+    const res = V.validate_bejson ? V.validate_bejson(doc) : V.bejson_validator_validate_object(doc);
+    const fm = bejson_core_get_field_cache(doc);
+    return {
+        ok: res.valid,
+        field_count: (doc.Fields || []).length,
+        record_count: (doc.Values || []).length,
+        field_map_content_hash: fm ? fm.content_hash : "",
+        errors: res.errors
+    };
 }
 
 /** 105-series delete by record_uuid (never by row offset). */
@@ -528,19 +639,26 @@ const CoreExports = {
     bejson_core_get_field_index,
     bejson_core_clear_field_map_cache,
     bejson_core_serialize,
+    // 104 CRUD
+    bejson_core_add_record,
     // 105-series uuid-addressed CRUD
     bejson_core_find_row_by_uuid,
     bejson_core_resolve_field_index,
     bejson_core_write_cell,
     bejson_core_add_record_105,
+    bejson_core_add_field,
     bejson_core_delete_record,
+    bejson_core_verify_105_integrity,
     // Error codes
     E_CORE_INVALID_VERSION, E_CORE_INVALID_OPERATION, E_CORE_INDEX_OUT_OF_BOUNDS,
     E_CORE_FIELD_NOT_FOUND, E_CORE_TYPE_CONVERSION_FAILED, E_CORE_BACKUP_FAILED,
     E_CORE_WRITE_FAILED, E_CORE_QUERY_FAILED, E_CORE_ENCRYPTION_FAILED, E_CORE_DECRYPTION_FAILED,
     E_FIELD_INTEGRITY_MISMATCH: _E_FIELD_INTEGRITY_MISMATCH,
     E_FORMAT_UNSUPPORTED: _E_FORMAT_UNSUPPORTED,
-    E_RECORD_NOT_FOUND: _E_RECORD_NOT_FOUND
+    E_RECORD_NOT_FOUND: _E_RECORD_NOT_FOUND,
+    E_DUPLICATE_FIELD_NAME: (BEJSON_ERRORS.E_DUPLICATE_FIELD_NAME !== undefined ? BEJSON_ERRORS.E_DUPLICATE_FIELD_NAME : 84),
+    E_RECORD_LENGTH_MISMATCH: (BEJSON_ERRORS.E_RECORD_LENGTH_MISMATCH !== undefined ? BEJSON_ERRORS.E_RECORD_LENGTH_MISMATCH : 9),
+    E_TYPE_MISMATCH: (BEJSON_ERRORS.E_TYPE_MISMATCH !== undefined ? BEJSON_ERRORS.E_TYPE_MISMATCH : 8),
 };
 
 // UMD-like export

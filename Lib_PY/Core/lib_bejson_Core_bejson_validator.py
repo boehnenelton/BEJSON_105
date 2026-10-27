@@ -2,8 +2,8 @@
 Library:        lib_bejson_Core_bejson_validator.py
 Family:         Core
 Description:    Structural integrity checker for positional values and mandatory keys.
-Version:        3.3.0
-Date:           2026-09-25
+Version:        3.4.0
+Date:           2026-10-26
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
@@ -11,6 +11,15 @@ RELATIONAL_ID:  75385f04-f2b5-470d-b6be-6bebaa24d675
 Release_Version: 300
 
 Changelog:
+  3.4.0 - 105-series now enforces everything its 104 base enforces: row length
+          (len(Fields)+1), value types (offset-aware, 105db included),
+          Records_Type count, 105a primitives-only, 105db Record_Type_Parent
+          rules (first field, per-field owner, row discriminator at col 0).
+          New bejson_validator_check_105_values() (called from the strict
+          integrity check, so upgrade / verify_105_integrity inherit it) and
+          advisory bejson_validator_check_105_uuid_format() (warnings only).
+          bejson_validator_check_values() now shares the type logic via
+          _bejson_validator_type_problem(); its messages are unchanged.
   3.3.0 - REMOVED bejson_validator_check_105_schema_constraints() entirely
           and its call site in validate_bejson(), per Be25 -- schema-value
           constraints (required/unique/enum/min/max/length) are cut.
@@ -50,6 +59,7 @@ Changelog:
 """
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, List, Optional, Set, Union
@@ -82,6 +92,12 @@ VALID_FIELD_TYPES = {"string", "integer", "number", "boolean", "array", "object"
 MANDATORY_KEYS = ("Format", "Format_Version", "Format_Creator", "Records_Type", "Fields", "Values")
 IN_MEMORY_ONLY_KEYS = frozenset({"_nesting_field_map", "_bejson_field_map_fp", "_bejson_txn_active", "_bejson_txn_dirty"})
 FIELD_MAP_CACHE_KEY = "_bejson_field_map"
+_105_SERIES = ("105", "105a", "105db")
+# 105-series -> the 104-series whose structural rules it must mirror.
+_BASE_VERSION = {"104": "104", "104a": "104a", "104db": "104db",
+                 "105": "104", "105a": "104a", "105db": "104db"}
+_UUID_V4_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
+_MAX_SHAPE_ERRORS = 100  # cap row/type findings so a huge broken file cannot flood the result
 
 @dataclass
 class ValidationResult:
@@ -138,22 +154,23 @@ def bejson_validator_check_records_type(doc, version):
     if not isinstance(rt, list):
         raise BEJSONValidationError("Records_Type must be a list", E_INVALID_RECORDS_TYPE)
     count = len(rt)
-    if version in ("104", "104a"):
+    base = _BASE_VERSION.get(version, version)
+    if base in ("104", "104a"):
         if count != 1:
             raise BEJSONValidationError(f"BEJSON {version} must have exactly 1 record type. Found {count}.", E_INVALID_RECORDS_TYPE)
-    elif version == "104db":
+    elif base == "104db":
         if count < 2:
-            raise BEJSONValidationError("104db requires 2+ types", E_INVALID_RECORDS_TYPE)
+            raise BEJSONValidationError(f"{version} requires 2+ types", E_INVALID_RECORDS_TYPE)
 
 def bejson_validator_check_record_type_parent(doc, version):
-    if version != "104db": return True
+    if _BASE_VERSION.get(version, version) != "104db": return True
     fields = doc["Fields"]
     if not fields or fields[0].get("name") != "Record_Type_Parent":
-        raise BEJSONValidationError("104db first field must be 'Record_Type_Parent'", E_INVALID_RECORD_TYPE_PARENT)
+        raise BEJSONValidationError(f"{version} first field must be 'Record_Type_Parent'", E_INVALID_RECORD_TYPE_PARENT)
     valid_types = set(doc["Records_Type"])
     for i, record in enumerate(doc["Values"]):
         if not record: continue
-        rtp = record[0]
+        rtp = record[0]  # discriminator is column 0 in both 104db and 105db
         if rtp not in valid_types:
             raise BEJSONValidationError(f"Invalid Record_Type_Parent '{rtp}' at row {i}", E_INVALID_RECORD_TYPE_PARENT)
     return True
@@ -171,11 +188,33 @@ def bejson_validator_check_fields_structure(doc, version):
                 f"Must be exactly one of {sorted(VALID_FIELD_TYPES)} (lowercase).",
                 E_INVALID_FIELDS,
             )
-        if version == "104a" and ftype in ("array", "object"):
-            raise BEJSONValidationError(f"104a forbids complex type: {ftype}", E_INVALID_FIELDS)
-        if version == "104db" and fname != "Record_Type_Parent" and "Record_Type_Parent" not in f:
-            raise BEJSONValidationError(f"Field '{fname}' missing Record_Type_Parent in 104db", E_INVALID_RECORD_TYPE_PARENT)
+        base = _BASE_VERSION.get(version, version)
+        if base == "104a" and ftype in ("array", "object"):
+            raise BEJSONValidationError(f"{version} forbids complex type: {ftype}", E_INVALID_FIELDS)
+        if base == "104db" and fname != "Record_Type_Parent" and "Record_Type_Parent" not in f:
+            raise BEJSONValidationError(f"Field '{fname}' missing Record_Type_Parent in {version}", E_INVALID_RECORD_TYPE_PARENT)
     return len(fields)
+
+def _bejson_validator_type_problem(val, ftype):
+    """None if val conforms to ftype (None always conforms); else 'expected X[, got bool]'.
+    Single source of truth for 104-series and 105-series value typing."""
+    if val is None: return None
+    if ftype == "string" and not isinstance(val, str): return "expected string"
+    if ftype == "integer" and (not isinstance(val, int) or isinstance(val, bool)): return "expected integer"
+    if ftype == "number" and (not isinstance(val, (int, float)) or isinstance(val, bool)):
+        # bool is an int subclass in Python; BEJSON "number" means numeric, not boolean.
+        return "expected number, got bool" if isinstance(val, bool) else "expected number"
+    if ftype == "boolean" and not isinstance(val, bool): return "expected boolean"
+    if ftype == "array" and not isinstance(val, list): return "expected array"
+    if ftype == "object" and not isinstance(val, dict): return "expected object"
+    return None
+
+def bejson_validator_row_col(version, field_idx):
+    """Absolute Values-row column of Fields[field_idx]: i for 104-series;
+    i+1 for 105/105a (record_uuid at 0); 0 for 105db Fields[0] else i+1."""
+    if version == "105db":
+        return 0 if field_idx == 0 else field_idx + 1
+    return field_idx + (1 if version in ("105", "105a") else 0)
 
 def bejson_validator_check_values(doc, version, fields_count):
     fields = doc["Fields"]
@@ -183,24 +222,9 @@ def bejson_validator_check_values(doc, version, fields_count):
         if len(record) != fields_count:
             raise BEJSONValidationError(f"Length mismatch at row {i}", E_RECORD_LENGTH_MISMATCH)
         for j, val in enumerate(record):
-            ftype = fields[j].get("type")
-            if val is None: continue
-            
-            # Full type validation including array/object
-            if ftype == "string" and not isinstance(val, str):
-                 raise BEJSONValidationError(f"Type mismatch at row {i}, col {j} ({fields[j]['name']}): expected string", E_TYPE_MISMATCH)
-            elif ftype == "integer" and (not isinstance(val, int) or isinstance(val, bool)):
-                 raise BEJSONValidationError(f"Type mismatch at row {i}, col {j} ({fields[j]['name']}): expected integer", E_TYPE_MISMATCH)
-            elif ftype == "number" and (not isinstance(val, (int, float)) or isinstance(val, bool)):
-                 # bool is a subclass of int in Python, so True/False pass isinstance(int,float).
-                 # Explicitly exclude bool — BEJSON "number" means a numeric value, not a boolean.
-                 raise BEJSONValidationError(f"Type mismatch at row {i}, col {j} ({fields[j]['name']}): expected number, got bool", E_TYPE_MISMATCH)
-            elif ftype == "boolean" and not isinstance(val, bool):
-                 raise BEJSONValidationError(f"Type mismatch at row {i}, col {j} ({fields[j]['name']}): expected boolean", E_TYPE_MISMATCH)
-            elif ftype == "array" and not isinstance(val, list):
-                 raise BEJSONValidationError(f"Type mismatch at row {i}, col {j} ({fields[j]['name']}): expected array", E_TYPE_MISMATCH)
-            elif ftype == "object" and not isinstance(val, dict):
-                 raise BEJSONValidationError(f"Type mismatch at row {i}, col {j} ({fields[j]['name']}): expected object", E_TYPE_MISMATCH)
+            problem = _bejson_validator_type_problem(val, fields[j].get("type"))
+            if problem:
+                raise BEJSONValidationError(f"Type mismatch at row {i}, col {j} ({fields[j]['name']}): {problem}", E_TYPE_MISMATCH)
 
 def bejson_validator_check_field_names_unique(doc):
     """Every field name in Fields must be unique."""
@@ -295,7 +319,55 @@ def bejson_validator_check_105_strict_integrity(doc: dict) -> list:
                       "with field_uuid keys -- run bejson_core_upgrade_to_105() before using this file",
         })
 
+    errors.extend(bejson_validator_check_105_values(doc))
     return errors
+
+
+def bejson_validator_check_105_values(doc: dict) -> list:
+    """105-series mirror of bejson_validator_check_values(): every row must be
+    exactly len(Fields)+1 cells long (the reserved record_uuid column), and every
+    data cell must match its field type. Offset-aware for 105db. Reports up to
+    _MAX_SHAPE_ERRORS findings (104 stops at the first)."""
+    errors = []
+    version = doc.get("Format_Version")
+    fields = [f for f in doc.get("Fields", []) if isinstance(f, dict)]
+    expected_len = len(doc.get("Fields", [])) + 1
+    for i, row in enumerate(doc.get("Values", [])):
+        if len(errors) >= _MAX_SHAPE_ERRORS:
+            errors.append({"code": "E_RECORD_LENGTH_MISMATCH",
+                           "detail": f"further row/type findings suppressed after {_MAX_SHAPE_ERRORS}"})
+            break
+        if not isinstance(row, list) or len(row) != expected_len:
+            actual = len(row) if isinstance(row, list) else type(row).__name__
+            errors.append({"code": "E_RECORD_LENGTH_MISMATCH",
+                           "detail": f"Length mismatch at row {i}: expected {expected_len} cells "
+                                     f"(record_uuid + {expected_len - 1} fields), got {actual}"})
+            continue
+        for j, f in enumerate(fields):
+            col = bejson_validator_row_col(version, j)
+            problem = _bejson_validator_type_problem(row[col], f.get("type"))
+            if problem:
+                errors.append({"code": "E_TYPE_MISMATCH",
+                               "detail": f"Type mismatch at row {i}, col {col} ({f.get('name')}): {problem}"})
+    return errors
+
+
+def bejson_validator_check_105_uuid_format(doc: dict) -> list:
+    """Advisory only (returned as warnings, never errors): field_uuid / record_uuid
+    that are not canonical lowercase UUIDv4 strings. Kept non-fatal so existing
+    files with hand-made or v5 identifiers keep validating."""
+    warnings = []
+    for f in doc.get("Fields", []):
+        u = f.get("field_uuid") if isinstance(f, dict) else None
+        if isinstance(u, str) and u and not _UUID_V4_RE.match(u):
+            warnings.append(f"field_uuid {u!r} on field {f.get('name')!r} is not a UUIDv4")
+    uuid_col = 1 if doc.get("Format_Version") == "105db" else 0
+    for i, row in enumerate(doc.get("Values", [])):
+        if isinstance(row, list) and len(row) > uuid_col:
+            u = row[uuid_col]
+            if isinstance(u, str) and u and not _UUID_V4_RE.match(u):
+                warnings.append(f"record_uuid {u!r} at row {i} is not a UUIDv4")
+    return warnings
 
 
 def validate_bejson(input_data: Union[str, dict], is_file: bool = False) -> ValidationResult:
@@ -314,6 +386,8 @@ def validate_bejson(input_data: Union[str, dict], is_file: bool = False) -> Vali
         if version in ("105", "105a", "105db"):
             for err in bejson_validator_check_105_strict_integrity(doc):
                 res.add_error(f"[{err['code']}] {err['detail']}")
+            for w in bejson_validator_check_105_uuid_format(doc):
+                res.add_warning(w)
         else:
             bejson_validator_check_values(doc, version, fields_count)
     except BEJSONValidationError as e:

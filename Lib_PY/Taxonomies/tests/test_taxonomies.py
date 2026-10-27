@@ -2,9 +2,9 @@
 File Name : test_taxonomies.py
 Rel. Path : Lib_PY/Taxonomies/tests/test_taxonomies.py
 Purpose   : Tests for lib_bejson_Taxonomies (registry, ledger, schema builder, audit) against unmodified Core.
-VERSION   : 1.0.0
+VERSION   : 2.0.0
 Author    : Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID : 13a7d5e9-6c20-4b84-95f1-e8b0c4a72d36
+RELATIONAL_ID : ce347f09-9b43-4e88-af5f-ab68c75bb417
 Run       : python3 Lib_PY/Taxonomies/tests/test_taxonomies.py
 """
 import json
@@ -17,10 +17,10 @@ import unittest
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.normpath(os.path.join(_HERE, "..")))
 
-import lib_bejson_Taxonomies_store as st  # noqa: E402
-import lib_bejson_Taxonomies_schema_builder as sb  # noqa: E402
-import lib_bejson_Taxonomies_taxonomy_registry as reg  # noqa: E402
-import lib_bejson_Taxonomies_uuid_tracker as trk  # noqa: E402
+import lib_bejson_Taxonomies_core as st  # noqa: E402
+import lib_bejson_Taxonomies_core as sb  # noqa: E402
+import lib_bejson_Taxonomies_core as reg  # noqa: E402
+import lib_bejson_Taxonomies_core as trk  # noqa: E402
 from lib_bejson_Core_bejson_core import bejson_core_atomic_write, bejson_core_load_file  # noqa: E402
 
 
@@ -46,7 +46,7 @@ class TestBuildAndAudit(TaxonomyTestBase):
     def test_fresh_registry_passes(self):
         r = self.audit()
         self.assertTrue(r["passed"], r["problems"])
-        self.assertEqual((r["entities"], r["taxonomies"], r["fields_total"], r["ledger_rows"]), (6, 1, 41, 41))
+        self.assertEqual((r["entities"], r["taxonomies"], r["fields_total"], r["ledger_rows"]), (9, 1, 59, 59))
 
     def test_refuses_second_build_in_same_dir(self):
         with self.assertRaises(st.TaxonomyError):
@@ -54,7 +54,7 @@ class TestBuildAndAudit(TaxonomyTestBase):
 
     def test_audit_counts_stamped(self):
         t = reg.bejson_taxonomies_get_taxonomy(self.m, "lattice")
-        self.assertEqual(t["field_count"], 41)
+        self.assertEqual(t["field_count"], 59)
 
     def test_audit_catches_wrong_type(self):
         self.edit_entity(st.E_ZSPACE, lambda d: d["Fields"][2].__setitem__("type", "string"))
@@ -166,7 +166,7 @@ class TestSchemaBuilderAndLedger(TaxonomyTestBase):
         sb.bejson_taxonomies_create_domain_entity(self.m, "lv", "LvNode", self.fields, primary_key="lv_node_label_key")
         r = self.audit()
         self.assertTrue(r["passed"], r["problems"])
-        self.assertEqual(r["fields_total"], 43)
+        self.assertEqual(r["fields_total"], 61)
 
     def test_resolve_both_ways_and_rename_followed(self):
         sb.bejson_taxonomies_create_domain_entity(self.m, "lv", "LvNode", self.fields)

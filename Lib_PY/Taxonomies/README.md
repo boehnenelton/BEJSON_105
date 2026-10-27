@@ -1,52 +1,53 @@
 # lib_bejson_Taxonomies
 
 - **File:** Lib_PY/Taxonomies/README.md
-- **Purpose:** Create and audit taxonomies, track field_uuids, build compliant schemas (BEJSON 105 / MFDB v1.40).
-- **VERSION:** 1.0.0
-- **RELATIONAL_ID:** e29dd50a-c065-4009-a46d-737a7644c2ff
+- **Purpose:** The shelf: naming rules (taxonomies), crayon boxes (field sets), and an id for every column. BEJSON 105 / MFDB v1.40.
+- **VERSION:** 3.0.0
+- **RELATIONAL_ID:** 8fcdc360-ec21-43c1-9cce-893a5519dd5a
 - **Author:** Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 
-Imports `lib_bejson_Core` (unmodified). Part of the `lattice` taxonomy: prefix `lattice_` on every registry field, `Lattice` on every registry entity.
+Never seen this before? Read **START_HERE.md** in the project root first. It has pictures and crayons.
 
-## Modules
+## What is in the box: three files
 
-| Module | Role |
+| Module | Kid version | Technical |
+|---|---|---|
+| `_core` | The hand and the shelf: all the reading and writing | constants and helpers, taxonomies (create, variant, diff, delete), field_uuid ledger, schema builder (registry schema 1.3.0, 9 tables, 59 columns), field-set writes (content hash, register with undo, definition files) |
+| `_validator` | The teacher: only checks, never writes | set key, members, definition files, member vs taxonomy, whole-database audit |
+| `_registry` | The part you actually call for field sets | define, new version, retire, list, get, export, import, entities_with_set, resolve_member, read_set_rows |
+
+## The 10 things you will actually call
+
+All are `bejson_taxonomies_<name>(manifest_path, ...)`.
+
+| Call | In one line |
 |---|---|
-| `lib_bejson_Taxonomies_store` | Internal: registry field/entity name constants, errors, row/lock helpers over public Core calls |
-| `lib_bejson_Taxonomies_taxonomy_registry` | Create / derive (variant) / diff / delete taxonomies; check field and entity names |
-| `lib_bejson_Taxonomies_uuid_tracker` | `field_uuid` ledger: track, resolve, follow renames, retire; `audit_database` |
-| `lib_bejson_Taxonomies_schema_builder` | Registry schema (single source of truth); build a fresh registry DB; build compliant field defs and domain entities |
+| `define_field_set(m, "media_asset", members, display_name)` | Make a new crayon box (version 1) |
+| `new_version(m, "media_asset", [new_member])` | Add crayons; box becomes version 2 |
+| `retire_field_set(m, "media_asset")` | Stop handing the box out (old pages keep theirs) |
+| `list_field_sets(m)` / `get_field_set(m, "media_asset")` | Look at the boxes |
+| `list_grafts(m)` / `entities_with_set(m, "media_asset")` | Which pages have this box? |
+| `member_columns(m, "CmsVideo", "media_asset")` | What did each crayon become on this page? |
+| `resolve_member(m, "CmsVideo", "media_asset", "title")` | One crayon's current column name (survives renames) |
+| `read_set_rows(m, "CmsVideo", "media_asset", ["title"])` | Read rows by crayon name, same code for every page |
+| `export_field_set(m, "media_asset", "x.def.bejson")` | Save a box to a file |
+| `import_field_set(m, "x.def.bejson")` | Load a box from a file (same = fine, different = refused) |
 
-## Public API (all `bejson_taxonomies_*`)
+`members` looks like `{"descriptor": "title", "suffix": "_name", "field_type": "string"}`.
 
-| Function | Purpose |
-|---|---|
-| `build_registry_database(root_dir, db_name, network_role)` | Fresh 6-entity registry, root taxonomy + suffix rules + ledger + Z-space reservation seeded |
-| `create_taxonomy(manifest, namespace_key, suffix_rules, family_name, parent_taxonomy_uuid)` | Register a taxonomy; prefix is `<namespace>_`; `_uuid_fk` and `_slot` mandatory |
-| `derive_variant(manifest, parent_ref, namespace_key, suffix_overrides, suffix_removals)` | Copy a taxonomy, edit its suffix rules, link to parent |
-| `diff_taxonomies(manifest, ref_a, ref_b)` | Prefix and suffix differences, parent relationship |
-| `get_taxonomy` / `list_taxonomies` / `delete_taxonomy` | Lookup by uuid or namespace; delete refused while in use; variants detached |
-| `check_field_name(taxonomy, name, type)` / `check_entity_name` / `match_suffix` | Compliance problems (empty list = compliant) |
-| `make_field_name(taxonomy, subject, descriptor, suffix)` / `build_field_definition(...)` | Build compliant names / field dicts |
-| `create_domain_entity(manifest, taxonomy_ref, entity_name, fields)` | Validate, create the 105 entity, ledger every field |
-| `track_fields` / `track_entity_fields` | Add fields to the ledger (all-or-nothing compliance check) |
-| `resolve_field_uuid` / `resolve_field_name` | Name <-> `field_uuid` through the live entity file |
-| `record_rename` / `retire_field` / `sync_ledger` | Follow renames, retire removed fields, report unledgered fields |
-| `get_field_entry` / `stamp_audit` | Ledger row lookup; refresh counts and audit timestamps |
-| `audit_database(manifest)` | Taxonomy-aware audit; returns `{passed, problems, ...}`, never raises on findings |
+Check everything: `bejson_taxonomies_validator_audit_database(m)` returns `{"passed": True/False, "problems": [...]}`.
 
-Errors: `TaxonomyError` (`.code`), `TaxonomyComplianceError` (`.problems`).
+## Rules to remember
 
-## Rules enforced
-
-- Every field: `<prefix><descriptor><registered suffix>`, type must match the suffix type, snake_case.
-- Every taxonomy registers `_uuid_fk` and `_slot` (string). Prefixes may not overlap (`lv_` vs `lv_x_`).
-- A field is judged by the taxonomy its ledger row names, so nodes on a variant taxonomy audit on their own rules.
+1. A box has no prefix or page name. The page it is handed to supplies them.
+2. A new version only adds. Never removes, never reorders.
+3. Same name + same version + different content = conflict (refused).
+4. Every taxonomy must have the suffixes `_uuid_fk` and `_slot`.
+5. This family never edits `Core`. It only reads Core and writes registry files through Core.
 
 ## Tests
 
-`python3 Lib_PY/Taxonomies/tests/test_taxonomies.py` (22 tests).
+    python3 Lib_PY/Taxonomies/tests/test_taxonomies.py   # 22
+    python3 Lib_PY/Taxonomies/tests/test_fieldsets.py    # 17
 
-## Known Core limit
-
-Core's `fk_on_delete: null` skips an entity's own foreign keys, so a self-referencing parent link is not cleared by Core. `delete_taxonomy` detaches variants itself.
+Some log lines such as `node_key '' is empty` are expected: tests that try bad input on purpose.

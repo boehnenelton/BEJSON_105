@@ -47,7 +47,7 @@ import lib_bejson_Core_mfdb_validator as MV
 def _make_105db(tmpdir):
     doc104 = {
         "Format": "BEJSON", "Format_Version": "104db", "Format_Creator": "Elton Boehnen",
-        "Records_Type": ["User"],
+        "Records_Type": ["User", "Role"],
         "Fields": [
             {"name": "Record_Type_Parent", "type": "string"},
             {"name": "user_id", "type": "string", "Record_Type_Parent": "User"},
@@ -111,7 +111,7 @@ class Test105dbColumnMapping(unittest.TestCase):
             C.bejson_core_remove_field(self.doc, "Record_Type_Parent")
 
     def test_105_and_105a_unchanged(self):
-        d = {"Format": "BEJSON", "Format_Version": "104", "Format_Creator": "x", "Records_Type": ["T"],
+        d = {"Format": "BEJSON", "Format_Version": "104", "Format_Creator": "Elton Boehnen", "Records_Type": ["T"],
              "Fields": [{"name": "a", "type": "string"}, {"name": "b", "type": "string"}],
              "Values": [["1", "2"]]}
         p = os.path.join(self.tmpdir, "p.bejson")

@@ -7,7 +7,7 @@ Description:    Canonical 104/104a/104db -> 105/105a/105db migration utility
                  once. Never mutates the source file directly: the new
                  105-series document is built entirely in memory, validated,
                  backed up, and only then atomically swapped into place.
-Version:        1.0.2
+Version:        1.1.0
 Date:           2026-08-15
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
@@ -16,6 +16,8 @@ RELATIONAL_ID:  e32f5844-3372-4c5c-b12a-12068eee4c0e
 Release_Version: 300
 
 Changelog:
+  1.1.0 - upgrade_to_105 / upgrade_dry_run validate the 104 SOURCE first (validate_bejson);
+          an invalid source raises E_UPGRADE_VALIDATION_FAILED before any backup or write.
   1.0.2 - upgrade_to_105() returns a document whose field map is already
           built (born warm); see core.py 3.4.0 self-maintaining field map.
 
@@ -40,8 +42,16 @@ import tempfile
 import shutil
 
 from lib_bejson_Core_bejson_core import bejson_core_serialize, _bejson_get_field_map_cache
-from lib_bejson_Core_bejson_validator import bejson_validator_check_105_strict_integrity
+from lib_bejson_Core_bejson_validator import bejson_validator_check_105_strict_integrity, validate_bejson
 from lib_bejson_Core_bejson_errors import E_FORMAT_UNSUPPORTED, E_UPGRADE_VALIDATION_FAILED
+
+
+def _source_104_errors(doc_data: dict) -> list:
+    """Full 104-series validation of the SOURCE document, as error dicts. An upgrade
+    must never launder an already-invalid 104 file into a 105 one."""
+    res = validate_bejson(doc_data, is_file=False)
+    return [{"code": "E_UPGRADE_VALIDATION_FAILED", "detail": f"source 104 document invalid: {e}"}
+            for e in res.errors]
 
 
 class BEJSONUpgradeError(Exception):
@@ -65,6 +75,11 @@ def bejson_core_upgrade_to_105(doc_data: dict, source_path: str) -> dict:
             f"got {doc_data.get('Format_Version')!r}",
             code=E_FORMAT_UNSUPPORTED,
         )
+
+    src_errors = _source_104_errors(doc_data)
+    if src_errors:
+        raise BEJSONUpgradeError(f"E_UPGRADE_VALIDATION_FAILED: {src_errors}",
+                                  code=E_UPGRADE_VALIDATION_FAILED)
 
     src_version = doc_data["Format_Version"]
     is_multi = src_version == "104db"
@@ -141,7 +156,7 @@ def bejson_core_upgrade_dry_run(doc_data: dict, source_path: str) -> dict:
     new_doc["Values"] = new_values
     new_doc["Format_Version"] = target_version
 
-    errors = bejson_validator_check_105_strict_integrity(new_doc)
+    errors = _source_104_errors(doc_data) + bejson_validator_check_105_strict_integrity(new_doc)
 
     return {
         "field_count": len(new_doc["Fields"]),

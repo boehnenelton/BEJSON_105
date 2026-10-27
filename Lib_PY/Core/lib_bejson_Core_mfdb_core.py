@@ -2,7 +2,7 @@
 Library:        lib_bejson_Core_mfdb_core.py
 Family:         Core
 Description:    Multi-file database orchestrator managing manifests and entity synchronization.
-Version:        3.0.3
+Version:        3.1.0
 Date:           2026-10-12
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
@@ -86,6 +86,7 @@ from lib_bejson_Core_bejson_core import (
     bejson_core_delete_record,
     bejson_core_resolve_field_index,
     _bejson_core_find_row_by_uuid,
+    _bejson_core_abs_col,
 )
 from lib_bejson_Core_mfdb_validator import (
     MFDBValidationError,
@@ -443,7 +444,7 @@ def mfdb_core_discover(file_path: str) -> str:
     filename = p.name
     if version == "104a" and filename.endswith(".mfdb.bejson"):
         return "manifest"
-    if version == "104" and doc.get("Parent_Hierarchy"):
+    if (version == "104" or version in ("105", "105a", "105db")) and doc.get("Parent_Hierarchy"):
         return "entity"
     return "standalone"
 
@@ -479,7 +480,9 @@ def mfdb_core_deep_verify(manifest_path: str) -> List[Dict[str, Any]]:
             entity_doc = bejson_core_load_file(entity_path)
             # 1. Check positional integrity
             fields = entity_doc.get("Fields", [])
-            field_count = len(fields)
+            is_105 = entity_doc.get("Format_Version") in ("105", "105a", "105db")
+            # 105-series rows carry one extra reserved record_uuid cell (see _bejson_core_abs_col)
+            field_count = len(fields) + (1 if is_105 else 0)
             values = entity_doc.get("Values", [])
             actual_count = len(values)
             
@@ -501,10 +504,14 @@ def mfdb_core_deep_verify(manifest_path: str) -> List[Dict[str, Any]]:
                         "actual": len(row)
                     })
                 
-                # 2. Basic Type verification
-                for j, val in enumerate(row):
+                if len(row) != field_count:
+                    continue  # type checks are meaningless on a mis-sized row
+                # 2. Basic Type verification (column-offset aware for 105-series)
+                for j, f_def in enumerate(fields):
+                    col = _bejson_core_abs_col(entity_doc, j)
+                    val = row[col]
                     if val is None: continue
-                    f_type = fields[j].get("type")
+                    f_type = f_def.get("type")
                     if f_type == "integer" and not isinstance(val, int):
                          findings.append({"entity": entity_name, "warning": "TYPE_MISMATCH", "row": i, "field": fields[j]["name"], "expected": "integer", "actual": type(val).__name__})
                     elif f_type == "number" and not isinstance(val, (int, float)):
@@ -557,6 +564,13 @@ def mfdb_core_self_heal(manifest_path: str) -> Dict[str, Any]:
                 entity_path = _get_entity_path(manifest_path, entity)
                 try:
                     doc = bejson_core_load_file(entity_path)
+                    if doc.get("Format_Version") in ("105", "105a", "105db"):
+                        # Never guess which cell of a 105 row is missing/extra: padding or
+                        # truncating can silently overwrite record_uuid or real data.
+                        report["remaining_errors"].append(
+                            f"{entity}: positional violation in a 105-series entity -- not auto-repaired "
+                            f"(manual fix; self_heal only repairs 104-series rows)")
+                        continue
                     field_count = len(doc["Fields"])
                     repaired = 0
                     for i, row in enumerate(doc["Values"]):

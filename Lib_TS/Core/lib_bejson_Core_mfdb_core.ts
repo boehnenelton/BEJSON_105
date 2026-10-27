@@ -251,7 +251,7 @@ export function createConnectedSlaveEntity(manifest: BEJSONDocument): BEJSONDocu
   const role = (manifest as any)["Network_Role"] ?? "";
   if (role !== "Master") {
     throw new MFDBCoreError(
-      E.INVALID_OPERATION ?? "INVALID_OPERATION",
+      E.INVALID_OPERATION ?? 21,
       `ConnectedSlave may only be created on a Master node. Got: '${role}'`
     );
   }

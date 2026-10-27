@@ -6,8 +6,8 @@ BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
-Version:        3.5.3
-Date:           2026-10-12
+Version:        3.6.0
+Date:           2026-10-26
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
@@ -15,6 +15,11 @@ RELATIONAL_ID:  8e6f6b84-5a76-491c-aabc-f507435815c2
 Release_Version: 300
 
 Changelog:
+  3.6.0 - 105 writers mirror 104 strictness: add_record_105 checks row length and
+          value types (and 105db discriminator); write_cell checks value type;
+          add_field validates the type string on the 105 path. The 104 adder
+          bejson_core_add_record now RAISES on 105-series docs (it used to append
+          a uuid-less row) -- use add_record_105.
   3.5.1 - Consolidation re-merge: the V6-PKG101 silent-exception logging fix
           (lock-owner liveness retry, field-map cache attach) had been
           reverted/lost on the forward V10-PKG102 branch; re-applied on top
@@ -102,6 +107,8 @@ from lib_bejson_Core_bejson_errors import (
     E_FORMAT_UNSUPPORTED,
     E_RECORD_NOT_FOUND,
     E_DUPLICATE_FIELD_NAME,
+    E_RECORD_LENGTH_MISMATCH,
+    E_TYPE_MISMATCH,
 )
 
 _105_SERIES = ("105", "105a", "105db")
@@ -468,6 +475,14 @@ def bejson_core_get_record_count(doc: dict) -> int:
     return len(doc.get("Values", []))
 
 def bejson_core_add_record(doc: dict, record: list) -> bool:
+    if doc.get("Format_Version") in _105_SERIES:
+        # A 105 row needs a record_uuid slot this function never writes; accepting
+        # len(Fields) rows here silently produced uuid-less rows.
+        raise BEJSONCoreError(
+            f"E_FORMAT_UNSUPPORTED: add_record is 104-series only, got {doc.get('Format_Version')!r}. "
+            f"Use bejson_core_add_record_105().",
+            code=E_FORMAT_UNSUPPORTED,
+        )
     if len(record) != len(doc.get("Fields", [])):
         return False
     doc.setdefault("Values", []).append(record)
@@ -671,6 +686,14 @@ def bejson_core_resolve_field_index(doc: dict, field_target: Union[str, Dict[str
 
 # --- \u00a72.2 Dual-Key Write Verification ------------------------------------
 
+def _bejson_core_check_value_type(field: dict, value, where: str) -> None:
+    """Same typing rule the validator applies (None always allowed)."""
+    from lib_bejson_Core_bejson_validator import _bejson_validator_type_problem
+    problem = _bejson_validator_type_problem(value, field.get("type"))
+    if problem:
+        raise BEJSONCoreError(f"E_TYPE_MISMATCH: {where} ({field.get('name')}): {problem}",
+                               code=E_TYPE_MISMATCH)
+
 def bejson_core_write_cell(
     doc: dict,
     record_uuid: str,
@@ -705,6 +728,7 @@ def bejson_core_write_cell(
                                code=E_RECORD_NOT_FOUND)
 
     abs_col = _bejson_core_abs_col(doc, col)
+    _bejson_core_check_value_type(doc["Fields"][col], new_value, f"write_cell record {record_uuid}")
 
     healed = False
     if expected_row is not None and expected_row != row:
@@ -740,6 +764,13 @@ def bejson_core_add_field(doc: dict, name: str, field_type: str) -> Optional[str
         _bejson_core_add_field_legacy_104(doc, name, field_type)
         return None
 
+    from lib_bejson_Core_bejson_validator import VALID_FIELD_TYPES
+    if field_type not in VALID_FIELD_TYPES:
+        raise BEJSONCoreError(
+            f"E_FIELD_INTEGRITY_MISMATCH: field_type must be one of {sorted(VALID_FIELD_TYPES)}, "
+            f"got {field_type!r}",
+            code=E_FIELD_INTEGRITY_MISMATCH,
+        )
     existing_names = {f["name"] for f in doc.get("Fields", [])}
     existing_uuids = {f.get("field_uuid") for f in doc.get("Fields", [])}
     if name in existing_names:
@@ -770,6 +801,21 @@ def bejson_core_add_record_105(doc: dict, values: list) -> str:
             f"E_FORMAT_UNSUPPORTED: add_record_105 requires a 105-series document, "
             f"got {doc.get('Format_Version')!r}. Use bejson_core_add_record() for 104-series.",
             code=E_FORMAT_UNSUPPORTED,
+        )
+
+    fields = doc.get("Fields", [])
+    if len(values) != len(fields):
+        raise BEJSONCoreError(
+            f"E_RECORD_LENGTH_MISMATCH: add_record_105 expects {len(fields)} values "
+            f"(one per field, WITHOUT record_uuid), got {len(values)}",
+            code=E_RECORD_LENGTH_MISMATCH,
+        )
+    for j, f in enumerate(fields):
+        _bejson_core_check_value_type(f, values[j], "add_record_105 value")
+    if doc["Format_Version"] == "105db" and values and values[0] not in doc.get("Records_Type", []):
+        raise BEJSONCoreError(
+            f"E_FIELD_INTEGRITY_MISMATCH: Record_Type_Parent {values[0]!r} not in Records_Type",
+            code=E_FIELD_INTEGRITY_MISMATCH,
         )
 
     record_uuid = str(_uuid.uuid4())

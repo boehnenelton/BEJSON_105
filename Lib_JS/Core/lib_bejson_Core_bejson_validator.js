@@ -2,27 +2,25 @@
  * Library:        lib_bejson_Core_bejson_validator.js
  * Family:         Core
  * Description:    Structural integrity checker for positional values and mandatory keys.
- * Version:        2.2.0
- * Date:           2026-10-03
+ * Version:        3.4.0
+ * Date:           2026-10-27
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
  * RELATIONAL_ID:  67ab03b7-54d3-4303-9316-142bbf4bf595
  * Release_Version: 300
  *
- * FEATURE (2026-10-03, 2.2.0): Format_Version 105 / 105a / 105db accepted (parity with
- * PY validator 3.3.0). 105-series docs run bejson_validator_check_105_strict_integrity
- * (unique field_uuid per field, unique record_uuid at the format-correct column,
- * Fail-on-Switch if a 104 doc was re-headered without compiled UUIDs) and a
- * 105-aware values check (row length = fields + 1 for all 105 versions; record_uuid
- * at column 0, or column 1 for 105db; every other cell type-checked against its
- * Field). 105db discriminator (column 0 = Fields[0]) must be a declared Records_Type. Value-level constraints stay purged (Be25).
- *
- * FIX (2026-10-03): the module had NO exports (no module.exports, no window
- * global), so every consumer (parse.js, list_validator.js, mfdb_validator.js)
- * destructured undefined and JS validation was effectively dead. Now exports
- * the full validator API. Field types remain a closed set: string, integer,
- * number, boolean, array, object -- "any" is rejected (E_INVALID_FIELDS).
+ * Changelog:
+ *   3.4.0 - 2026-10-27: Full parity with Python validator 3.4.0:
+ *           - Strict Records_Type counts for 105/105a (1) and 105db (2+).
+ *           - Strict 105a primitives-only enforcement (reject array/object).
+ *           - Strict 105db Record_Type_Parent discriminator and owner checks.
+ *           - Robust value type validation rejecting boolean as number/integer.
+ *           - Advisory UUIDv4 format warnings (_UUID_V4_RE).
+ *           - Shape error flood cap (_MAX_SHAPE_ERRORS = 100).
+ *           - Exported validate_bejson() and _bejson_validator_type_problem().
+ *   2.2.0 - 2026-10-03: Format_Version 105 / 105a / 105db accepted (parity with
+ *           PY validator 3.3.0).
  */
 
 'use strict';
@@ -56,6 +54,9 @@ const VALID_VERSIONS    = new Set(['104', '104a', '104db', '105', '105a', '105db
 const VERSIONS_105      = new Set(['105', '105a', '105db']);
 const MANDATORY_KEYS    = ['Format', 'Format_Version', 'Format_Creator', 'Records_Type', 'Fields', 'Values'];
 const VALID_FIELD_TYPES = new Set(['string', 'integer', 'number', 'boolean', 'array', 'object']);
+const _BASE_VERSION     = { '104': '104', '104a': '104a', '104db': '104db', '105': '104', '105a': '104a', '105db': '104db' };
+const _UUID_V4_RE       = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const _MAX_SHAPE_ERRORS = 100;
 
 // ---------------------------------------------------------------------------
 // Validation exception
@@ -292,23 +293,28 @@ function bejson_validator_check_mandatory_keys(doc) {
 
 function bejson_validator_check_records_type(doc, version) {
   const rt    = doc['Records_Type'];
+  if (!Array.isArray(rt)) {
+    _state.addError("'Records_Type' must be an array of strings", 'Records_Type');
+    throw new BEJSONValidationError('Records_Type not an array', E_INVALID_RECORDS_TYPE);
+  }
   const count = rt.length;
+  const base = _BASE_VERSION[version] || version;
 
-  if (version === '104' || version === '104a') {
+  if (base === '104' || base === '104a') {
     if (count !== 1 || typeof rt[0] !== 'string') {
       _state.addError(
         `For BEJSON ${version}, 'Records_Type' must contain exactly one string. Found ${count} entries.`,
         'Records_Type',
       );
-      throw new BEJSONValidationError('Bad Records_Type', E_INVALID_RECORDS_TYPE);
+      throw new BEJSONValidationError(`BEJSON ${version} must have exactly 1 record type. Found ${count}.`, E_INVALID_RECORDS_TYPE);
     }
-  } else if (version === '104db') {
+  } else if (base === '104db') {
     if (count < 2) {
       _state.addError(
-        `For BEJSON 104db, 'Records_Type' must contain two or more unique strings. Found ${count} entries.`,
+        `For BEJSON ${version}, 'Records_Type' must contain two or more unique strings. Found ${count} entries.`,
         'Records_Type',
       );
-      throw new BEJSONValidationError('Bad Records_Type', E_INVALID_RECORDS_TYPE);
+      throw new BEJSONValidationError(`${version} requires 2+ types`, E_INVALID_RECORDS_TYPE);
     }
     const seen = new Set();
     for (let i = 0; i < rt.length; i++) {
@@ -356,7 +362,7 @@ function bejson_validator_check_fields_structure(doc, version) {
 
     if (seenNames.has(name)) {
       _state.addError(`Duplicate field name '${name}' found in 'Fields' array`, `Fields[${i}]`);
-      throw new BEJSONValidationError(`Duplicate field: ${name}`, E_INVALID_FIELDS);
+      throw new BEJSONValidationError(`Duplicate field name: '${name}'`, E_INVALID_FIELDS);
     }
     seenNames.add(name);
 
@@ -366,15 +372,24 @@ function bejson_validator_check_fields_structure(doc, version) {
         `Field '${name}' (index ${i}): Invalid type '${ftype}'. Valid: ${[...VALID_FIELD_TYPES].join(', ')}`,
         `Fields[${i}]`,
       );
-      throw new BEJSONValidationError(`Field ${name} invalid type`, E_INVALID_FIELDS);
+      throw new BEJSONValidationError(`Field '${name}' (index ${i}) has invalid type '${ftype}'. Must be exactly one of ${JSON.stringify([...VALID_FIELD_TYPES].sort())} (lowercase).`, E_INVALID_FIELDS);
     }
 
-    if (version === '104a' && (ftype === 'array' || ftype === 'object')) {
+    const base = _BASE_VERSION[version] || version;
+    if (base === '104a' && (ftype === 'array' || ftype === 'object')) {
       _state.addError(
-        `Field '${name}' (index ${i}): Type '${ftype}' not allowed in 104a.`,
+        `[${E_INVALID_FIELDS}] ${version} forbids complex type: ${ftype} (Field '${name}' index ${i})`,
         `Fields[${i}]`,
       );
-      throw new BEJSONValidationError(`Field ${name} disallowed type for 104a`, E_INVALID_FIELDS);
+      throw new BEJSONValidationError(`${version} forbids complex type: ${ftype}`, E_INVALID_FIELDS);
+    }
+
+    if (base === '104db' && name !== 'Record_Type_Parent' && !fieldDef['Record_Type_Parent']) {
+      _state.addError(
+        `Field '${name}' missing Record_Type_Parent in ${version}`,
+        `Fields[${i}]`,
+      );
+      throw new BEJSONValidationError(`Field '${name}' missing Record_Type_Parent in ${version}`, E_INVALID_RECORD_TYPE_PARENT);
     }
   }
 
@@ -382,28 +397,39 @@ function bejson_validator_check_fields_structure(doc, version) {
 }
 
 // ---------------------------------------------------------------------------
-// 104db Record_Type_Parent validation
+// 104db / 105db Record_Type_Parent validation
 // mirrors bejson_validator_check_record_type_parent
 // ---------------------------------------------------------------------------
 
-function bejson_validator_check_record_type_parent(doc) {
+function bejson_validator_check_record_type_parent(doc, version) {
+  const base = _BASE_VERSION[version] || version;
+  if (base !== '104db') return;
   const fields = doc['Fields'];
   const first  = fields[0] ?? {};
   if (!fields.length || first['name'] !== 'Record_Type_Parent' || first['type'] !== 'string') {
     _state.addError(
-      `For BEJSON 104db, the first field must be {"name": "Record_Type_Parent", "type": "string"}. ` +
+      `For BEJSON ${version}, the first field must be {"name": "Record_Type_Parent", "type": "string"}. ` +
       `Found: ${JSON.stringify(first)}`,
       'Fields[0]',
     );
-    throw new BEJSONValidationError('Bad Record_Type_Parent field', E_INVALID_RECORD_TYPE_PARENT);
+    throw new BEJSONValidationError(`${version} first field must be 'Record_Type_Parent'`, E_INVALID_RECORD_TYPE_PARENT);
   }
 
+  const expectedLen = fields.length + (VERSIONS_105.has(version) ? 1 : 0);
   const validTypes = new Set(doc['Records_Type']);
   for (let i = 0; i < doc['Values'].length; i++) {
     const record = doc['Values'][i];
     if (!Array.isArray(record)) {
       _state.addError(`Values[${i}] must be an array (record)`, `Values[${i}]`);
       throw new BEJSONValidationError(`Bad record at ${i}`, E_INVALID_VALUES);
+    }
+    if (record.length !== expectedLen) {
+      _state.addError(
+        `Record at 'Values' index ${i} has ${record.length} elements, but 'Fields' defines ${fields.length} fields` +
+        (VERSIONS_105.has(version) ? ` (+1 record_uuid cell for ${version}).` : '.'),
+        `Values[${i}]`
+      );
+      throw new BEJSONValidationError(`Length mismatch at ${i}`, E_RECORD_LENGTH_MISMATCH);
     }
     const rtp = record[0] ?? null;
     if (!rtp) {
@@ -419,85 +445,85 @@ function bejson_validator_check_record_type_parent(doc) {
         `does not match any declared type in 'Records_Type'`,
         `Values[${i}][0]`,
       );
-      throw new BEJSONValidationError(`Invalid RTP '${rtp}' at ${i}`, E_INVALID_RECORD_TYPE_PARENT);
+      throw new BEJSONValidationError(`Invalid Record_Type_Parent '${rtp}' at row ${i}`, E_INVALID_RECORD_TYPE_PARENT);
     }
   }
 }
 
 // ---------------------------------------------------------------------------
-// Values validation
-// mirrors bejson_validator_check_values
+// Type matching helper (mirrors Python _bejson_validator_type_problem)
 // ---------------------------------------------------------------------------
 
-function _jsonType(value) {
-  if (value === null)             return 'null';
-  if (typeof value === 'boolean') return 'boolean';
-  if (Number.isInteger(value))    return 'integer';
-  if (typeof value === 'number')  return 'number';
-  if (typeof value === 'string')  return 'string';
-  if (Array.isArray(value))       return 'array';
-  if (typeof value === 'object')  return 'object';
-  return 'unknown';
+function _bejson_validator_type_problem(val, ftype) {
+  if (val === null || val === undefined) return null;
+  if (ftype === 'string') {
+    return (typeof val === 'string') ? null : 'expected string';
+  }
+  if (ftype === 'integer') {
+    if (typeof val === 'boolean') return 'expected integer';
+    return (typeof val === 'number' && Number.isInteger(val)) ? null : 'expected integer';
+  }
+  if (ftype === 'number') {
+    if (typeof val === 'boolean') return 'expected number, got bool';
+    return (typeof val === 'number') ? null : 'expected number';
+  }
+  if (ftype === 'boolean') {
+    return (typeof val === 'boolean') ? null : 'expected boolean';
+  }
+  if (ftype === 'array') {
+    return Array.isArray(val) ? null : 'expected array';
+  }
+  if (ftype === 'object') {
+    return (typeof val === 'object' && !Array.isArray(val)) ? null : 'expected object';
+  }
+  return null;
 }
+
+function bejson_validator_row_col(version, fieldIdx) {
+  if (version === '105db') {
+    return fieldIdx === 0 ? 0 : fieldIdx + 1;
+  }
+  return fieldIdx + (VERSIONS_105.has(version) ? 1 : 0);
+}
+
+// ---------------------------------------------------------------------------
+// 104-series Values validation
+// ---------------------------------------------------------------------------
 
 function bejson_validator_check_values(doc, version, fieldsCount) {
   const values = doc['Values'];
   const fields = doc['Fields'];
-  // 105-series rows carry ONE extra cell: record_uuid. It sits at column 0 for
-  // 105/105a and column 1 for 105db (after the discriminator). In 105db the
-  // discriminator is Fields[0] (Record_Type_Parent), exactly as the PY upgrader
-  // produces: [disc, uuid, ...rest]. So row length = fields + 1 for every 105 version.
-  const is105 = VERSIONS_105.has(version);
-  const uuidCol = version === '105db' ? 1 : 0;
-  const offset = is105 ? 1 : 0;
-  const expectedLen = fieldsCount + offset;
 
   for (let i = 0; i < values.length; i++) {
     const record = values[i];
     if (!Array.isArray(record)) {
       _state.addError(`Values[${i}] must be an array (record)`, `Values[${i}]`);
-      throw new BEJSONValidationError(`Bad record at ${i}`, E_INVALID_VALUES);
+      throw new BEJSONValidationError(`Length mismatch at row ${i}`, E_RECORD_LENGTH_MISMATCH);
     }
 
-    if (record.length !== expectedLen) {
+    if (record.length !== fieldsCount) {
       _state.addError(
-        `Record at 'Values' index ${i} has ${record.length} elements, ` +
-        `but 'Fields' defines ${fieldsCount} fields` +
-        (is105 ? ` (+1 record_uuid cell for ${version}).` : '.'),
+        `Length mismatch at row ${i}`,
         `Values[${i}]`,
       );
-      throw new BEJSONValidationError(`Length mismatch at ${i}`, E_RECORD_LENGTH_MISMATCH);
-    }
-
-    if (version === '105db') {
-      const disc = record[0];
-      if (typeof disc !== 'string' || !doc['Records_Type'].includes(disc)) {
-        _state.addError(
-          `Record at 'Values' index ${i}: 105db discriminator '${disc}' does not match any declared type in 'Records_Type'`,
-          `Values[${i}][0]`,
-        );
-        throw new BEJSONValidationError(`Invalid discriminator at ${i}`, E_INVALID_RECORD_TYPE_PARENT);
-      }
+      throw new BEJSONValidationError(`Length mismatch at row ${i}`, E_RECORD_LENGTH_MISMATCH);
     }
 
     const recordType = (version === '104db' && record.length > 0) ? record[0] : null;
 
     for (let c = 0; c < record.length; c++) {
-      if (is105 && c === uuidCol) continue;          // record_uuid cell: checked by strict integrity
-      const j         = (is105 && c > uuidCol) ? c - 1 : c;   // Fields index
-      const value     = record[c];
-      const fieldDef  = fields[j];
+      const fieldDef  = fields[c];
       const fieldName = fieldDef['name'];
       const fieldType = fieldDef['type'];
       const fieldParent = fieldDef['Record_Type_Parent'] ?? '';
 
       // 104db applicability: field not for this record type → must be null
-      if (version === '104db' && fieldParent && j > 0) {
+      if (version === '104db' && fieldParent && c > 0) {
         if (fieldParent !== recordType) {
-          if (value !== null) {
+          if (record[c] !== null) {
             _state.addError(
               `Record at 'Values' index ${i} (type '${recordType}'), ` +
-              `field '${fieldName}' (index ${j}): not applicable to this type; must be null.`,
+              `field '${fieldName}' (index ${c}): not applicable to this type; must be null.`,
               `Values[${i}][${c}]`,
             );
             throw new BEJSONValidationError('Null violation', E_NULL_VIOLATION);
@@ -506,84 +532,130 @@ function bejson_validator_check_values(doc, version, fieldsCount) {
         }
       }
 
-      if (value === null) continue;
-
-      const vtype = _jsonType(value);
-      let typeValid = false;
-
-      switch (fieldType) {
-        case 'string':
-          typeValid = typeof value === 'string';
-          break;
-        case 'integer':
-          typeValid = Number.isInteger(value) && typeof value !== 'boolean';
-          break;
-        case 'number':
-          typeValid = typeof value === 'number' && typeof value !== 'boolean';
-          break;
-        case 'boolean':
-          typeValid = typeof value === 'boolean';
-          break;
-        case 'array':
-          typeValid = Array.isArray(value);
-          break;
-        case 'object':
-          typeValid = typeof value === 'object' && !Array.isArray(value);
-          break;
-      }
-
-      if (!typeValid) {
+      const problem = _bejson_validator_type_problem(record[c], fieldType);
+      if (problem) {
         _state.addError(
-          `Record at 'Values' index ${i}, field '${fieldName}' (index ${j}): ` +
-          `Value '${value}' is of type '${vtype}', but 'Fields' defines type '${fieldType}'.`,
+          `Type mismatch at row ${i}, col ${c} (${fieldName}): ${problem}`,
           `Values[${i}][${c}]`,
         );
-        throw new BEJSONValidationError(`Type mismatch at [${i}][${c}]`, E_TYPE_MISMATCH);
+        throw new BEJSONValidationError(`Type mismatch at row ${i}, col ${c} (${fieldName}): ${problem}`, E_TYPE_MISMATCH);
       }
     }
   }
 }
 
-// 105-series strict integrity (mirrors PY bejson_validator_check_105_strict_integrity).
-// Throws on the first problem, like the other JS checks. Returns true if sound.
+// ---------------------------------------------------------------------------
+// 105-series strict integrity & values validation
+// ---------------------------------------------------------------------------
+
 function bejson_validator_check_105_strict_integrity(doc) {
-  const fields = doc['Fields'];
+  const fields = doc['Fields'] || [];
   if (!fields.length || !fields.every(f => f && Object.prototype.hasOwnProperty.call(f, 'field_uuid'))) {
-    _state.addError(
-      "Format_Version claims 105-series but Fields were never compiled with field_uuid keys -- run upgrade-to-105 before using this file",
-      'Fields',
-    );
-    throw new BEJSONValidationError('105 Fields lack field_uuid (Fail-on-Switch)', E_INVALID_FIELDS);
+    const msg = "Format_Version claims 105-series but Fields were never compiled with field_uuid keys -- run bejson_core_upgrade_to_105() before using this file";
+    _state.addError(`[E_INVALID_FIELDS] ${msg}`, 'Fields');
+    throw new BEJSONValidationError(msg, E_INVALID_FIELDS);
   }
+
   const seenF = new Set();
-  fields.forEach((f, i) => {
+  for (let i = 0; i < fields.length; i++) {
+    const f = fields[i];
     const u = f['field_uuid'];
     if (typeof u !== 'string' || !u) {
-      _state.addError(`field '${f['name']}' missing a valid field_uuid key`, `Fields[${i}]`);
-      throw new BEJSONValidationError(`Bad field_uuid at ${i}`, E_INVALID_FIELDS);
+      const msg = `field '${f['name']}' missing a valid field_uuid key`;
+      _state.addError(`[E_INVALID_FIELDS] ${msg}`, `Fields[${i}]`);
+      throw new BEJSONValidationError(msg, E_INVALID_FIELDS);
     }
     if (seenF.has(u)) {
-      _state.addError(`duplicate field_uuid '${u}'`, `Fields[${i}]`);
-      throw new BEJSONValidationError(`Duplicate field_uuid '${u}'`, E_INVALID_FIELDS);
+      const msg = `duplicate field_uuid '${u}'`;
+      _state.addError(`[E_INVALID_FIELDS] ${msg}`, `Fields[${i}]`);
+      throw new BEJSONValidationError(msg, E_INVALID_FIELDS);
     }
     seenF.add(u);
-  });
+  }
 
-  const uuidCol = doc['Format_Version'] === '105db' ? 1 : 0;
+  const version = doc['Format_Version'];
+  const uuidCol = version === '105db' ? 1 : 0;
   const seenR = new Set();
-  doc['Values'].forEach((row, i) => {
+  const values = doc['Values'] || [];
+
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
     const u = Array.isArray(row) && row.length > uuidCol ? row[uuidCol] : null;
     if (typeof u !== 'string' || !u) {
-      _state.addError(`row ${i} missing a valid record_uuid at index ${uuidCol}`, `Values[${i}][${uuidCol}]`);
-      throw new BEJSONValidationError(`Bad record_uuid at row ${i}`, E_INVALID_VALUES);
+      const msg = `row ${i} missing a valid record_uuid at index ${uuidCol}`;
+      _state.addError(`[E_INVALID_VALUES] ${msg}`, `Values[${i}][${uuidCol}]`);
+      throw new BEJSONValidationError(msg, E_INVALID_VALUES);
     }
     if (seenR.has(u)) {
-      _state.addError(`duplicate record_uuid '${u}' at row ${i}`, `Values[${i}][${uuidCol}]`);
-      throw new BEJSONValidationError(`Duplicate record_uuid at row ${i}`, E_INVALID_VALUES);
+      const msg = `duplicate record_uuid '${u}' at row ${i}`;
+      _state.addError(`[E_INVALID_VALUES] ${msg}`, `Values[${i}][${uuidCol}]`);
+      throw new BEJSONValidationError(msg, E_INVALID_VALUES);
     }
     seenR.add(u);
-  });
+  }
+
+  // Check 105 values (row length and types)
+  const expectedLen = fields.length + 1;
+  let shapeErrorCount = 0;
+  let firstErr = null;
+
+  for (let i = 0; i < values.length; i++) {
+    if (shapeErrorCount >= _MAX_SHAPE_ERRORS) {
+      _state.addError(`[E_RECORD_LENGTH_MISMATCH] further row/type findings suppressed after ${_MAX_SHAPE_ERRORS}`, 'Values');
+      break;
+    }
+    const row = values[i];
+    if (!Array.isArray(row) || row.length !== expectedLen) {
+      const actual = Array.isArray(row) ? row.length : typeof row;
+      const msg = `Length mismatch at row ${i}: expected ${expectedLen} cells (record_uuid + ${expectedLen - 1} fields), got ${actual}`;
+      _state.addError(`[E_RECORD_LENGTH_MISMATCH] ${msg}`, `Values[${i}]`);
+      if (!firstErr) firstErr = { msg, code: E_RECORD_LENGTH_MISMATCH };
+      shapeErrorCount++;
+      continue;
+    }
+
+    for (let j = 0; j < fields.length; j++) {
+      const col = bejson_validator_row_col(version, j);
+      const fDef = fields[j];
+      const problem = _bejson_validator_type_problem(row[col], fDef['type']);
+      if (problem) {
+        const msg = `Type mismatch at row ${i}, col ${col} (${fDef['name']}): ${problem}`;
+        _state.addError(`[E_TYPE_MISMATCH] ${msg}`, `Values[${i}][${col}]`);
+        if (!firstErr) firstErr = { msg, code: E_TYPE_MISMATCH };
+        shapeErrorCount++;
+        if (shapeErrorCount >= _MAX_SHAPE_ERRORS) break;
+      }
+    }
+  }
+
+  if (firstErr) {
+    throw new BEJSONValidationError(firstErr.msg, firstErr.code);
+  }
+
   return true;
+}
+
+function bejson_validator_check_105_uuid_format(doc) {
+  const fields = doc['Fields'] || [];
+  for (const f of fields) {
+    if (f && typeof f === 'object') {
+      const u = f.field_uuid;
+      if (typeof u === 'string' && u && !_UUID_V4_RE.test(u)) {
+        _state.addWarning(`field_uuid '${u}' on field '${f.name}' is not a UUIDv4`, 'Fields');
+      }
+    }
+  }
+  const uuidCol = doc['Format_Version'] === '105db' ? 1 : 0;
+  const values = doc['Values'] || [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    if (Array.isArray(row) && row.length > uuidCol) {
+      const u = row[uuidCol];
+      if (typeof u === 'string' && u && !_UUID_V4_RE.test(u)) {
+        _state.addWarning(`record_uuid '${u}' at row ${i} is not a UUIDv4`, `Values[${i}][${uuidCol}]`);
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -654,9 +726,13 @@ function bejson_validator_validate_string(jsonString) {
   bejson_validator_check_custom_headers(doc, version, persisted);
   bejson_validator_check_records_type(doc, version);
   const fieldsCount  = bejson_validator_check_fields_structure(doc, version);
-  if (version === '104db') bejson_validator_check_record_type_parent(doc);
-  if (VERSIONS_105.has(version)) bejson_validator_check_105_strict_integrity(doc);
-  bejson_validator_check_values(doc, version, fieldsCount);
+  bejson_validator_check_record_type_parent(doc, version);
+  if (VERSIONS_105.has(version)) {
+    bejson_validator_check_105_strict_integrity(doc);
+    bejson_validator_check_105_uuid_format(doc);
+  } else {
+    bejson_validator_check_values(doc, version, fieldsCount);
+  }
   return true;
 }
 
@@ -679,7 +755,33 @@ function bejson_validator_validate_object(doc) {
     _state.warnings = saved.warnings;
     _state.currentFile = saved.currentFile;
   }
-  return { valid, errors, warnings };
+  return { valid, is_valid: valid, errors, warnings };
+}
+
+function validate_bejson(inputData, isFile = false) {
+  if (isFile) {
+    const saved = { errors: _state.errors, warnings: _state.warnings, currentFile: _state.currentFile };
+    let valid = true;
+    try {
+      bejson_validator_validate_file(inputData);
+    } catch (_) {
+      valid = false;
+    }
+    const errors = _state.getErrors();
+    const warnings = _state.getWarnings();
+    const currentFile = _state.currentFile;
+    _state.errors = saved.errors;
+    _state.warnings = saved.warnings;
+    _state.currentFile = saved.currentFile;
+    return {
+      valid: valid && errors.length === 0,
+      is_valid: valid && errors.length === 0,
+      errors,
+      warnings,
+      current_file: currentFile,
+    };
+  }
+  return bejson_validator_validate_object(inputData);
 }
 
 function bejson_validator_validate_file(filePath) {
@@ -738,9 +840,14 @@ const ValidatorExports = {
   bejson_validator_check_dependencies, bejson_validator_check_json_syntax,
   bejson_validator_check_mandatory_keys, bejson_validator_check_records_type,
   bejson_validator_check_fields_structure, bejson_validator_check_record_type_parent,
-  bejson_validator_check_values, bejson_validator_check_105_strict_integrity, bejson_validator_check_custom_headers,
-  bejson_validator_check_field_map_cache, bejson_validator_validate_string, bejson_validator_validate_object, bejson_validator_validate_file,
+  bejson_validator_check_values, bejson_validator_check_105_strict_integrity, bejson_validator_check_105_uuid_format,
+  bejson_validator_check_custom_headers, bejson_validator_check_field_map_cache,
+  bejson_validator_validate_string, bejson_validator_validate_object, bejson_validator_validate_file,
+  validate_bejson,
   bejson_validator_get_report,
+  _bejson_validator_type_problem,
+  bejson_validator_row_col,
+  _MAX_SHAPE_ERRORS,
 };
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ValidatorExports;
