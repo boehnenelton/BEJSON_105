@@ -1974,6 +1974,90 @@
       "Core",
       "SH",
       "Core Nesting"
+    ],
+    [
+      250,
+      "E_STANDARDS_LOG_INVALID_LEVEL",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      251,
+      "E_STANDARDS_LOG_SCHEMA_MISMATCH",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      252,
+      "E_STANDARDS_LOG_WRITE_FAILED",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      253,
+      "E_STANDARDS_LOG_BUFFER_CORRUPT",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      254,
+      "E_STANDARDS_LOG_LOCK_TIMEOUT",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      255,
+      "E_STANDARDS_LOG_INVALID_CONFIG",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      256,
+      "E_STANDARDS_LOG_SECURE_PATH_MISSING",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      257,
+      "E_STANDARDS_LOG_SECURE_VIOLATION",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      258,
+      "E_STANDARDS_EXPORT_FORMAT_INVALID",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      259,
+      "E_STANDARDS_EXPORT_FAILED",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      260,
+      "E_STANDARDS_ARCHIVE_FAILED",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
+    ],
+    [
+      261,
+      "E_STANDARDS_EXPORT_SECURE_DESTINATION",
+      "Standards",
+      "PY",
+      "Standards Logging (250-269)"
     ]
   ]
 }

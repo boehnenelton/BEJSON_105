@@ -7,12 +7,12 @@
  * Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
  *                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
  *                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
- * Version:         2.1.4
+ * Version:         2.1.5
  * Release_Version: 300
- * Date:            2026-10-02
+ * Date:            2026-10-29
  * Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
  * Format_Creator:  Elton Boehnen
- * RELATIONAL_ID:   9e8dbc98-466c-43b4-bf5a-0cb32647ecf9
+ * RELATIONAL_ID:   111769a2-5a7d-4349-8d67-3f2836e69f81
  */
 
 'use strict';
@@ -240,7 +240,7 @@ function mfdb_validator_validate_manifest(manifestPath) {
 
   const rt = doc.Records_Type || [];
   if (!(rt.length === 1 && rt[0] === 'mfdb')) {
-    _mAddError(`Records_Type must be ["mfdb"]. Found: ${JSON.stringify(rt)}`, 'Records_Type');
+    _mAddError(`[${E_MFDB_MANIFEST_RECORDS_TYPE}] Records_Type must be ["mfdb"]. Found: ${JSON.stringify(rt)}`, 'Records_Type');
     throw new MFDBValidationError('Bad manifest Records_Type', E_MFDB_MANIFEST_RECORDS_TYPE);
   }
 

@@ -52,15 +52,17 @@
  *                    Phase 8 and had to stay untouched), there is no reason
  *                    to ship two functions here.
  *
- * Version:        1.3.0
- * Date:           2026-09-25
+ * Version:        1.4.0
+ * Date:           2026-10-28
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  bd6f0f3c-47af-48a3-ace1-663e51f2ff90
+ * RELATIONAL_ID:  575e44a3-2a63-4668-934a-cf8a38561f3d
  * Release_Version: 300
  *
  * Changelog:
+ *   1.4.0 - 105 writers mirror 104 strictness (port of Python core 3.6.0): addRecord105 checks row length, value
+ *           types and the 105db discriminator; writeCell checks the value type. (defineField already validated its type.)
  *   1.3.0 - REMOVED upsert105, rowChecksum, verifyRowChecksums, paginate105
  *           (and the crypto.subtle checksum plumbing) per Be25 -- only UUID
  *           features, FK referential integrity and the UUID field map stay.
@@ -82,6 +84,7 @@ import {
   BEJSONCoreError,
   BEJSON_105_CODES as E,
 } from "./lib_bejson_Core_bejson_types";
+import { valueTypeProblem } from "./lib_bejson_Core_bejson_validators";
 import { bejson_core_get_field_map_105 } from "./lib_bejson_Core_bejson_field_map";
 
 const _105_SERIES = new Set(["105", "105a", "105db"]);
@@ -104,6 +107,14 @@ function _absCol(doc: BEJSONDocument, fieldIdx: number): number {
   if (_isMulti(doc)) return fieldIdx === 0 ? 0 : fieldIdx + 1;
   return fieldIdx + 1;
 }
+/** Same typing rule the validator applies (null always allowed); throws E_TYPE_MISMATCH-style error. */
+function _checkValueType(field: BEJSONField, value: BEJSONValue, where: string): void {
+  const problem = valueTypeProblem(value, field.type);
+  if (problem) {
+    throw new BEJSONCoreError(8, "E_TYPE_MISMATCH: " + where + " (" + field.name + "): " + problem);
+  }
+}
+
 function _assert105(doc: BEJSONDocument, fnName: string): void {
   if (!_105_SERIES.has(doc.Format_Version)) {
     throw new BEJSONCoreError(
@@ -206,6 +217,8 @@ export function writeCell(
     (opts.expectedRow !== undefined && opts.expectedRow !== row) ||
     (opts.expectedCol !== undefined && opts.expectedCol !== col);
 
+  _checkValueType(doc.Fields[fieldIdx], newValue, "writeCell record " + recordUuid);
+
   const newRow = [...doc.Values[row]];
   newRow[col] = newValue;
   const newValues = doc.Values.map((r, i) => (i === row ? newRow : r));
@@ -288,6 +301,16 @@ export interface AddRecordResult {
 
 export function addRecord105(doc: BEJSONDocument, values: BEJSONValue[]): AddRecordResult {
   _assert105(doc, "addRecord105");
+
+  if (values.length !== doc.Fields.length) {
+    throw new BEJSONCoreError(9, "E_RECORD_LENGTH_MISMATCH: addRecord105 expects " + doc.Fields.length +
+      " values (one per field, WITHOUT record_uuid), got " + values.length);
+  }
+  doc.Fields.forEach((f, j) => _checkValueType(f, values[j], "addRecord105 value"));
+  if (doc.Format_Version === "105db" && !doc.Records_Type.includes(values[0] as string)) {
+    throw new BEJSONCoreError(E.FIELD_INTEGRITY_MISMATCH,
+      "Record_Type_Parent " + JSON.stringify(values[0]) + " not in Records_Type");
+  }
 
   const recordUuid = _uuid4();
   const row: BEJSONValue[] = _isMulti(doc)

@@ -5,13 +5,19 @@
 #                 do not restate or reinterpret this acronym elsewhere.
 # MFDB:           MFDB stands for Multi File Database. Authoritative definition;
 #                 do not restate or reinterpret this acronym elsewhere.
-# Version:        2.1.1
-# Date:           2026-10-09
+# Version:        2.2.0
+# Date:           2026-10-27
 # Author:         Elton Boehnen
 # Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 # Format_Creator: Elton Boehnen
 # RELATIONAL_ID:  800cf1af-4368-4dff-b33f-bd7f6810fb79
 # Release_Version: 300
+#
+# Changelog:
+#   2.2.0 - 2026-10-27: bejson_core_add_record REFUSES 105-series documents
+#           (E_FORMAT_UNSUPPORTED=81, doc not echoed). It used to append a row with
+#           no record_uuid slot. Port of PY core 3.6.0. SH has no add_record_105 /
+#           write_cell / add_field (no 105 write API), so those checks are N/A.
 
 #===============================================================================
 
@@ -305,6 +311,11 @@ bejson_core_get_record_count() {
 bejson_core_add_record() {
     local doc="$1"
     local values_json="$2"
+    case "$(echo "$doc" | jq -r '.Format_Version // empty')" in
+        105|105a|105db)
+            echo "ERROR: bejson_core_add_record is 104-series only (a 105 row needs a record_uuid slot)" >&2
+            return $E_FORMAT_UNSUPPORTED ;;
+    esac
     echo "$doc" | jq --argjson row "$values_json" '.Values += [$row]'
 }
 

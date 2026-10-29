@@ -63,6 +63,13 @@
       "true",
       "Lib_SH/Core",
       "Includes MFDB \u2014 MFDB is implemented as part of Core, not a separate family. Also includes the nesting modules (error codes 130-159, resolved through the Core errors file; no separate nesting errors file as of 2026-10-16), moved from the former Core_Nesting family 2026-10-14."
+    ],
+    [
+      "Standards",
+      "PY",
+      "true",
+      "Lib_PY/Standards",
+      "Standardized BEJSON 104a logging sink (batched, PID-locked, row-capped, secure routing). Error block 250-269 in lib_bejson_Standards_errors.py. Python only; TS/Bash parity deferred."
     ]
   ]
 }

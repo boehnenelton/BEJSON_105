@@ -7,12 +7,13 @@
 # Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
 #                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
 #                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
-# Version:         2.2.5
+# Version:         2.3.0
 # Release_Version: 300
-# Date:            2026-10-16
+# Date:            2026-10-27
 # Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 # Format_Creator:  Elton Boehnen
 # RELATIONAL_ID:   4aa4dee4-b170-4f9f-882e-ca4b897027ee
+# Changelog 2.3.0 (2026-10-27): mfdb_core_discover recognises 105/105a/105db entity files (Parent_Hierarchy) as 'entity'; mfdb_core_add_entity_record refuses 105-series entities (E_MFDB_CORE_INVALID_OPERATION=54, nothing written). SH has no deep_verify/self_heal.
 # -----------------------------------------------------------------------------
 
 set -o pipefail
@@ -181,7 +182,7 @@ mfdb_core_discover() {
 
     if [[ "$version" == "104a" && "$filename" == *".mfdb.bejson" ]]; then
         echo "manifest"
-    elif [[ "$version" == "104" ]]; then
+    elif [[ "$version" == "104" || "$version" == "105" || "$version" == "105a" || "$version" == "105db" ]]; then
         local ph
         ph="$(jq -r '.Parent_Hierarchy // empty' "$file_path" 2>/dev/null)"
         if [[ -n "$ph" ]]; then
@@ -367,6 +368,11 @@ mfdb_core_add_entity_record() {
         echo "ERROR: json_values_array must be a JSON array string" >&2
         return $E_MFDB_CORE_INVALID_OPERATION
     fi
+    case "$(jq -r '.Format_Version // empty' "$resolved" 2>/dev/null)" in
+        105|105a|105db)
+            echo "ERROR: $entity_name is a 105-series entity; mfdb_core_add_entity_record is 104-only (it would write a row without a record_uuid)" >&2
+            return $E_MFDB_CORE_INVALID_OPERATION ;;
+    esac
     local tmp_file
     tmp_file="$(mktemp "${resolved}.tmp.XXXXXX")"
     if ! jq --argjson row "$json_values_array" '.Values += [$row]' "$resolved" > "$tmp_file" 2>/dev/null; then

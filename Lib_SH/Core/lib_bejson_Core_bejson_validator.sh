@@ -1,8 +1,8 @@
 # Library:        lib_bejson_Core_bejson_validator.sh
 # Family:         Core
 # Description:    Structural integrity checker for positional values and mandatory keys.
-# Version:        2.3.0
-# Date:           2026-10-03
+# Version:        2.5.0
+# Date:           2026-10-27
 # Author:         Elton Boehnen
 # Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 # Format_Creator: Elton Boehnen
@@ -10,6 +10,19 @@
 # Release_Version: 300
 #
 # Changelog:
+#   2.5.0 - 2026-10-27: version rules now apply to 104/104a/104db too (single jq pass shared with 105-series):
+#           custom-header rule, Records_Type count, 104a primitives-only, 104db Record_Type_Parent rules,
+#           per-cell value types. Function renamed __bejson_validator_check_version_rules.
+#   2.4.0 - 2026-10-27: 105-series parity with 104 (port of PY validator 3.4.0).
+#           105/105a/105db files now ALSO get: custom-header rule (105/105db forbid),
+#           Records_Type count (105/105a exactly 1, 105db 2+), 105a primitives-only,
+#           105db Record_Type_Parent rules (first field, per-field owner, row
+#           discriminator in Records_Type at col 0), field_uuid present+unique,
+#           record_uuid present+unique at the right column, Fail-on-Switch, and
+#           per-cell value types (offset-aware). The first failure's detail is left in
+#           BEJSON_VALIDATOR_LAST_ERROR. 104/104a/104db behaviour is UNCHANGED (SH has
+#           never run Records_Type/value-type checks on 104-series; not added here).
+#           Not ported: UUIDv4-format advisory warnings (no warning channel in SH).
 #   2.3.0 - 2026-10-03: field-type check added (parity with PY/JS/TS). SH had NO
 #           type validation, so Fields[].type values such as "any" were accepted.
 #           Types are a closed set: string, integer, number, boolean, array,
@@ -116,9 +129,74 @@ bejson_validator_validate_file() {
         return $E_INVALID_FIELDS
     fi
 
+    # 6. Version-specific rules (104 and 105 series; see 2.5.0)
+    local vr_rc
+    __bejson_validator_check_version_rules "$file_path"
+    vr_rc=$?
+    [[ $vr_rc -ne 0 ]] && return $vr_rc
+
     return 0
 }
 
+# __bejson_validator_check_version_rules <file>
+# Version-specific rules for 104/104a/104db and 105/105a/105db (Records_Type count, custom headers, 104a primitives,
+# 104db Record_Type_Parent rules, 105 uuids, row length/types with offsets). Sets BEJSON_VALIDATOR_LAST_ERROR on failure.
+__bejson_validator_check_version_rules() {
+    local file_path="$1" out code detail
+    BEJSON_VALIDATOR_LAST_ERROR=""
+    out=$(jq -r '
+      def tok($t; $x):
+        if $x == null then true
+        elif $t == "string"  then ($x|type) == "string"
+        elif $t == "integer" then (($x|type) == "number") and ($x == ($x|floor))
+        elif $t == "number"  then ($x|type) == "number"
+        elif $t == "boolean" then ($x|type) == "boolean"
+        elif $t == "array"   then ($x|type) == "array"
+        elif $t == "object"  then ($x|type) == "object"
+        else true end;
+      . as $d | .Format_Version as $v
+      | if ($v | IN("104","104a","104db","105","105a","105db") | not) then ""
+        else
+          ($d.Fields) as $F | ($d.Records_Type) as $rt
+          | (if $v == "105db" then 1 else 0 end) as $uc
+          | ({"104":"104","104a":"104a","104db":"104db","105":"104","105a":"104a","105db":"104db"}[$v]) as $b
+          | (if $v | IN("105","105a") then 1 else 0 end) as $off
+          | def col($i): if $v == "105db" then (if $i == 0 then 0 else $i + 1 end) else $i + $off end;
+          if ($b | IN("104","104db")) and ([$d | keys[] | select(IN("Format","Format_Version","Format_Creator","Records_Type","Fields","Values","Parent_Hierarchy") | not)] | length > 0) then
+            "E_RESERVED_KEY_COLLISION\tcustom header forbidden in " + $v
+          elif ($rt | type) != "array" then "E_INVALID_RECORDS_TYPE\tRecords_Type must be a list"
+          elif ($b | IN("104","104a")) and ($rt | length) != 1 then "E_INVALID_RECORDS_TYPE\t" + $v + " must have exactly 1 record type, found " + ($rt|length|tostring)
+          elif $b == "104db" and ($rt | length) < 2 then "E_INVALID_RECORDS_TYPE\t" + $v + " requires 2+ types"
+          elif $b == "104db" and (($F[0].name // "") != "Record_Type_Parent") then "E_INVALID_RECORD_TYPE_PARENT\t" + $v + " first field must be Record_Type_Parent"
+          elif $b == "104db" and ([$d.Values[] | select(length > 0) | select((.[0]) as $x | ($rt | index($x)) == null)] | length > 0) then "E_INVALID_RECORD_TYPE_PARENT\t" + $v + " row discriminator not in Records_Type"
+          elif $b == "104a" and ([$F[] | select(.type | IN("array","object"))] | length > 0) then "E_INVALID_FIELDS\t" + $v + " forbids complex types"
+          elif $b == "104db" and ([$F[1:][] | select(has("Record_Type_Parent") | not)] | length > 0) then "E_INVALID_RECORD_TYPE_PARENT\t" + $v + " field missing Record_Type_Parent owner"
+          elif ($v|startswith("105")) and (($F | length) == 0 or ([$F[] | select(has("field_uuid") | not)] | length > 0)) then "E_INVALID_FIELDS\tFormat_Version claims 105-series but Fields lack field_uuid (Fail-on-Switch)"
+          elif ($v|startswith("105")) and ([$F[] | .field_uuid | select((type != "string") or (. == ""))] | length > 0) then "E_INVALID_FIELDS\tfield_uuid must be a non-empty string"
+          elif ($v|startswith("105")) and (([$F[] | .field_uuid] | length) != ([$F[] | .field_uuid] | unique | length)) then "E_INVALID_FIELDS\tduplicate field_uuid"
+          elif ($v|startswith("105")) and ([$d.Values[] | .[$uc]] | map(select((type != "string") or (. == ""))) | length > 0) then "E_INVALID_VALUES\trow missing record_uuid at col " + ($uc|tostring)
+          elif ($v|startswith("105")) and (([$d.Values[] | .[$uc]] | length) != ([$d.Values[] | .[$uc]] | unique | length)) then "E_INVALID_VALUES\tduplicate record_uuid"
+          elif ([ $d.Values | to_entries[] | .key as $r | .value as $row | ($F | to_entries[]) | select(tok(.value.type; $row[col(.key)]) | not) ] | length > 0) then
+            ([ $d.Values | to_entries[] | .key as $r | .value as $row | ($F | to_entries[]) | select(tok(.value.type; $row[col(.key)]) | not) | "row \($r), col \(col(.key)) (\(.value.name)): expected \(.value.type)" ] | .[0]) as $m
+            | "E_TYPE_MISMATCH\tType mismatch at " + $m
+          else "" end
+        end' "$file_path" 2>/dev/null)
+    [[ -z "$out" ]] && return 0
+    code="${out%%$'\t'*}"; detail="${out#*$'\t'}"
+    BEJSON_VALIDATOR_LAST_ERROR="$detail"
+    echo "$detail" >&2
+    case "$code" in
+        E_RESERVED_KEY_COLLISION)      return $E_RESERVED_KEY_COLLISION ;;
+        E_INVALID_RECORDS_TYPE)        return $E_INVALID_RECORDS_TYPE ;;
+        E_INVALID_RECORD_TYPE_PARENT)  return $E_INVALID_RECORD_TYPE_PARENT ;;
+        E_INVALID_FIELDS)              return $E_INVALID_FIELDS ;;
+        E_INVALID_VALUES)              return $E_INVALID_VALUES ;;
+        E_TYPE_MISMATCH)               return $E_TYPE_MISMATCH ;;
+    esac
+    return 1
+}
+
 # Export functions for subshell use
+export -f __bejson_validator_check_version_rules
 export -f bejson_validator_check_dependencies
 export -f bejson_validator_validate_file

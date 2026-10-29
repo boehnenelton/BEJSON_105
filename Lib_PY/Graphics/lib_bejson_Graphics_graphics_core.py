@@ -714,10 +714,16 @@ def main():
 
     # Diagram Processing Path
     if args.diagram:
-        from lib_bejson_Graphics_diagram_loader import (
-            render_diagram_svg,
-            create_diagram_frame_sequence_105a
-        )
+        try:
+            from lib_bejson_Graphics_graphics_diagram_loader import (
+                render_diagram_svg,
+                create_diagram_frame_sequence_105a
+            )
+        except ImportError:
+            from lib_bejson_Graphics_diagram_loader import (
+                render_diagram_svg,
+                create_diagram_frame_sequence_105a
+            )
         diag_path = Path(args.diagram)
         if not diag_path.exists():
             print(f"Error: Diagram file not found: {diag_path}")

@@ -174,7 +174,7 @@ def create_graphic_stage_config_105a(
         "Format": "BEJSON",
         "Format_Version": "105a",
         "Format_Creator": "Elton Boehnen",
-        "Record_Type": ["GraphicCanvasConfig"],
+        "Records_Type": ["GraphicCanvasConfig"],
         "Fields": [dict(f) for f in GRAPHIC_CANVAS_CONFIG_FIELDS],
         "Values": [values_row]
     }
@@ -245,7 +245,7 @@ def create_row_per_frame_animation_105a(
         "Aspect_Ratio": aspect_ratio,
         "Canvas_Id": canvas_id,
         "Template_Name": template_name,
-        "Record_Type": ["GraphicFrameRecord"],
+        "Records_Type": ["GraphicFrameRecord"],
         "Fields": [dict(f) for f in GRAPHIC_ROW_FRAME_FIELDS],
         "Values": values_rows
     }
@@ -346,7 +346,7 @@ def create_slideshow_animation_105a(
         "Aspect_Ratio": aspect_ratio,
         "Canvas_Id": canvas_id,
         "Template_Name": template_name,
-        "Record_Type": ["GraphicFrameRecord"],
+        "Records_Type": ["GraphicFrameRecord"],
         "Fields": [dict(f) for f in GRAPHIC_ROW_FRAME_FIELDS],
         "Values": values_rows
     }

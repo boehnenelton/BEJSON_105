@@ -40,7 +40,7 @@ from .lib_bejson_Graphics_graphics_core import (
     render_still_frame,
 )
 
-from .lib_bejson_Graphics_diagram_loader import (
+from .lib_bejson_Graphics_graphics_diagram_loader import (
     calculate_diagram_bounds,
     compute_fit_viewport,
     compute_shape_focus_viewport,

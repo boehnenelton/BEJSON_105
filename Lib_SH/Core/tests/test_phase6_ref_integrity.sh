@@ -42,11 +42,11 @@ mk_entity() {
 # build <book_on_delete> <review_on_delete> <note_on_delete>
 build() {
     DIR="$(mktemp -d)"; MP="$DIR/mfdb.bejson"
-    mk_entity authors.bejson Author '[{"name":"name","type":"string"}]'
-    mk_entity books.bejson   Book   "[{\"name\":\"title\",\"type\":\"string\"},{\"name\":\"author_id\",\"type\":\"string\",\"fk_target_entity\":\"authors\",\"fk_on_delete\":\"${1:-restrict}\"}]"
-    mk_entity reviews.bejson Review "[{\"name\":\"text\",\"type\":\"string\"},{\"name\":\"book_id\",\"type\":\"string\",\"fk_target_entity\":\"books\",\"fk_on_delete\":\"${2:-restrict}\"}]"
-    mk_entity notes.bejson   Note   "[{\"name\":\"text\",\"type\":\"string\"},{\"name\":\"author_id\",\"type\":\"string\",\"fk_target_entity\":\"authors\",\"fk_on_delete\":\"${3:-null}\"}]"
-    jq -n '{Format:"BEJSON",Format_Version:"104",Format_Creator:"Elton Boehnen",Parent_Hierarchy:"mfdb.bejson",Records_Type:["Legacy"],Fields:[{name:"x",type:"string"}],Values:[]}' > "$DIR/legacy.bejson"
+    mk_entity authors.bejson authors '[{"name":"name","type":"string"}]'
+    mk_entity books.bejson   books   "[{\"name\":\"title\",\"type\":\"string\"},{\"name\":\"author_id\",\"type\":\"string\",\"fk_target_entity\":\"authors\",\"fk_on_delete\":\"${1:-restrict}\"}]"
+    mk_entity reviews.bejson reviews "[{\"name\":\"text\",\"type\":\"string\"},{\"name\":\"book_id\",\"type\":\"string\",\"fk_target_entity\":\"books\",\"fk_on_delete\":\"${2:-restrict}\"}]"
+    mk_entity notes.bejson   notes   "[{\"name\":\"text\",\"type\":\"string\"},{\"name\":\"author_id\",\"type\":\"string\",\"fk_target_entity\":\"authors\",\"fk_on_delete\":\"${3:-null}\"}]"
+    jq -n '{Format:"BEJSON",Format_Version:"104",Format_Creator:"Elton Boehnen",Parent_Hierarchy:"mfdb.bejson",Records_Type:["legacy"],Fields:[{name:"x",type:"string"}],Values:[]}' > "$DIR/legacy.bejson"
     jq -n '{Format:"BEJSON",Format_Version:"104a",Format_Creator:"Elton Boehnen",Records_Type:["mfdb"],
       Fields:[{name:"entity_name",type:"string"},{name:"file_path",type:"string"},{name:"record_count",type:"integer"}],
       Values:[["authors","authors.bejson",0],["books","books.bejson",0],["reviews","reviews.bejson",0],["notes","notes.bejson",0],["legacy","legacy.bejson",0]]}' > "$MP"

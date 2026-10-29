@@ -3,7 +3,7 @@
   "Format_Version": "105a",
   "Format_Creator": "Elton Boehnen",
   "Schema_Name": "CanvasTemplateScaffoldRegistry",
-  "Record_Type": [
+  "Records_Type": [
     "CanvasTemplateRecord"
   ],
   "Fields": [

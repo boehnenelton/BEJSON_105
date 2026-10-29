@@ -8,7 +8,7 @@
   "Schema_Version": "2.6.1",
   "Author": "Elton Boehnen",
   "Created_At": "2026-07-18T06:45:04Z",
-  "Modified_At": "2026-10-18T07:15:00Z",
+  "Modified_At": "2026-10-27T00:00:00Z",
   "Network_Role": "Master",
   "Records_Type": [
     "mfdb"
@@ -44,7 +44,7 @@
       "Errors",
       "data/errors.bejson",
       "Global cross-family error code map (read-only aggregate; each family's own errors file is the source of truth)",
-      278,
+      290,
       "2.2",
       null
     ],
@@ -68,7 +68,7 @@
       "Families",
       "data/families.bejson",
       "Registry of every family x language combo and whether it has an owned error registry file \u2014 feeds the Reports dropdown and future CLI tooling",
-      5,
+      6,
       "1.1",
       null
     ],

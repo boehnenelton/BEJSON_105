@@ -6,8 +6,8 @@
  *                 do not restate or reinterpret this acronym elsewhere.
  * MFDB:           MFDB stands for Multi File Database. Authoritative definition;
  *                 do not restate or reinterpret this acronym elsewhere.
- * Version:        2.2.1
- * Date:           2026-10-09
+ * Version:        2.3.0
+ * Date:           2026-10-28
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
@@ -259,6 +259,7 @@ export function appendRecord(
   values: BEJSONValue[]
 ): BEJSONDocument {
   _assertDoc(doc);
+  _assert104Series(doc, "appendRecord");
   _assertRowLength(doc, values);
   const coerced = values.map((v, i) => _coerceValue(v, doc.Fields[i].type));
   return _cloneWith(doc, { Values: [...doc.Values, coerced] });
@@ -270,6 +271,7 @@ export function updateRecord(
   values: BEJSONValue[]
 ): BEJSONDocument {
   _assertDoc(doc);
+  _assert104Series(doc, "updateRecord");
   _assertIndex(doc, index);
   _assertRowLength(doc, values);
   const coerced = values.map((v, i) => _coerceValue(v, doc.Fields[i].type));
@@ -281,6 +283,7 @@ export function updateRecord(
 
 export function deleteRecord(doc: BEJSONDocument, index: number): BEJSONDocument {
   _assertDoc(doc);
+  _assert104Series(doc, "deleteRecord");
   _assertIndex(doc, index);
   const newValues = doc.Values.filter((_, i) => i !== index);
   return _cloneWith(doc, { Values: newValues });
@@ -293,6 +296,7 @@ export function setFieldValue(
   value: BEJSONValue
 ): BEJSONDocument {
   _assertDoc(doc);
+  _assert104Series(doc, "setFieldValue");
   _assertIndex(doc, index);
   const fi = getFieldIndex(doc, fieldName);
   const coerced = _coerceValue(value, doc.Fields[fi].type);
@@ -483,6 +487,16 @@ export async function decryptRecord(
 
 function _assertDoc(doc: BEJSONDocument): void {
   if (doc === null || doc === undefined) throw new BEJSONCoreError(BEJSON_CORE_CODES.NULL_DOCUMENT, "Document is null.");
+}
+
+/** 104-series row writers assume row[i] <-> Fields[i]; a 105-series row has a record_uuid slot they never write. */
+function _assert104Series(doc: BEJSONDocument, fn: string): void {
+  const v = doc.Format_Version as string;
+  if (v === "105" || v === "105a" || v === "105db") {
+    throw new BEJSONCoreError(
+      BEJSON_CORE_CODES.UNSUPPORTED_OPERATION,
+      "E_FORMAT_UNSUPPORTED: " + fn + " is 104-series only, got " + v + ". Use the 105 writers (addRecord105, writeCell).");
+  }
 }
 
 function _assertIndex(doc: BEJSONDocument, index: number): void {

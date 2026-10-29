@@ -1,2 +1,5 @@
 """Forwarding stub for lib_bejson_Graphics_graphics_core."""
-from .lib_bejson_Graphics_graphics_core import *
+try:
+    from .lib_bejson_Graphics_graphics_core import *
+except (ImportError, ValueError):
+    from lib_bejson_Graphics_graphics_core import *

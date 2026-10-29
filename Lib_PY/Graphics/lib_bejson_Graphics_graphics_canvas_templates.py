@@ -534,7 +534,7 @@ def get_canvas_template_registry_105a(
         "Format_Version": "105a",
         "Format_Creator": "Elton Boehnen",
         "Schema_Name": "CanvasTemplateScaffoldRegistry",
-        "Record_Type": ["CanvasTemplateRecord"],
+        "Records_Type": ["CanvasTemplateRecord"],
         "Fields": [dict(f) for f in GRAPHIC_TEMPLATE_REGISTRY_FIELDS],
         "Values": values_rows
     }

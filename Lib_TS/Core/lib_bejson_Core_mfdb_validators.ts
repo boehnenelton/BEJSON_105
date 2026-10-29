@@ -7,8 +7,8 @@
  *                 from lib_bejson_Core_bejson_chunking.ts, which should only
  *                 own packaging/IO, not validation logic. See changelog note
  *                 dated 2026-07-13.
- * Version:        2.2.2
- * Date:           2026-10-09
+ * Version:        2.3.0
+ * Date:           2026-10-28
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
@@ -16,6 +16,9 @@
  * Release_Version: 300
  *
  * Changelog:
+ *   2.3.0 - MFDB spec Level 1-3 enforced (port of Python mfdb_validator 2.4.0): bidirectional manifest<->entity is a
+ *           hard error [38] (manifestRelativePath option); entity Format_Version may be 104 or 105 only;
+ *           discoverRole classifies 105 entities. record_count drift stays a warning.
  *   2.2.0 - Phase 6 TS port: checkReferentialIntegrity() -- standalone,
  *           read-only, whole-database FK audit for 105-series entities,
  *           wired into validateDatabase() as an additional check alongside
@@ -53,7 +56,7 @@ export function discoverRole(doc: unknown, filename: string): MFDBFileRole {
   if (d.Format_Version === "104a" && filename.endsWith(".mfdb.bejson")) {
     return "manifest";
   }
-  if (d.Format_Version === "104" && "Parent_Hierarchy" in d) {
+  if ((d.Format_Version === "104" || d.Format_Version === "105") && "Parent_Hierarchy" in d) {
     return "entity";
   }
   return "standalone";
@@ -200,8 +203,8 @@ export function validateEntityFile(
 
   const entity = doc as BEJSONDocument;
 
-  if (entity.Format_Version !== "104") {
-    _emitError(r, E.NOT_AN_ENTITY, "Entity file must be Format_Version \"104\", got \"" + entity.Format_Version + "\".");
+  if (entity.Format_Version !== "104" && entity.Format_Version !== "105") {
+    _emitError(r, E.NOT_AN_ENTITY, "Entity file must be Format_Version \"104\" or \"105\", got \"" + entity.Format_Version + "\".");
     return r;
   }
 
@@ -237,17 +240,20 @@ export function validateEntityFile(
       "Parent_Hierarchy");
   }
 
-  // Bidirectional check: entity's declared path must equal what the manifest recorded
-  if (options.entityRelativePath !== undefined && options.manifestRelativePath !== undefined) {
-    // The manifest says this entity lives at entityRelativePath.
-    // The entity's Parent_Hierarchy + its own path should resolve back to manifestRelativePath.
-    // We do a lightweight string-based check here — full path resolution is the caller's job.
-    // We emit a warning rather than an error because resolution is environment-dependent.
-    if (typeof entity.Parent_Hierarchy === "string") {
-      _emitWarning(r, E.BIDIRECTIONAL_PATH_FAILED,
-        "Bidirectional path check: verify that \"" + options.entityRelativePath +
-        "\" + Parent_Hierarchy \"" + entity.Parent_Hierarchy +
-        "\" resolves to manifest at \"" + options.manifestRelativePath + "\".",
+  // Bidirectional check (hard error, code 38): Parent_Hierarchy is relative to the entity file's own
+  // directory; resolved against entityRelativePath it must land on the manifest. With manifestRelativePath
+  // the match is exact; without it the target must be a root-level "*.mfdb.bejson".
+  if (options.entityRelativePath !== undefined && typeof entity.Parent_Hierarchy === "string") {
+    const resolvedPh = _posixResolve(options.entityRelativePath, entity.Parent_Hierarchy);
+    const manifestRel = options.manifestRelativePath;
+    const lands = manifestRel !== undefined
+      ? resolvedPh === _posixResolve("x", manifestRel).replace(/^\.\//, "")
+      : (resolvedPh.indexOf("/") === -1 && /\.mfdb\.bejson$/.test(resolvedPh));
+    if (!lands) {
+      _emitError(r, E.BIDIRECTIONAL_PATH_FAILED,
+        "[" + E.BIDIRECTIONAL_PATH_FAILED + "] Bidirectional check failed: Parent_Hierarchy \"" + entity.Parent_Hierarchy +
+        "\" from \"" + options.entityRelativePath + "\" resolves to \"" + resolvedPh + "\", which is not the manifest" +
+        (manifestRel !== undefined ? " \"" + manifestRel + "\"" : "") + ".",
         "Parent_Hierarchy");
     }
   }
@@ -275,6 +281,9 @@ export interface DatabaseValidationOptions {
   strict?: boolean;
   
   resolvedPaths?: Set<string>;
+
+  /** Manifest path relative to the DB root (default: any root-level *.mfdb.bejson). */
+  manifestRelativePath?: string;
 }
 
 export function validateDatabase(
@@ -305,6 +314,7 @@ export function validateDatabase(
     const l2 = validateEntityFile(entityDoc, {
       expectedEntityName: record.entity_name,
       entityRelativePath: record.file_path,
+      manifestRelativePath: options.manifestRelativePath,
     });
     for (const e of l2.errors) _emitError(r, e.code, "[L2:" + record.entity_name + "] " + e.message, e.field, e.recordIndex);
     for (const w of l2.warnings) _emitWarning(r, w.code, "[L2:" + record.entity_name + "] " + w.message, w.field, w.recordIndex);
@@ -547,6 +557,18 @@ function _checkFKResolution(
 // ---------------------------------------------------------------------------
 // Utility
 // ---------------------------------------------------------------------------
+
+/** Resolve `rel` against the directory of `fromFile` (both posix-style, DB-root-relative); returns a normalized path ("../x" if it climbs above the root). */
+function _posixResolve(fromFile: string, rel: string): string {
+  const base = fromFile.replace(/\\/g, "/").split("/").filter((x) => x !== "" && x !== ".");
+  base.pop(); // drop the file name -> its directory
+  for (const part of rel.replace(/\\/g, "/").split("/")) {
+    if (part === "" || part === ".") continue;
+    if (part === "..") { if (base.length && base[base.length - 1] !== "..") base.pop(); else base.push(".."); }
+    else base.push(part);
+  }
+  return base.join("/");
+}
 
 function _escapesRoot(relPath: string, startDepth = 0): boolean {
   const parts = relPath.replace(/\\/g, "/").split("/");

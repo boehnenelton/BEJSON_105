@@ -2,15 +2,16 @@
  * Library:        lib_bejson_Core_bejson_validator.js
  * Family:         Core
  * Description:    Structural integrity checker for positional values and mandatory keys.
- * Version:        3.4.0
- * Date:           2026-10-27
+ * Version:        3.4.1
+ * Date:           2026-10-29
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  67ab03b7-54d3-4303-9316-142bbf4bf595
+ * RELATIONAL_ID:  f15db41c-7720-44e2-9d3a-1cec28c95570
  * Release_Version: 300
  *
  * Changelog:
+ *   3.4.1 - 2026-10-29: error-code fix: JS now returns the same code as Python on the conformance corpus.
  *   3.4.0 - 2026-10-27: Full parity with Python validator 3.4.0:
  *           - Strict Records_Type counts for 105/105a (1) and 105db (2+).
  *           - Strict 105a primitives-only enforcement (reject array/object).
@@ -425,8 +426,8 @@ function bejson_validator_check_record_type_parent(doc, version) {
     }
     if (record.length !== expectedLen) {
       _state.addError(
-        `Record at 'Values' index ${i} has ${record.length} elements, but 'Fields' defines ${fields.length} fields` +
-        (VERSIONS_105.has(version) ? ` (+1 record_uuid cell for ${version}).` : '.'),
+        `[E_RECORD_LENGTH_MISMATCH] Record at 'Values' index ${i} has ${record.length} elements, expected ${expectedLen} ('Fields' defines ${fields.length} fields` +
+        (VERSIONS_105.has(version) ? ` + 1 record_uuid cell for ${version}).` : ').'),
         `Values[${i}]`
       );
       throw new BEJSONValidationError(`Length mismatch at ${i}`, E_RECORD_LENGTH_MISMATCH);

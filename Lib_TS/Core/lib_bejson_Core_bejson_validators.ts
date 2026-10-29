@@ -2,8 +2,8 @@
  * Library:        lib_bejson_Core_bejson_validators.ts
  * Family:         Core
  * Description:    Structural integrity checker for positional values and mandatory keys.
- * Version:        2.2.0
- * Date:           2026-09-25
+ * Version:        2.3.0
+ * Date:           2026-10-27
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
@@ -11,6 +11,16 @@
  * Release_Version: 300
  *
  * Changelog:
+ *   2.3.0 - 105<->104 parity (port of Python validator 3.4.0): 105-series now
+ *           enforces everything its 104 base enforces -- row length
+ *           (len(Fields)+1), value types (offset-aware, 105db included),
+ *           Records_Type count (105/105a exactly 1, 105db 2+), 105a
+ *           primitives-only, 105db Record_Type_Parent rules (first field,
+ *           per-field owner, discriminator at column 0), and the custom-header
+ *           rules (105/105db forbid, 105a allows). New exports
+ *           check105Values(), check105UuidFormat() (advisory warnings only),
+ *           valueTypeProblem(), rowColumn(). check105StrictIntegrity() now
+ *           includes check105Values(). 104-series behaviour unchanged.
  *   2.2.0 - REMOVED check105SchemaConstraints() and its wrapper/call site in
  *           validateDocument(), plus the now-unused E105/BEJSONValue imports,
  *           per Be25. check105StrictIntegrity() is untouched.
@@ -100,6 +110,8 @@ export function validateDocument(doc: unknown): ValidationResult {
     _checkValues(bej, result);
   } else {
     for (const e of _check105StrictIntegrity(bej)) _err(result, e.code, e.message);
+    for (const w of check105UuidFormat(bej)) _warn(result, E.INVALID_VALUES, w);
+    _check105Specific(bej, result);
   }
 
   // Step 6: version-specific rules. Unchanged for 104-series; 105-series
@@ -317,8 +329,8 @@ export function check105StrictIntegrity(doc: BEJSONDocument): { code: number; me
   const isMulti = _is105Multi(doc);
   const uuidCol = isMulti ? 1 : 0;
   const seenRecordUuids = new Set<string>();
-  doc.Values.forEach((row, i) => {
-    const ruuid = row[uuidCol];
+  (Array.isArray(doc.Values) ? doc.Values : []).forEach((row, i) => {
+    const ruuid = Array.isArray(row) ? row[uuidCol] : undefined;
     if (typeof ruuid !== "string" || !ruuid) {
       errors.push({ code: E.INVALID_VALUES, message: `row ${i} missing a valid record_uuid at index ${uuidCol}` });
     } else if (seenRecordUuids.has(ruuid)) {
@@ -335,7 +347,141 @@ export function check105StrictIntegrity(doc: BEJSONDocument): { code: number; me
     });
   }
 
+  errors.push(...check105Values(doc));
   return errors;
+}
+
+const MAX_SHAPE_ERRORS = 100; // cap row/type findings so a huge broken file cannot flood the result
+
+/** Single source of truth for value typing: null if val conforms to type (null always conforms), else 'expected X'. */
+export function valueTypeProblem(val: unknown, type: string): string | null {
+  if (val === null || val === undefined) return val === null ? null : "expected " + type + ", got undefined";
+  switch (type) {
+    case "string": return typeof val === "string" ? null : "expected string";
+    case "integer": return typeof val === "number" && Number.isInteger(val) ? null : "expected integer";
+    case "number": return typeof val === "number" ? null : (typeof val === "boolean" ? "expected number, got bool" : "expected number");
+    case "boolean": return typeof val === "boolean" ? null : "expected boolean";
+    case "array": return Array.isArray(val) ? null : "expected array";
+    case "object": return typeof val === "object" && !Array.isArray(val) ? null : "expected object";
+    default: return null;
+  }
+}
+
+/** Absolute Values-row column of Fields[fieldIdx]: i (104-series), i+1 (105/105a), 0 for 105db Fields[0] else i+1. */
+export function rowColumn(version: string, fieldIdx: number): number {
+  if (version === "105db") return fieldIdx === 0 ? 0 : fieldIdx + 1;
+  return fieldIdx + (version === "105" || version === "105a" ? 1 : 0);
+}
+
+/**
+ * 105-series mirror of _checkValues(): every row must be exactly len(Fields)+1
+ * cells (reserved record_uuid column) and every data cell must match its field
+ * type. Reports up to MAX_SHAPE_ERRORS findings (104 stops at the first).
+ */
+export function check105Values(doc: BEJSONDocument): { code: number; message: string }[] {
+  const errors: { code: number; message: string }[] = [];
+  if (!Array.isArray(doc.Values)) {
+    errors.push({ code: E.INVALID_VALUES_STRUCTURE, message: "Values must be an array." });
+    return errors;
+  }
+  const version = doc.Format_Version as string;
+  const expectedLen = doc.Fields.length + 1;
+  for (let i = 0; i < doc.Values.length; i++) {
+    if (errors.length >= MAX_SHAPE_ERRORS) {
+      errors.push({ code: E.RECORD_LENGTH_MISMATCH, message: "[E_RECORD_LENGTH_MISMATCH] further row/type findings suppressed after " + MAX_SHAPE_ERRORS });
+      break;
+    }
+    const row = doc.Values[i] as unknown;
+    if (!Array.isArray(row) || row.length !== expectedLen) {
+      const actual = Array.isArray(row) ? String(row.length) : typeof row;
+      errors.push({
+        code: E.RECORD_LENGTH_MISMATCH,
+        message: "[E_RECORD_LENGTH_MISMATCH] Length mismatch at row " + i + ": expected " + expectedLen +
+          " cells (record_uuid + " + (expectedLen - 1) + " fields), got " + actual,
+      });
+      continue;
+    }
+    for (let j = 0; j < doc.Fields.length; j++) {
+      const col = rowColumn(version, j);
+      const problem = valueTypeProblem(row[col], doc.Fields[j].type);
+      if (problem) {
+        errors.push({
+          code: E.VALUE_TYPE_MISMATCH,
+          message: "[E_TYPE_MISMATCH] Type mismatch at row " + i + ", col " + col + " (" + doc.Fields[j].name + "): " + problem,
+        });
+      }
+    }
+  }
+  return errors;
+}
+
+const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+/** Advisory only (returned as warnings, never errors): field_uuid / record_uuid that are not canonical lowercase UUIDv4. */
+export function check105UuidFormat(doc: BEJSONDocument): string[] {
+  const warnings: string[] = [];
+  for (const f of doc.Fields) {
+    const u = f && (f as BEJSONField).field_uuid;
+    if (typeof u === "string" && u && !UUID_V4_RE.test(u)) {
+      warnings.push("field_uuid " + JSON.stringify(u) + " on field " + JSON.stringify(f.name) + " is not a UUIDv4");
+    }
+  }
+  const uuidCol = doc.Format_Version === "105db" ? 1 : 0;
+  (Array.isArray(doc.Values) ? doc.Values : []).forEach((row, i) => {
+    if (Array.isArray(row) && row.length > uuidCol) {
+      const u = row[uuidCol];
+      if (typeof u === "string" && u && !UUID_V4_RE.test(u)) {
+        warnings.push("record_uuid " + JSON.stringify(u) + " at row " + i + " is not a UUIDv4");
+      }
+    }
+  });
+  return warnings;
+}
+
+/** 105-series mirrors of the 104/104a/104db version rules (Records_Type count, custom headers, 105a primitives, 105db RTP rules). */
+function _check105Specific(doc: BEJSONDocument, r: ValidationResult): void {
+  const v = doc.Format_Version as string;
+  const count = doc.Records_Type.length;
+  if (v === "105" || v === "105a") {
+    if (count !== 1) _err(r, E.INVALID_RECORDS_TYPE, "BEJSON " + v + " must have exactly 1 record type. Found " + count + ".", "Records_Type");
+  } else if (count < 2) {
+    _err(r, E.INVALID_RECORDS_TYPE, v + " requires 2+ types", "Records_Type");
+  }
+
+  if (v === "105" || v === "105db") {
+    for (const key of Object.keys(doc)) {
+      if (FORBIDDEN_CUSTOM_KEYS_104.has(key as typeof MANDATORY_KEYS[number]) || key === "Parent_Hierarchy" || key.startsWith("_")) continue;
+      _err(r, E.FORBIDDEN_CUSTOM_KEY, "Custom key \"" + key + "\" forbidden in " + v, key);
+    }
+  }
+
+  if (v === "105a") {
+    for (const field of doc.Fields) {
+      if (field.type === "array" || field.type === "object") {
+        _err(r, E.INVALID_FIELDS, "105a forbids complex type: " + field.type, field.name);
+      }
+    }
+  }
+
+  if (v === "105db") {
+    if (doc.Fields.length === 0 || doc.Fields[0].name !== "Record_Type_Parent") {
+      _err(r, E.INVALID_RECORD_TYPE_PARENT, "105db first field must be 'Record_Type_Parent'", "Fields");
+      return;
+    }
+    for (let i = 1; i < doc.Fields.length; i++) {
+      const f = doc.Fields[i];
+      if (!("Record_Type_Parent" in f)) {
+        _err(r, E.INVALID_RECORD_TYPE_PARENT, "Field '" + f.name + "' missing Record_Type_Parent in 105db", f.name);
+      }
+    }
+    const valid = new Set(doc.Records_Type);
+    (Array.isArray(doc.Values) ? doc.Values : []).forEach((row, i) => {
+      if (!Array.isArray(row) || row.length === 0) return;
+      if (!valid.has(row[0] as string)) {
+        _err(r, E.INVALID_RECORD_TYPE_PARENT, "Invalid Record_Type_Parent '" + row[0] + "' at row " + i, "Record_Type_Parent", i);
+      }
+    });
+  }
 }
 
 function _check105StrictIntegrity(doc: BEJSONDocument): { code: number; message: string }[] {
