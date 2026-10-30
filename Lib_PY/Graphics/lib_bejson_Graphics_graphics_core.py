@@ -36,37 +36,20 @@ for _fam in ('Core', 'Taxonomies', 'Tax_Scaffolds', 'Canvas', 'Graphics'):
     if os.path.isdir(_p) and _p not in sys.path:
         sys.path.insert(0, _p)
 
-try:
-    from lib_bejson_Graphics_graphics_schemas import (
-        GRAPHIC_CANVAS_CONFIG_FIELDS,
-        GRAPHIC_ROW_FRAME_FIELDS,
-        build_field_map_105,
-        create_graphic_stage_config_105a,
-        create_row_per_frame_animation_105a,
-        validate_graphic_105a_doc,
-    )
-    from lib_bejson_Graphics_graphics_canvas_templates import (
-        generate_blank_slate_html,
-        get_template_html,
-        instantiate_stage_file,
-        list_registered_templates,
-    )
-except ImportError:
-    # Direct relative imports when executing standalone inside family directory
-    from lib_bejson_graphics_schemas import (  # type: ignore
-        GRAPHIC_CANVAS_CONFIG_FIELDS,
-        GRAPHIC_ROW_FRAME_FIELDS,
-        build_field_map_105,
-        create_graphic_stage_config_105a,
-        create_row_per_frame_animation_105a,
-        validate_graphic_105a_doc,
-    )
-    from lib_bejson_graphics_canvas_templates import (  # type: ignore
-        generate_blank_slate_html,
-        get_template_html,
-        instantiate_stage_file,
-        list_registered_templates,
-    )
+from lib_bejson_Graphics_graphics_schemas import (
+    GRAPHIC_CANVAS_CONFIG_FIELDS,
+    GRAPHIC_ROW_FRAME_FIELDS,
+    build_field_map_105,
+    create_graphic_stage_config_105a,
+    create_row_per_frame_animation_105a,
+    validate_graphic_105a_doc,
+)
+from lib_bejson_Graphics_graphics_canvas_templates import (
+    generate_blank_slate_html,
+    get_template_html,
+    instantiate_stage_file,
+    list_registered_templates,
+)
 
 logger = logging.getLogger("lib_bejson_Graphics_graphics_core")
 VERSION = "1.0.0"

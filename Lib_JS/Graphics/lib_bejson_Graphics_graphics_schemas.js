@@ -106,7 +106,7 @@ function createGraphicStageConfig105a(options = {}) {
     Format: 'BEJSON',
     Format_Version: '105a',
     Format_Creator: 'Elton Boehnen',
-    Record_Type: ['GraphicCanvasConfig'],
+    Records_Type: ['GraphicCanvasConfig'],
     Fields: GRAPHIC_CANVAS_CONFIG_FIELDS.map(f => Object.assign({}, f)),
     Values: [row]
   };
@@ -163,7 +163,7 @@ function createRowPerFrameAnimation105a(options = {}) {
     Aspect_Ratio: options.aspect_ratio || '1:1',
     Canvas_Id: options.canvas_id || 'canvas_anim_01',
     Template_Name: options.template_name || 'blank_slate_stage.html',
-    Record_Type: ['GraphicFrameRecord'],
+    Records_Type: ['GraphicFrameRecord'],
     Fields: GRAPHIC_ROW_FRAME_FIELDS.map(f => Object.assign({}, f)),
     Values: valuesRows
   };

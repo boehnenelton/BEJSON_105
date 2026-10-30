@@ -60,7 +60,7 @@
       "Library_Changes",
       "data/library_changes.bejson",
       "Library change log, keyed by LIBRARY_FAMILY + LANGUAGE + LIBRARY_FILE",
-      116,
+      121,
       "2.2",
       null
     ],
@@ -68,7 +68,7 @@
       "Families",
       "data/families.bejson",
       "Registry of every family x language combo and whether it has an owned error registry file \u2014 feeds the Reports dropdown and future CLI tooling",
-      6,
+      12,
       "1.1",
       null
     ],

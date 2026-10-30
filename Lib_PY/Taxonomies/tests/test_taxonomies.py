@@ -117,6 +117,13 @@ class TestRegistry(TaxonomyTestBase):
         t = reg.bejson_taxonomies_get_taxonomy(self.m, "lattice")
         ok = reg.bejson_taxonomies_check_field_name
         self.assertEqual(ok(t, "lattice_node_label_name", "string"), [])
+        self.assertEqual(ok(t, "lattice_node_price_amount", "number"), [])
+        self.assertEqual(ok(t, "lattice_node_score_ratio", "number"), [])
+        self.assertEqual(ok(t, "lattice_node_birth_date", "string"), [])
+        self.assertEqual(ok(t, "lattice_node_run_duration", "number"), [])
+        self.assertEqual(ok(t, "lattice_node_content_hash", "string"), [])
+        self.assertEqual(ok(t, "lattice_node_payload_json", "string"), [])
+        self.assertEqual(ok(t, "lattice_node_tags_list", "array"), [])
         self.assertTrue(ok(t, "node_label_name", "string"))                 # prefix
         self.assertTrue(ok(t, "lattice_node_label_flag", "string"))         # type
         self.assertTrue(ok(t, "lattice_node_label_tag", "string"))          # unregistered suffix

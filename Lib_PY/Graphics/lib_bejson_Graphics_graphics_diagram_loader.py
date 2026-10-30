@@ -32,16 +32,10 @@ for _fam in ('Core', 'Taxonomies', 'Tax_Scaffolds', 'Canvas', 'Graphics'):
     if os.path.isdir(_p) and _p not in sys.path:
         sys.path.insert(0, _p)
 
-try:
-    from lib_bejson_Graphics_graphics_schemas import (
-        build_field_map_105,
-        create_row_per_frame_animation_105a,
-    )
-except ImportError:
-    from lib_bejson_graphics_schemas import (  # type: ignore
-        build_field_map_105,
-        create_row_per_frame_animation_105a,
-    )
+from lib_bejson_Graphics_graphics_schemas import (
+    build_field_map_105,
+    create_row_per_frame_animation_105a,
+)
 
 logger = logging.getLogger("lib_bejson_Graphics_graphics_diagram_loader")
 VERSION = "1.0.0"

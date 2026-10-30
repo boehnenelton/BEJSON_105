@@ -139,7 +139,7 @@ def create_canvas_config_105a(
         "Format": "BEJSON",
         "Format_Version": "105a",
         "Format_Creator": "Elton Boehnen",
-        "Record_Type": ["CanvasStudioConfig"],
+        "Records_Type": ["CanvasStudioConfig"],
         "Fields": [dict(f) for f in CANVAS_STUDIO_CONFIG_FIELDS],
         "Values": [values_row]
     }
@@ -178,7 +178,7 @@ def create_frame_sequence_105a(
         "Format": "BEJSON",
         "Format_Version": "105a",
         "Format_Creator": "Elton Boehnen",
-        "Record_Type": ["CanvasFrameSequence"],
+        "Records_Type": ["CanvasFrameSequence"],
         "Fields": [dict(f) for f in CANVAS_FRAME_SEQUENCE_FIELDS],
         "Values": values_rows
     }

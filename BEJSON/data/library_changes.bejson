@@ -840,6 +840,41 @@
       "lib_bejson_Core_bejson_errors.sh",
       "2026-10-16",
       "1.7.0: added E_CORE_PARSE_ERROR (17), SERIALIZATION_ERROR (18), NULL_DOCUMENT (19) and MFDB codes 57-60; registry now matches Python (66 codes)."
+    ],
+    [
+      "Taxonomies",
+      "PY",
+      "lib_bejson_Taxonomies_core.py",
+      "2026-10-30",
+      "3.1.0: Added 7 suffix-only rules (_amount, _ratio, _date, _duration, _hash, _json, _list) mapped to existing primitive/array BEJSON types and replaced positional row indexing in bejson_taxonomies_core_read_definition with O(1) field-map lookup."
+    ],
+    [
+      "Canvas",
+      "PY",
+      "lib_bejson_Canvas_canvas_schemas.py",
+      "2026-10-30",
+      "1.0.1: Fixed Record_Type -> Records_Type in 105a schema builders and removed lowercase forwarding stubs."
+    ],
+    [
+      "Canvas",
+      "JS",
+      "lib_bejson_Canvas_canvas_schemas.js",
+      "2026-10-30",
+      "1.0.1: Fixed Record_Type -> Records_Type in 105a schema builders and removed lowercase forwarding stubs."
+    ],
+    [
+      "Graphics",
+      "PY",
+      "lib_bejson_Graphics_graphics_schemas.py",
+      "2026-10-30",
+      "1.0.1: Standardized cased module names (lib_bejson_Graphics_*) and removed lowercase forwarding stubs."
+    ],
+    [
+      "Graphics",
+      "JS",
+      "lib_bejson_Graphics_graphics_schemas.js",
+      "2026-10-30",
+      "1.0.1: Fixed Record_Type -> Records_Type in 105a schema builders."
     ]
   ]
 }

@@ -2,9 +2,9 @@
 File Name : lib_bejson_Taxonomies_core.py
 Rel. Path : Lib_PY/Taxonomies/lib_bejson_Taxonomies_core.py
 Purpose   : Taxonomies CORE: everything that reads or writes the registry (constants and helpers, taxonomies, field_uuid ledger, schema builder, field-set writes). Checks live in _validator.
-VERSION   : 3.0.0
+VERSION   : 3.1.0
 Author    : Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID : d671ab3d-74ba-43d6-ba1e-be20de51bd3c
+RELATIONAL_ID : 5a9e2c14-8b73-4f10-9a35-1c4d8e20f115
 """
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ from lib_bejson_Core_mfdb_core import (  # noqa: E402
 )
 
 logger = logging.getLogger(__name__)
-VERSION = "3.0.0"
+VERSION = "3.1.0"
 
 # ---------------------------------------------------------------------------
 # Taxonomy constants
@@ -79,6 +79,13 @@ DEFAULT_SUFFIX_RULES: Dict[str, tuple] = {
     "_key":       ("string",  "natural identifier"),
     "_name":      ("string",  "display label"),
     "_kind":      ("string",  "enumerated value"),
+    "_amount":    ("number",  "monetary or decimal quantity"),
+    "_ratio":     ("number",  "fractional or normalized ratio"),
+    "_date":      ("string",  "ISO-8601 calendar date"),
+    "_duration":  ("number",  "elapsed time duration"),
+    "_hash":      ("string",  "cryptographic or content digest"),
+    "_json":      ("string",  "serialized JSON payload"),
+    "_list":      ("array",   "ordered collection of values"),
 }
 # ---------------------------------------------------------------------------
 # Registry entity + field names (the lattice data contract)
@@ -716,9 +723,22 @@ def bejson_taxonomies_core_read_definition(path: str) -> Dict[str, Any]:
     problems = _val().bejson_taxonomies_validator_check_definition_doc(doc)
     if problems:
         raise TaxonomyComplianceError(f"definition file {path} rejected", problems)
+    fm = bejson_core_get_field_map(doc)
     rows = doc["Values"]
-    return {"set_key": rows[0][0], "display_name": rows[0][1], "version": rows[0][2],
-            "members": [{"descriptor": r[3], "suffix": r[4], "field_type": r[5]} for r in rows]}
+    first = rows[0]
+    return {
+        "set_key": first[fm["lattice_defn_set_key"]],
+        "display_name": first[fm["lattice_defn_display_name"]],
+        "version": first[fm["lattice_defn_version_metric"]],
+        "members": [
+            {
+                "descriptor": r[fm["lattice_defn_descriptor_key"]],
+                "suffix": r[fm["lattice_defn_suffix_key"]],
+                "field_type": r[fm["lattice_defn_field_type_kind"]],
+            }
+            for r in rows
+        ],
+    }
 
 
 def _val():

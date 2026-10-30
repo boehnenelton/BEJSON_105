@@ -95,7 +95,7 @@ function createCanvasConfig105a(options = {}) {
     Format: 'BEJSON',
     Format_Version: '105a',
     Format_Creator: 'Elton Boehnen',
-    Record_Type: ['CanvasStudioConfig'],
+    Records_Type: ['CanvasStudioConfig'],
     Fields: CANVAS_STUDIO_CONFIG_FIELDS.map(f => ({ ...f })),
     Values: [valuesRow]
   };
@@ -129,7 +129,7 @@ function createFrameSequence105a(durationSec, fps, totalFrames = null, outputDir
     Format: 'BEJSON',
     Format_Version: '105a',
     Format_Creator: 'Elton Boehnen',
-    Record_Type: ['CanvasFrameSequence'],
+    Records_Type: ['CanvasFrameSequence'],
     Fields: CANVAS_FRAME_SEQUENCE_FIELDS.map(f => ({ ...f })),
     Values: valuesRows
   };

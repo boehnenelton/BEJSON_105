@@ -70,6 +70,48 @@
       "true",
       "Lib_PY/Standards",
       "Standardized BEJSON 104a logging sink (batched, PID-locked, row-capped, secure routing). Error block 250-269 in lib_bejson_Standards_errors.py. Python only; TS/Bash parity deferred."
+    ],
+    [
+      "Taxonomies",
+      "PY",
+      "false",
+      "Lib_PY/Taxonomies",
+      "Format 105 lattice taxonomy, suffix rules (including _amount, _ratio, _date, _duration, _hash, _json, _list), and field_uuid ledger."
+    ],
+    [
+      "Tax_Scaffolds",
+      "PY",
+      "false",
+      "Lib_PY/Tax_Scaffolds",
+      "Format 105 Z-space slot reservation, field-set grafting, and master/slave deployment scaffolding."
+    ],
+    [
+      "Canvas",
+      "PY",
+      "false",
+      "Lib_PY/Canvas",
+      "Format 105a SVG canvas studio configuration and frame sequence schemas."
+    ],
+    [
+      "Canvas",
+      "JS",
+      "false",
+      "Lib_JS/Canvas",
+      "Format 105a SVG canvas studio configuration and frame sequence schemas (JS parity)."
+    ],
+    [
+      "Graphics",
+      "PY",
+      "false",
+      "Lib_PY/Graphics",
+      "Format 105a blank-slate stages, row-per-frame animation ledgers, and multi-format export engine."
+    ],
+    [
+      "Graphics",
+      "JS",
+      "false",
+      "Lib_JS/Graphics",
+      "Format 105a blank-slate stages and row-per-frame animation ledgers (JS parity)."
     ]
   ]
 }

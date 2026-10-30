@@ -24,10 +24,10 @@
 | **GitHub** | [github.com/boehnenelton](https://github.com/boehnenelton) |
 | **Canonical Remote Repository** | [`https://github.com/boehnenelton/BEJSON_105`](https://github.com/boehnenelton/BEJSON_105) |
 | **Canonical Host Path** | `/storage/emulated/0/Admin/Libraries/libraries_105` (`$ADMIN_LIBRARIES_105`) |
-| **Project Version** | `5.2.0` (`VERSION = 50200`) |
-| **Package Version** | `104` (`PKG104`) |
+| **Project Version** | `5.8.0` (`VERSION = 50800`) |
+| **Package Version** | `111` (`PKG111`) |
 | **Release Version** | `301` (Integrity Era `libraries_105`) / `300` (Foundational Era `104` Core Parity) |
-| **Date Created / Updated** | `2026-10-18` |
+| **Date Created / Updated** | `2026-10-29` |
 | **RELATIONAL_ID** | `f84d91a2-7c3e-4b90-8a15-2d6e4f9c0b31` |
 
 ---
@@ -73,7 +73,7 @@
   - [5.6 MFDB-132 Single-File Chunked Containers (`.mfdb132.bejson`)](#56-mfdb-132-single-file-chunked-containers-mfdb132bejson)
   - [5.7 Self-Healing, Meta-Debug Telemetry & Schema Drift Detection](#57-self-healing-meta-debug-telemetry--schema-drift-detection)
 - [6. Atomic 104-to-105 Migration & Upgrade Engine](#6-atomic-104-to-105-migration--upgrade-engine)
-  - [6.1 Why `E95` / `E80` Fail-on-Switch Blocks Manual Re-Headering](#61-why-e95--e80-fail-on-switch-blocks-manual-re-headering)
+  - [6.1 Why `E80` Fail-on-Switch Blocks Manual Re-Headering](#61-why-e80-fail-on-switch-blocks-manual-re-headering)
   - [6.2 Six-Stage Atomic Upgrade Pipeline](#62-six-stage-atomic-upgrade-pipeline)
   - [6.3 CLI & Programmatic Upgrade Workflows](#63-cli--programmatic-upgrade-workflows)
 - [7. Multi-Language Runtime Usage Guides](#7-multi-language-runtime-usage-guides)
@@ -108,7 +108,7 @@
   - [10.3 MFDB Manifest, Entity & Archive Validation Codes (`30`–`42`)](#103-mfdb-manifest-entity--archive-validation-codes-3042)
   - [10.4 MFDB v1.40 Phase 6 Referential Integrity Codes (`39`, `43`–`47`)](#104-mfdb-v140-phase-6-referential-integrity-codes-39-4347)
   - [10.5 MFDB Core Operational & Mount Codes (`50`–`72`)](#105-mfdb-core-operational--mount-codes-5072)
-  - [10.6 Format `105` / `105a` / `105db` Integrity Era Codes (`80`–`85`, `E90`–`E95`)](#106-format-105--105a--105db-integrity-era-codes-8085-e90e95)
+  - [10.6 Format `105` / `105a` / `105db` Integrity Era Codes (`80`–`85`)](#106-format-105--105a--105db-integrity-era-codes-8085)
   - [10.7 Core Recursive Nesting & Query DSL Codes (`130`–`139`)](#107-core-recursive-nesting--query-dsl-codes-130139)
 - [11. Concurrency, Security & Cryptographic Architecture](#11-concurrency-security--cryptographic-architecture)
   - [11.1 `ResilientPIDLock` & Tombstone-Serialized Crash Recovery](#111-resilientpidlock--tombstone-serialized-crash-recovery)
@@ -184,12 +184,12 @@ By compiling an in-memory **O(1) Field-Map Cache** (`field_map["reading_c"] -> 3
 2. **Integrity Era Format `105` / `105a` / `105db`**:
    - Mandatory per-column `field_uuid` (UUIDv4) preventing silent column-rename or reorder corruption.
    - Reserved per-row `record_uuid` (UUIDv4) at index `0` (`105`/`105a`) or index `1` (`105db`, immediately after `Record_Type_Parent`), providing a stable primary-key anchor for every row.
-   - Strict **Fail-on-Switch Guard** (`E95` / `E80 E_FIELD_INTEGRITY_MISMATCH`) rejecting any `104` file manually re-headered to `105` without compiled UUIDs.
+   - Strict **Fail-on-Switch Guard** (`E80 E_FIELD_INTEGRITY_MISMATCH`) rejecting any `104` file manually re-headered to `105` without compiled UUIDs.
 3. **Provenance-Guarded O(1) Field-Map Caching**:
    - `104`-series documents use tamper-evident in-memory caches (`_FieldMap` in Python, `WeakMap` in JS/TS, SHA-256 digest files in Bash).
    - `105`-series documents maintain a tri-index cache (`{ by_name, by_uuid, by_name_row }`) that automatically accounts for the `+1` (`105`/`105a`) and `+2` (`105db`) row offsets.
 4. **MFDB v1.40 Phase 6 Cross-Entity Referential Integrity**:
-   - Declarative foreign keys (`fk_target_entity`, `fk_target_field_uuid`, `fk_on_delete`) on `105`-series fields.
+   - Declarative foreign keys (`fk_target_entity`, `fk_on_delete` referencing target entity `record_uuid`) on `105`-series fields.
    - Whole-database read-only referential integrity auditing (`mfdb_validator_check_referential_integrity` / `checkReferentialIntegrity`).
    - Transactional **Plan-Then-Commit** cascade deletion (`restrict`, `cascade`, `null`/`set_null`) with automatic multi-file byte-snapshot rollback if any downstream constraint or I/O operation fails.
 5. **Crash-Safe Concurrency & Atomic Persistence**:
@@ -217,11 +217,11 @@ Per architectural governance ([`clarification.md`](file:///storage/emulated/0/Ad
 | **Host Path** | `/storage/emulated/0/Admin/Libraries/libraries_104` | `/storage/emulated/0/Admin/Libraries/libraries_105` |
 | **Environment Variable** | `$ADMIN_LIBRARIES` / `$ADMIN_LIBRARIES_104` | `$ADMIN_LIBRARIES_105` |
 | **GitHub Repository** | [`github.com/boehnenelton/BEJSON_104`](https://github.com/boehnenelton/BEJSON_104) | [`github.com/boehnenelton/BEJSON_105`](https://github.com/boehnenelton/BEJSON_105) |
-| **Family Scope** | `Core` + **All Vertical Domain Families** (`AI`, `BEHTML`, `Bookmaker`, `CMS`, `Diagrams`, `Gaming`, `Lists`, `Terminal_Menus`, etc.) | **Strictly `Core`-Only** (`Lib_PY/Core`, `Lib_JS/Core` + `Lib_JS/External`, `Lib_TS/Core`, `Lib_SH/Core`, and `BEJSON/`) |
+| **Family Scope** | `Core` + **All Vertical Domain Families** (`AI`, `BEHTML`, `Bookmaker`, `CMS`, `Diagrams`, `Gaming`, `Lists`, `Standards`, `Terminal_Menus`, etc.) | **`Core`** (`Lib_PY/Core`, `Lib_JS/Core` + `Lib_JS/External`, `Lib_TS/Core`, `Lib_SH/Core`, `BEJSON/`) + sanctioned 105 families (`Standards`, `Taxonomies`, `Tax_Scaffolds`, `Canvas`, `Graphics`) |
 | **Supported Formats** | `104`, `104a`, `104db`, Nested `104`, `MFDB v1.31`/`v1.32`/`v1.39` | **All `104`-series formats** PLUS **`105`, `105a`, `105db`, and `MFDB v1.40` (Phase 6 Referential Integrity)** |
 
 > [!IMPORTANT]
-> **`Core`-Only Boundary in `libraries_105` (with one sanctioned exemption)**: The `Scaffold` and `Taxonomies` families are exempt per [`clarification.md`](file:///storage/emulated/0/Admin/Libraries/libraries_105/clarification.md) §1.3 and live in `libraries_105`. No other non-Core family is. Non-Core vertical domain families (`AI`, `Gaming`, `CMS`, `Lists`, `Diagrams`, `BEHTML`, `Bookmaker`, etc.) never reside in `libraries_105`. Applications that require vertical domain libraries alongside Format 105 Core capabilities load `Core` from `$ADMIN_LIBRARIES_105` and vertical families from `$ADMIN_LIBRARIES_104`.
+> **`Core` & Sanctioned Companion Families in `libraries_105`**: Alongside the 4-language `Core` engine and `Standards` (`Lib_PY`/`Lib_JS`), the `Taxonomies`, `Tax_Scaffolds`, `Canvas`, and `Graphics` families reside in `libraries_105`. Classic vertical domain families (`AI`, `Gaming`, `CMS`, `Lists`, `Diagrams`, `BEHTML`, `Bookmaker`, etc.) reside in `libraries_104` (`$ADMIN_LIBRARIES_104`). Applications that require classic vertical domain libraries alongside Format 105 Core capabilities load `Core` from `$ADMIN_LIBRARIES_105` and vertical families from `$ADMIN_LIBRARIES_104`.
 
 ### 2.2 104-Series Baseline Parity Inside `libraries_105`
 
@@ -244,8 +244,8 @@ While vertical families are excluded from `libraries_105`, the **104-series port
 │   │   └── metadata_governance_instructions.md
 │   └── data/
 │       ├── dependencies.bejson               # Cross-language module dependency graph (59 rows)
-│       ├── errors.bejson                     # Global error code registry mirror (278 rows)
-│       ├── families.bejson                   # Registered Core x Language families (5 rows)
+│       ├── errors.bejson                     # Global error code registry mirror (290 rows)
+│       ├── families.bejson                   # Registered Core/Standards x Language families (6 rows)
 │       ├── library_changes.bejson            # Granular per-file version audit log (116 rows)
 │       ├── metadata.bejson                   # Ecosystem version & governance rules (12 rows)
 │       ├── schemas.bejson                    # Canonical SCHEMA_* definitions (3 rows)
@@ -254,7 +254,7 @@ While vertical families are excluded from `libraries_105`, the **104-series port
 │   └── Core/
 │       ├── __init__.py
 │       ├── lib_bejson_Core_bejson_core.py            # 104 & 105 CRUD, ResilientPIDLock, Field Maps
-│       ├── lib_bejson_Core_bejson_validator.py       # 104 & 105 Validator (E01-E16, E80-E85, E95)
+│       ├── lib_bejson_Core_bejson_validator.py       # 104 & 105 Validator (E01-E16, E80-E85)
 │       ├── lib_bejson_Core_bejson_upgrade.py         # Atomic 104 -> 105 Upgrade Engine
 │       ├── lib_bejson_Core_bejson_core_nesting.py    # Recursive Nested 104 & Query DSL (E130-E139)
 │       ├── lib_bejson_Core_bejson_chunking.py        # Chunked-104a & MFDB-132 Container Engine
@@ -509,14 +509,13 @@ To prevent persisted files from carrying stale or forged runtime caches:
 
 Format `105` (the Integrity Era counterpart to `104`) and Format `105a` (the Integrity Era counterpart to `104a`) introduce **compile-time and runtime UUIDv4 identity** for both schema columns and data rows:
 
-1. **Per-Column `field_uuid`**: Every field dict in `Fields` **must** carry a valid, unique UUIDv4 string in `"field_uuid"` (`E80`/`E90` if missing or invalid; `E85`/`E91` if duplicated).
+1. **Per-Column `field_uuid`**: Every field dict in `Fields` **must** carry a valid, unique UUIDv4 string in `"field_uuid"` (`E80` if missing or invalid; `E85` if duplicated).
 2. **Reserved Row `record_uuid` at Column `0`**: Every row in `Values` prepends a unique UUIDv4 `record_uuid` at `row[0]`. Consequently:
    - `len(row) == len(Fields) + 1`.
    - User field `Fields[i]` resides at physical row index `i + 1`.
    - `bejson_core_get_field_map(doc)` returns `by_name_row`, mapping `Fields[i]["name"] -> i + 1` automatically so application code never performs manual `+ 1` index math!
-3. **Optional Foreign-Key Metadata**: Any field in a `105`-series document may declare relational foreign-key constraints via `bejson_core_define_field()`:
+3. **Optional Foreign-Key Metadata**: Any field in a `105`-series document may declare relational foreign-key constraints via `bejson_core_define_field()` referencing the target entity's reserved `record_uuid`:
    - `"fk_target_entity"`: Target entity name in the MFDB manifest.
-   - `"fk_target_field_uuid"`: Target column `field_uuid` (or `None` to reference the target entity's reserved `record_uuid`).
    - `"fk_on_delete"`: One of `"restrict"`, `"cascade"`, or `"null"` (`"set_null"`).
 
 ```json
@@ -537,7 +536,6 @@ Format `105` (the Integrity Era counterpart to `104`) and Format `105a` (the Int
       "type": "string",
       "field_uuid": "11111111-2222-4333-8444-555555555502",
       "fk_target_entity": "Customer",
-      "fk_target_field_uuid": null,
       "fk_on_delete": "cascade"
     },
     {
@@ -593,7 +591,7 @@ Format `105db` combines `104db`'s multi-entity discriminator architecture with `
 
 ### 3.9 Nested BEJSON `104` — Recursive Cell Embedding & Path Query DSL
 
-Consolidated directly into `Lib_{PY,JS,TS,SH}/Core/lib_bejson_Core_bejson_core_nesting.*`, Nested BEJSON `104` allows embedding complete BEJSON `104` documents inside `"object"`-typed cells of a parent `104` document:
+Consolidated directly into `Lib_{PY,JS,TS,SH}/Core/lib_bejson_Core_bejson_core_nesting.*`, Nested BEJSON `104` allows embedding complete BEJSON `104` documents as serialized JSON **strings** inside `"string"`-typed cells of a parent `104` document:
 
 - **Coordinate Addressing (`NestAddress`)**: Every nested document is uniquely addressed by `NestAddress(parent_path, row, col, depth)`, acting as an implicit physical foreign key without join tables.
 - **Depth Ceiling (`NESTING_MAX_DEPTH = 16`)**: Recursion beyond depth `16` is rejected with `E_NESTING_DEPTH_EXCEEDED` (`132`).
@@ -756,12 +754,11 @@ sequenceDiagram
 
 #### 5.4.1 Foreign Key Field Declaration (`_fk`)
 
-Foreign keys are declared on `105`-series fields using `bejson_core_define_field()` (Python) or `defineField()` (TypeScript):
+Foreign keys are declared on `105`-series fields using `bejson_core_define_field()` (Python) or `defineField()` (TypeScript) and always reference the parent entity's reserved `record_uuid`:
 
 | FK Attribute | Type | Description |
 | :--- | :--- | :--- |
-| `fk_target_entity` | `string` | Name of the parent entity registered in `104a.mfdb.bejson` (`E43` if unknown). |
-| `fk_target_field_uuid` | `string \| null` | `field_uuid` of the target column in the parent entity, or `null` to reference the parent entity's reserved `record_uuid`. |
+| `fk_target_entity` | `string` | Name of the parent entity registered in `104a.mfdb.bejson` (`E43` if unknown), referencing its reserved `record_uuid`. |
 | `fk_on_delete` | `string` | Action when the referenced parent row is deleted: `"restrict"` (block delete with `E44`), `"cascade"` (recursively delete child row), or `"null"` / `"set_null"` (set child FK cell to `null`). Invalid modes trigger `E47`. |
 
 #### 5.4.2 Advisory vs. Strict Enforcement (`Ref_Integrity`)
@@ -816,11 +813,11 @@ Implemented in `lib_bejson_Core_bejson_chunking.{py,js,ts,sh}` and `MFDB132Archi
 
 ## 6. Atomic 104-to-105 Migration & Upgrade Engine
 
-### 6.1 Why `E95` / `E80` Fail-on-Switch Blocks Manual Re-Headering
+### 6.1 Why `E80` Fail-on-Switch Blocks Manual Re-Headering
 
 Simply opening a `.104.bejson` file in a text editor and changing `"Format_Version": "104"` to `"105"` is a critical structural error: the file lacks `"field_uuid"` on its `Fields` definitions and lacks the reserved `record_uuid` column at `Values[row][0]` (or `Values[row][1]` for `105db`).
 
-The validator's **Fail-on-Switch Guard** (`bejson_validator_check_105_strict_integrity` / `check105StrictIntegrity`) immediately halts on manually re-headered files with `E_FIELD_INTEGRITY_MISMATCH` (`80` / `E90`–`E95`).
+The validator's **Fail-on-Switch Guard** (`bejson_validator_check_105_strict_integrity` / `check105StrictIntegrity`) immediately halts on manually re-headered files with `E_FIELD_INTEGRITY_MISMATCH` (`80`).
 
 ### 6.2 Six-Stage Atomic Upgrade Pipeline
 
@@ -948,13 +945,12 @@ base_doc = bejson_core_create_104(
 )
 doc_105 = bejson_core_upgrade_to_105(base_doc, "/tmp/invoices.105.bejson")
 
-# 2. Define a new Format 105 Foreign-Key field (appends to Fields & null-pads existing rows)
-fk_field_def = bejson_core_define_field(
+# 2. Define a new Format 105 Foreign-Key field (appends to Fields & null-pads existing rows; returns field_uuid)
+fk_field_uuid = bejson_core_define_field(
     doc_105,
     name="customer_uuid_fk",
     field_type="string",
     fk_target_entity="Customer",
-    fk_target_field_uuid=None,  # Targets Customer's reserved record_uuid
     fk_on_delete="cascade",
 )
 
@@ -1017,6 +1013,8 @@ from Lib_PY.Core.lib_bejson_Core_mfdb_validator import (
 )
 
 # 1. Enable Phase 6 Referential Integrity on an MFDB v1.40 manifest
+#    (Note: when creating a new MFDB v1.40 database with mfdb_core_create_database,
+#     pass mfdb_version="1.40" explicitly since the default is "1.31".)
 manifest_path = "/tmp/commerce_db/104a.mfdb.bejson"
 mfdb_core_enable_ref_integrity(manifest_path)
 
@@ -1104,7 +1102,7 @@ core.bejson_core_write_cell(
 );
 
 // 5. Validate in-memory object (checks E01-E16 + 105 strict integrity)
-const isValid = validator.bejson_validator_validate_object(doc105);
+const res = validator.bejson_validator_validate_object(doc105); // res.is_valid === true
 ```
 
 #### 7.2.2 MFDB v1.40 Operations & Cascade Deletes in Node.js / Browser
@@ -1159,7 +1157,6 @@ let doc105 = upgradeTo105(doc104);
 // 3. Add a Foreign Key field definition
 const defined = defineField(doc105, "site_uuid_fk", "string", {
   fk_target_entity: "Site",
-  fk_target_field_uuid: null,
   fk_on_delete: "restrict",
 });
 doc105 = defined.doc;
@@ -1272,7 +1269,7 @@ fi
 
 | Module File | Version | Key Public Classes & Functions |
 | :--- | :---: | :--- |
-| [`lib_bejson_Core_bejson_core.py`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_PY/Core/lib_bejson_Core_bejson_core.py) | `3.5.3` | `BEJSONCoreError`, `ResilientPIDLock`, `bejson_core_load_file(path)`, `bejson_core_load_string(content)`, `bejson_core_atomic_write(path, data)`, `bejson_core_acquire_lock(file_path, timeout)`, `bejson_core_release_lock(file_path)`, `bejson_core_strip_persisted_cache(doc)`, `bejson_core_field_map_is_fresh(doc)`, `bejson_core_get_field_map(doc)`, `bejson_core_get_field_index(doc, field_name)`, `bejson_core_create_104(record_type, fields, values)`, `bejson_core_create_104a(record_type, fields, values, **custom)`, `bejson_core_create_104db(record_types, fields, values)`, `bejson_core_get_record_count(doc)`, `bejson_core_add_record(doc, record)`, `bejson_core_remove_record(doc, index)`, `bejson_core_update_field(doc, row_index, field_name, value)`, `bejson_core_filter_rows(doc, field_name, value)`, `bejson_core_sort_by_field(doc, field_name, reverse)`, `bejson_core_transaction(doc)`, `bejson_core_serialize(doc)`, `bejson_core_resolve_field_index(doc, field_target)`, `bejson_core_write_cell(doc, record_uuid, field_target, new_value, expected_field_uuid)`, `bejson_core_define_field(doc, name, field_type, fk_target_entity, fk_target_field_uuid, fk_on_delete, field_uuid, record_type_parent)`, `bejson_core_add_field(doc, name, field_type)`, `bejson_core_add_record_105(doc, values)`, `bejson_core_remove_field(doc, field_target)`, `bejson_core_delete_record(doc, record_uuid)`, `bejson_core_verify_105_integrity(doc)` |
+| [`lib_bejson_Core_bejson_core.py`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_PY/Core/lib_bejson_Core_bejson_core.py) | `3.5.3` | `BEJSONCoreError`, `ResilientPIDLock`, `bejson_core_load_file(path)`, `bejson_core_load_string(content)`, `bejson_core_atomic_write(path, data)`, `bejson_core_acquire_lock(file_path, timeout)`, `bejson_core_release_lock(file_path)`, `bejson_core_strip_persisted_cache(doc)`, `bejson_core_field_map_is_fresh(doc)`, `bejson_core_get_field_map(doc)`, `bejson_core_get_field_index(doc, field_name)`, `bejson_core_create_104(record_type, fields, values)`, `bejson_core_create_104a(record_type, fields, values, **custom)`, `bejson_core_create_104db(record_types, fields, values)`, `bejson_core_get_record_count(doc)`, `bejson_core_add_record(doc, record)`, `bejson_core_remove_record(doc, index)`, `bejson_core_update_field(doc, row_index, field_name, value)`, `bejson_core_filter_rows(doc, field_name, value)`, `bejson_core_sort_by_field(doc, field_name, reverse)`, `bejson_core_transaction(doc)`, `bejson_core_serialize(doc)`, `bejson_core_resolve_field_index(doc, field_target)`, `bejson_core_write_cell(doc, record_uuid, field_target, new_value, expected_field_uuid)`, `bejson_core_define_field(doc, name, field_type, *, fk_target_entity, fk_on_delete)`, `bejson_core_add_field(doc, name, field_type)`, `bejson_core_add_record_105(doc, values)`, `bejson_core_remove_field(doc, field_target)`, `bejson_core_delete_record(doc, record_uuid)`, `bejson_core_verify_105_integrity(doc)` |
 | [`lib_bejson_Core_bejson_validator.py`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_PY/Core/lib_bejson_Core_bejson_validator.py) | `3.1.2` | `ValidationResult`, `validate_bejson(input_data, is_file)`, `bejson_validator_validate_file(file_path)`, `bejson_validator_validate_string(json_string)`, `bejson_validator_get_report(input_data, is_file)`, `bejson_validator_check_105_strict_integrity(doc)`, `bejson_validator_check_field_map_cache(doc, persisted)`, `bejson_validator_check_custom_headers(doc, version, persisted)` |
 | [`lib_bejson_Core_bejson_upgrade.py`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_PY/Core/lib_bejson_Core_bejson_upgrade.py) | `1.0.1` | `BEJSONUpgradeError`, `bejson_core_upgrade_to_105(doc_data, source_path)`, `bejson_core_upgrade_dry_run(doc_data, source_path)` |
 | [`lib_bejson_Core_mfdb_core.py`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_PY/Core/lib_bejson_Core_mfdb_core.py) | `3.0.3` | `MFDBCoreError`, `MFDBArchive`, `mfdb_core_discover(file_path)`, `mfdb_core_deep_verify(manifest_path)`, `mfdb_core_self_heal(manifest_path)`, `mfdb_core_smart_repair(manifest_path, error)`, `mfdb_core_load_manifest(manifest_path)`, `mfdb_core_load_entity(manifest_path, entity_name)`, `mfdb_core_get_entity_doc(manifest_path, entity_name)`, `mfdb_core_get_stats(manifest_path)`, `mfdb_core_query_entity(...)`, `mfdb_core_build_index(...)`, `mfdb_core_join(...)`, `mfdb_core_add_entity_record(...)`, `mfdb_core_remove_entity_record(...)`, `mfdb_core_update_entity_record(...)`, `mfdb_core_update_entity_record_bulk(...)`, `mfdb_core_sync_manifest_count(manifest_path, entity_name)`, `mfdb_core_sync_all_counts(manifest_path)`, `mfdb_core_create_entity_file(...)`, `mfdb_core_create_database(...)`, `mfdb_core_enable_ref_integrity(manifest_path)`, `mfdb_core_disable_ref_integrity(manifest_path)`, `mfdb_core_check_entity_droppable(manifest_path, entity_name)`, `mfdb_core_add_entity_record_105(manifest_path, entity_name, values, sync_count)`, `mfdb_core_update_entity_record_105(manifest_path, entity_name, record_uuid, field_target, new_value)`, `mfdb_core_delete_entity_record_105(manifest_path, entity_name, record_uuid, sync_count)`, `mfdb_core_create_connected_slave_entity(manifest_path)`, `mfdb_federation_push_config(...)`, `mfdb_federation_poll_dropzone(...)`, `mfdb_federation_distill_logs(...)`, `mfdb_core_enable_debug(...)`, `mfdb_core_disable_debug(...)`, `mfdb_core_get_debug_log(...)`, `mfdb_core_get_failed_ops(...)`, `mfdb_core_clear_debug_log(...)`, `mfdb_core_debug_summary(...)`, `mfdb_core_detect_schema_drift(manifest_path)` |
@@ -1296,9 +1293,9 @@ fi
 | Module File | Version | Key Public Functions |
 | :--- | :---: | :--- |
 | [`lib_bejson_Core_bejson_core.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_bejson_core.js) | `2.2.2` | `bejson_core_is_valid(doc)`, `bejson_core_get_version(doc)`, `bejson_core_get_stats(doc)`, `bejson_core_get_field_cache(doc)`, `bejson_core_get_field_map(doc)`, `bejson_core_get_field_index(doc, fieldName)`, `bejson_core_warm(doc)`, `bejson_core_clear_field_map_cache()`, `bejson_core_serialize(doc, indent)`, `bejson_core_find_row_by_uuid(doc, recordUuid)`, `bejson_core_resolve_field_index(doc, target)`, `bejson_core_write_cell(doc, recordUuid, fieldUuid, newValue, opts)`, `bejson_core_add_record_105(doc, values)`, `bejson_core_delete_record(doc, recordUuid)`, `clearKeyCache()` |
-| [`lib_bejson_Core_bejson_validator.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_bejson_validator.js) | `2.2.1` | `bejson_validator_validate_string(jsonString)`, `bejson_validator_validate_object(doc)`, `bejson_validator_validate_file(filePath)`, `bejson_validator_get_report(input, isFile)`, `bejson_validator_check_105_strict_integrity(doc)`, `bejson_validator_check_field_map_cache(doc, persisted)`, `bejson_validator_check_custom_headers(doc, version, persisted)` |
+| [`lib_bejson_Core_bejson_validator.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_bejson_validator.js) | `3.4.1` | `bejson_validator_validate_string(jsonString)`, `bejson_validator_validate_object(doc)`, `bejson_validator_validate_file(filePath)`, `bejson_validator_get_report(input, isFile)`, `bejson_validator_check_105_strict_integrity(doc)`, `bejson_validator_check_field_map_cache(doc, persisted)`, `bejson_validator_check_custom_headers(doc, version, persisted)` |
 | [`lib_bejson_Core_mfdb_core.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_mfdb_core.js) | `2.4.3` | `mfdb_core_create_manifest(dbName, options)`, `mfdb_core_register_entity(manifestPath, record)`, `mfdb_core_sync_count(manifestPath, entityName, overrideCount)`, `mfdb_core_sync_all_counts(manifestPath)`, `mfdb_core_init_entity_file(...)`, `mfdb_core_create_connected_slave_entity(manifestPath)`, `mfdb_federation_push_config(...)`, `mfdb_federation_poll_dropzone(...)`, `mfdb_federation_distill_logs(...)`, `mfdb_core_enable_debug(...)`, `mfdb_core_disable_debug(...)`, `mfdb_core_get_debug_log(...)`, `mfdb_core_get_failed_ops(...)`, `mfdb_core_clear_debug_log(...)`, `mfdb_core_debug_summary(...)`, `mfdb_core_detect_schema_drift(...)`, `mfdb_core_enable_ref_integrity(manifestPath)`, `mfdb_core_disable_ref_integrity(manifestPath)`, `mfdb_core_is_ref_integrity_enabled(manifestPath)`, `mfdb_core_check_fk_write(manifestPath, fromEntity, fkField, value)`, `mfdb_core_find_referencing_rows(manifestPath, targetEntity, targetUuid)`, `mfdb_core_check_entity_droppable(manifestPath, entityName)`, `mfdb_core_add_entity_record_105(manifestPath, entityName, values, syncCount)`, `mfdb_core_update_entity_record_105(manifestPath, entityName, recordUuid, fieldName, newValue)`, `mfdb_core_delete_entity_record_105(manifestPath, entityName, recordUuid, syncCount)` |
-| [`lib_bejson_Core_mfdb_validator.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_mfdb_validator.js) | `2.2.0` | `mfdb_validator_validate_archive(archivePath)`, `mfdb_validator_validate_manifest(manifestPath)`, `mfdb_validator_validate_entity_file(entityPath, checkBidirectional)`, `mfdb_validator_validate_database(manifestPath, strictFk)`, `mfdb_validator_get_report(manifestPath, strictFk)`, `mfdb_validator_is_mfdb132_package(doc)`, `mfdb_validator_validate_mfdb132_package(doc)`, `mfdb_validator_detect_mfdb_in_chunk(doc)` |
+| [`lib_bejson_Core_mfdb_validator.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_mfdb_validator.js) | `2.1.5` | `mfdb_validator_validate_archive(archivePath)`, `mfdb_validator_validate_manifest(manifestPath)`, `mfdb_validator_validate_entity_file(entityPath, checkBidirectional)`, `mfdb_validator_validate_database(manifestPath, strictFk)`, `mfdb_validator_get_report(manifestPath, strictFk)`, `mfdb_validator_is_mfdb132_package(doc)`, `mfdb_validator_validate_mfdb132_package(doc)`, `mfdb_validator_detect_mfdb_in_chunk(doc)` |
 | [`lib_bejson_Core_bejson_core_nesting.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_bejson_core_nesting.js) | `0.6.0` | `bejsonNestingScan(doc, useCache)`, `bejsonNestingMutate(parentDoc, nestedCell, mutationFn)`, `bejsonNestingGetFieldMap(nestedCell)`, `bejsonNestingFlatten(result)`, `bejsonNestingGetColumn(result, col)`, `bejsonNestingSummary(result)`, `bejsonNestingQuery(doc, path, matchValue)`, `bejsonNestingGetPath(doc, path, defaultValue)`, `bejsonNestingQuerySummary(matches)` |
 | [`lib_bejson_Core_bejson_chunking.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_bejson_chunking.js) | `1.8.1` | `bejsonCoreChunkingCreateChunked104(...)`, `bejsonCoreChunkingUnchunkChunked104(doc, outputDir)`, `bejsonCoreChunkingCreateMfdb132Package(...)`, `bejsonCoreChunkingUnchunkMfdb132Package(doc, outputDir)`, `bejsonCoreChunkingMfdbUnchunk(...)` |
 | [`lib_bejson_Core_bejson_secure_zip.js`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_JS/Core/lib_bejson_Core_bejson_secure_zip.js) | `1.1.0` | `secure_zip_validate(zip, targetDir)` |
@@ -1312,12 +1309,12 @@ fi
 
 | Module File | Version | Key Exported Functions, Classes & Interfaces |
 | :--- | :---: | :--- |
-| [`lib_bejson_Core_bejson_core_105.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_core_105.ts) | `1.0.2` | `resolveFieldIndex(doc, target)`, `writeCell(doc, recordUuid, fieldTarget, newValue, expectedFieldUuid)`, `defineField(doc, name, fieldType, opts)`, `addRecord105(doc, values)`, `removeField(doc, target)`, `deleteRecord105(doc, recordUuid)`, `verify105Integrity(doc)`, `upgradeTo105(doc)`, `FieldTarget`, `DefineFieldOptions`, `Integrity105Report` |
+| [`lib_bejson_Core_bejson_core_105.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_core_105.ts) | `1.4.0` | `resolveFieldIndex(doc, target)`, `writeCell(doc, recordUuid, fieldTarget, newValue, expectedFieldUuid)`, `defineField(doc, name, fieldType, opts)`, `addRecord105(doc, values)`, `removeField(doc, target)`, `deleteRecord105(doc, recordUuid)`, `verify105Integrity(doc)`, `upgradeTo105(doc)`, `FieldTarget`, `DefineFieldOptions`, `Integrity105Report` |
 | [`lib_bejson_Core_bejson_field_map.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_field_map.ts) | `1.1.1` | `bejson_core_get_field_map(doc)`, `bejson_core_get_field_index(doc, fieldName)`, `bejson_core_get_field_map_105(doc)`, `bejson_core_get_field_cache`, `bejson_core_warm(doc)`, `bejson_core_clear_field_map_cache()`, `FieldMap`, `FieldMap105` |
-| [`lib_bejson_Core_bejson_core.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_core.ts) | `2.3.1` | `parse(text)`, `serialize(doc, indent)`, `getFieldIndex(doc, name)`, `getFieldNames(doc)`, `getFields(doc)`, `getRecord(doc, index)`, `getAllRecords(doc)`, `getFieldValue(doc, rowIndex, fieldName)`, `getRecordCount(doc)`, `createEmpty104(...)`, `createEmpty104a(...)`, `createEmpty104db(...)`, `getRecordsByType(doc, recordType)`, `appendRecord(doc, row)`, `updateRecord(doc, index, row)`, `deleteRecord(doc, index)`, `setFieldValue(doc, rowIndex, fieldName, value)`, `deriveKey(password, salt)`, `clearKeyCache()`, `encryptRecord(...)`, `decryptRecord(...)` |
-| [`lib_bejson_Core_bejson_validators.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_validators.ts) | `2.2.1` | `validateDocument(doc, opts)`, `validate104(doc)`, `validate104a(doc)`, `validate104db(doc)`, `assertValid(doc)`, `isValid(doc)`, `check105StrictIntegrity(doc)` |
+| [`lib_bejson_Core_bejson_core.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_core.ts) | `2.3.0` | `parse(text)`, `serialize(doc, indent)`, `getFieldIndex(doc, name)`, `getFieldNames(doc)`, `getFields(doc)`, `getRecord(doc, index)`, `getAllRecords(doc)`, `getFieldValue(doc, rowIndex, fieldName)`, `getRecordCount(doc)`, `createEmpty104(...)`, `createEmpty104a(...)`, `createEmpty104db(...)`, `getRecordsByType(doc, recordType)`, `appendRecord(doc, row)`, `updateRecord(doc, index, row)`, `deleteRecord(doc, index)`, `setFieldValue(doc, rowIndex, fieldName, value)`, `deriveKey(password, salt)`, `clearKeyCache()`, `encryptRecord(...)`, `decryptRecord(...)` |
+| [`lib_bejson_Core_bejson_validators.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_validators.ts) | `2.3.0` | `validateDocument(doc, opts)`, `validate104(doc)`, `validate104a(doc)`, `validate104db(doc)`, `assertValid(doc)`, `isValid(doc)`, `check105StrictIntegrity(doc)` |
 | [`lib_bejson_Core_mfdb_core.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_mfdb_core.ts) | `2.3.4` | `createManifest(opts)`, `registerEntity(manifest, record)`, `unregisterEntity(manifest, entityName)`, `syncRecordCount(manifest, entityName, count)`, `createConnectedSlaveEntity(manifest)`, `federationPushConfig(...)`, `federationPollDropzone(...)`, `federationDistillLogs(...)`, `enableDebug(...)`, `disableDebug(...)`, `getDebugLog(...)`, `getFailedOps(...)`, `clearDebugLog(...)`, `debugSummary(...)`, `detectSchemaDrift(...)`, `enableRefIntegrity(manifest)`, `disableRefIntegrity(manifest)`, `isRefIntegrityEnabled(manifest)`, `checkFKWrite(manifest, entities, fromEntity, fkField, value)`, `checkEntityDroppable(manifest, entities, targetEntity)`, `resolveDeleteDependents(manifest, entities, targetEntity, targetRecordUuid)` |
-| [`lib_bejson_Core_mfdb_validators.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_mfdb_validators.ts) | `2.2.1` | `discoverRole(doc, filename)`, `validateManifest(doc, opts)`, `validateEntityFile(doc, opts)`, `validateDatabase(manifest, entities, opts)`, `checkReferentialIntegrity(manifest, entities)`, `decodeManifestRecords(manifest)`, `decodeDatabaseMeta(manifest)`, `isMfdb132Package(doc)`, `validateMfdb132Package(doc)`, `detectMfdbInChunk(doc)` |
+| [`lib_bejson_Core_mfdb_validators.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_mfdb_validators.ts) | `2.3.0` | `discoverRole(doc, filename)`, `validateManifest(doc, opts)`, `validateEntityFile(doc, opts)`, `validateDatabase(manifest, entities, opts)`, `checkReferentialIntegrity(manifest, entities)`, `decodeManifestRecords(manifest)`, `decodeDatabaseMeta(manifest)`, `isMfdb132Package(doc)`, `validateMfdb132Package(doc)`, `detectMfdbInChunk(doc)` |
 | [`lib_bejson_Core_bejson_core_nesting.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_core_nesting.ts) | `0.6.0` | `bejson_nesting_scan(doc, useCache)`, `bejson_nesting_mutate(...)`, `bejson_nesting_get_field_map(cell)`, `bejson_nesting_flatten(result)`, `bejson_nesting_get_column(result, col)`, `bejson_nesting_summary(result)`, `bejson_nesting_query(doc, path, matchValue)`, `bejson_nesting_get_path(doc, path, defaultValue)`, `bejson_nesting_query_summary(matches)` |
 | [`lib_bejson_Core_bejson_types.ts`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_TS/Core/lib_bejson_Core_bejson_types.ts) | `2.5.0` | `BEJSONDocument`, `BEJSONField`, `ValidationResult`, `BEJSON_VALIDATION_CODES`, `BEJSON_CORE_CODES`, `MFDB_VALIDATION_CODES`, `MFDB_CORE_CODES`, `FORMAT_105_CODES`, `CORE_NESTING_ERRORS` |
 
@@ -1327,10 +1324,10 @@ fi
 
 | Module File | Version | Key Public Shell Functions |
 | :--- | :---: | :--- |
-| [`lib_bejson_Core_bejson_core.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_bejson_core.sh) | `2.2.1` | `bejson_core_atomic_write <path> <json_content>`, `resilient_lock_acquire <file_path> [timeout]`, `resilient_lock_release <file_path>`, `bejson_core_load_file <file_path>`, `bejson_core_get_field_index <json_str> <field_name>`, `bejson_core_get_field_index_file <file_path> <field_name>`, `bejson_core_get_field_map <file_path>`, `bejson_core_invalidate_field_map_file <file_path>`, `bejson_core_clear_field_map_cache`, `bejson_core_get_record_count <file_path>`, `bejson_core_add_record <file_path> <row_json>`, `bejson_core_remove_record <file_path> <row_idx>`, `bejson_core_update_field <file_path> <row_idx> <field_name> <val_json>`, `bejson_core_filter_rows <file_path> <field_name> <val_json>`, `bejson_core_sort_by_field <file_path> <field_name> [reverse]` |
-| [`lib_bejson_Core_bejson_validator.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_bejson_validator.sh) | `2.3.0` | `bejson_validator_validate_file <file_path>`, `bejson_validator_check_dependencies`, `bejson_validator_has_errors`, `bejson_validator_get_errors`, `bejson_validator_reset_state` |
+| [`lib_bejson_Core_bejson_core.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_bejson_core.sh) | `2.2.0` | `bejson_core_atomic_write <path> <json_content>`, `resilient_lock_acquire <file_path> [timeout]`, `resilient_lock_release <file_path>`, `bejson_core_load_file <file_path>`, `bejson_core_get_field_index <json_str> <field_name>`, `bejson_core_get_field_index_file <file_path> <field_name>`, `bejson_core_get_field_map <file_path>`, `bejson_core_invalidate_field_map_file <file_path>`, `bejson_core_clear_field_map_cache`, `bejson_core_get_record_count <file_path>`, `bejson_core_add_record <file_path> <row_json>`, `bejson_core_remove_record <file_path> <row_idx>`, `bejson_core_update_field <file_path> <row_idx> <field_name> <val_json>`, `bejson_core_filter_rows <file_path> <field_name> <val_json>`, `bejson_core_sort_by_field <file_path> <field_name> [reverse]` |
+| [`lib_bejson_Core_bejson_validator.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_bejson_validator.sh) | `2.5.0` | `bejson_validator_validate_file <file_path>`, `bejson_validator_check_dependencies`, `bejson_validator_has_errors`, `bejson_validator_get_errors`, `bejson_validator_reset_state` |
 | [`lib_bejson_Core_mfdb_core.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_mfdb_core.sh) | `2.3.1` | `mfdb_core_discover <path>`, `mfdb_core_load_manifest <manifest_path>`, `mfdb_core_list_entities <manifest_path>`, `mfdb_core_load_entity <manifest_path> <entity_name>`, `mfdb_core_get_entity_path <manifest_path> <entity_name>`, `mfdb_core_get_stats <manifest_path>`, `mfdb_core_add_entity_record <manifest_path> <entity_name> <row_json>`, `mfdb_core_remove_entity_record <manifest_path> <entity_name> <row_idx>`, `mfdb_core_sync_manifest_count <manifest_path> <entity_name>`, `mfdb_core_sync_all_counts <manifest_path>`, `mfdb_core_create_entity_file ...`, `mfdb_core_create_database ...`, `mfdb_core_enable_ref_integrity <manifest_path>`, `mfdb_core_disable_ref_integrity <manifest_path>`, `mfdb_core_is_ref_integrity_enabled <manifest_path>`, `mfdb_core_check_fk_write <manifest_path> <from_entity> <fk_field> <val>`, `mfdb_core_find_referencing_rows <manifest_path> <target_entity> <target_uuid>`, `mfdb_core_check_entity_droppable <manifest_path> <entity_name>`, `mfdb_core_add_entity_record_105 <manifest_path> <entity_name> <values_json>`, `mfdb_core_update_entity_record_105 <manifest_path> <entity_name> <record_uuid> <field_name> <new_val_json>`, `mfdb_core_delete_entity_record_105 <manifest_path> <entity_name> <record_uuid>`, `mfdb_archive_mount`, `mfdb_archive_commit`, `mfdb_archive_unmount` |
-| [`lib_bejson_Core_mfdb_validator.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_mfdb_validator.sh) | `2.3.1` | `mfdb_validator_validate_manifest <manifest_path>`, `mfdb_validator_validate_entity_file <entity_path> [check_bidir]`, `mfdb_validator_validate_database <manifest_path> [strict_fk]`, `mfdb_validator_check_referential_integrity <manifest_path>`, `mfdb_validator_validate_archive <archive_path>`, `mfdb_validator_is_mfdb132_package <file_path>`, `mfdb_validator_validate_mfdb132_package <file_path>`, `mfdb_validator_detect_mfdb_in_chunk <file_path>` |
+| [`lib_bejson_Core_mfdb_validator.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_mfdb_validator.sh) | `2.4.0` | `mfdb_validator_validate_manifest <manifest_path>`, `mfdb_validator_validate_entity_file <entity_path> [check_bidir]`, `mfdb_validator_validate_database <manifest_path> [strict_fk]`, `mfdb_validator_check_referential_integrity <manifest_path>`, `mfdb_validator_validate_archive <archive_path>`, `mfdb_validator_is_mfdb132_package <file_path>`, `mfdb_validator_validate_mfdb132_package <file_path>`, `mfdb_validator_detect_mfdb_in_chunk <file_path>` |
 | [`lib_bejson_Core_bejson_core_nesting.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_bejson_core_nesting.sh) | `0.6.0` | `bejson_nesting_scan <doc_json>`, `bejson_nesting_mutate <doc_json> <row> <col> <jq_expr>`, `bejson_nesting_summary <scan_json>`, `bejson_nesting_query <doc_json> <path> [match_val]`, `bejson_nesting_get_path <doc_json> <path>`, `bejson_nesting_query_summary <matches_json>` |
 | [`lib_bejson_Core_bejson_chunking.sh`](file:///storage/emulated/0/Admin/Libraries/libraries_105/Lib_SH/Core/lib_bejson_Core_bejson_chunking.sh) | `1.6.0` | `bejson_core_chunking_create_chunked_104`, `bejson_core_chunking_unchunk_chunked_104`, `bejson_core_chunking_create_mfdb132_package`, `bejson_core_chunking_unchunk_mfdb132_package`, `mfdb132_archive_mount`, `mfdb132_archive_commit`, `mfdb132_archive_resurrect_file`, `mfdb132_archive_unmount` |
 
@@ -1359,10 +1356,10 @@ The `libraries_105` repository eats its own dogfood: the `BEJSON/` directory at 
 
 | Entity Name | Relative File Path | Record Count | Schema Version | Purpose & Column Structure |
 | :--- | :--- | :---: | :---: | :--- |
-| **`Errors`** | [`data/errors.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/errors.bejson) | `278` | `2.2` | Cross-family error code registry (`LIBRARY_FAMILY`, `LANGUAGE`, `ERROR_CODE`, `CONSTANT_NAME`, `DESCRIPTION`, `SOURCE_FILE`). Used to prevent error code collisions before allocating new ranges. |
+| **`Errors`** | [`data/errors.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/errors.bejson) | `290` | `2.2` | Cross-family error code registry (`LIBRARY_FAMILY`, `LANGUAGE`, `ERROR_CODE`, `CONSTANT_NAME`, `DESCRIPTION`, `SOURCE_FILE`). Used to prevent error code collisions before allocating new ranges. |
 | **`Metadata`** | [`data/metadata.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/metadata.bejson) | `12` | `3.3` | EAV-style ecosystem version and governance rules table (`RECORD_TYPE`, `LIBRARY_FAMILY`, `LANGUAGE`, `KEY`, `VALUE`, `NOTES`). Encodes `LANGUAGE_PARITY_REQUIRED`, `MFDB_IS_PART_OF_CORE`, and `BEJSON_ACRONYM_DEFINITION`. |
-| **`Library_Changes`** | [`data/library_changes.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/library_changes.bejson) | `116` | `2.2` | Granular per-file version history (`LIBRARY_FAMILY`, `LANGUAGE`, `LIBRARY_FILE`, `VERSION`, `DATE`, `AUTHOR`, `RELATIONAL_ID`, `CHANGE_SUMMARY`). |
-| **`Families`** | [`data/families.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/families.bejson) | `5` | `1.1` | Registry of `Core` across `PY`, `JS`, `TS`, `SH` plus `External` (`JS`), tracking `HAS_ERRORS_FILE` and `FOLDER_PATH`. |
+| **`Library_Changes`** | [`data/library_changes.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/library_changes.bejson) | `121` | `2.2` | Granular per-file version history (`LIBRARY_FAMILY`, `LANGUAGE`, `LIBRARY_FILE`, `CHANGE_DATE`, `CHANGE_DETAILS`). |
+| **`Families`** | [`data/families.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/families.bejson) | `12` | `1.1` | Registry of `Core` across `PY`, `JS`, `TS`, `SH` plus `External` (`JS`), `Standards` (`PY`), `Taxonomies` (`PY`), `Tax_Scaffolds` (`PY`), `Canvas` (`PY`, `JS`), and `Graphics` (`PY`, `JS`), tracking `HAS_ERRORS_FILE` and `FOLDER_PATH`. |
 | **`Dependencies`** | [`data/dependencies.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/dependencies.bejson) | `59` | `1.1` | Directed graph of `import`, `require`, and `source` edges between library files (`SOURCE_FAMILY`, `SOURCE_LANG`, `SOURCE_FILE`, `TARGET_FAMILY`, `TARGET_LANG`, `TARGET_FILE`, `DEPENDENCY_TYPE`). |
 | **`Templates`** | [`data/templates.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/templates.bejson) | `6` | `1.0` | Canonical file-header formats per language and skeleton templates for new module/MFDB scaffolding. |
 | **`Schemas`** | [`data/schemas.bejson`](file:///storage/emulated/0/Admin/Libraries/libraries_105/BEJSON/data/schemas.bejson) | `3` | `1.0` | Centralized `SCHEMA_*` definitions mirrored for schema conformance auditing. |
@@ -1433,7 +1430,7 @@ All four languages (`Lib_PY`, `Lib_JS`, `Lib_TS`, `Lib_SH`) enforce a unified nu
 
 | Code | Constant Name | Trigger Condition |
 | :---: | :--- | :--- |
-| `39` | `E_MFDB_FK_UNRESOLVED` | A foreign-key column value does not match any existing target `record_uuid` (or `fk_target_field_uuid` value) in `fk_target_entity`. |
+| `39` | `E_MFDB_FK_UNRESOLVED` | A foreign-key column value does not match any existing target `record_uuid` in `fk_target_entity`. |
 | `43` | `E_MFDB_FK_TARGET_ENTITY_UNKNOWN` | A field's `fk_target_entity` names an entity that is not registered in `104a.mfdb.bejson`. |
 | `44` | `E_MFDB_FK_RESTRICT_VIOLATION` | Deletion of a parent record blocked because at least one child record references it via an FK with `fk_on_delete: "restrict"`. |
 | `45` | `E_MFDB_FK_CASCADE_CYCLE` | Recursive cascade delete walk encountered a cycle (revisited an already-visited `(entity, record_uuid)` pair). |
@@ -1459,16 +1456,18 @@ All four languages (`Lib_PY`, `Lib_JS`, `Lib_TS`, `Lib_SH`) enforce a unified nu
 | `71` | `E_MFDB_CORE_MOUNT_CONFLICT` | Workspace `.mfdb132_lock` conflict with a different active package hash. |
 | `72` | `E_MFDB_CORE_CREATE_FAILED` | Failed to scaffold new MFDB database directory or initial manifest. |
 
-### 10.6 Format `105` / `105a` / `105db` Integrity Era Codes (`80`–`85`, `E90`–`E95`)
+### 10.6 Format `105` / `105a` / `105db` Integrity Era Codes (`80`–`85`)
 
-| Code | Constant Name | Spec Alias | Trigger Condition |
-| :---: | :--- | :---: | :--- |
-| `80` | `E_FIELD_INTEGRITY_MISMATCH` | `E90`–`E95` | Format `105`/`105a`/`105db` strict integrity failure: missing/invalid `field_uuid` (`E90`), missing/invalid/duplicate `record_uuid` (`E92`/`E93`), `(name, field_uuid)` target disagreement, or **Fail-on-Switch (`E95`)** when a `104` file is re-headered to `105` without compiled UUIDs. |
-| `81` | `E_FORMAT_UNSUPPORTED` | — | A `105`-only function (`add_record_105`, `write_cell`, `define_field`, `upgrade_to_105`) was called on an incompatible `Format_Version`. |
-| `82` | `E_RECORD_NOT_FOUND` | — | Target `record_uuid` does not exist in `Values`. |
-| `83` | `E_UPGRADE_VALIDATION_FAILED` | — | `bejson_core_upgrade_to_105` pre-check or post-upgrade strict integrity verification failed. |
-| `84` | `E_DUPLICATE_FIELD_NAME` | — | `bejson_core_add_field` / `bejson_core_define_field` called with a field `"name"` already present in `Fields`. |
-| `85` | `E_DUPLICATE_FIELD_UUID` | `E91` | Duplicate `"field_uuid"` detected across two or more fields in `Fields`. |
+*(Note: Codes `80`–`85` are the canonical Format `105` error codes implemented across all four runtimes; codes `86`–`114` are unallocated in `errors.bejson`.)*
+
+| Code | Constant Name | Trigger Condition |
+| :---: | :--- | :--- |
+| `80` | `E_FIELD_INTEGRITY_MISMATCH` | Format `105`/`105a`/`105db` strict integrity failure: missing/invalid `field_uuid`, missing/invalid/duplicate `record_uuid`, `(name, field_uuid)` target disagreement, or **Fail-on-Switch** when a `104` file is re-headered to `105` without compiled UUIDs. |
+| `81` | `E_FORMAT_UNSUPPORTED` | A `105`-only function (`add_record_105`, `write_cell`, `define_field`, `upgrade_to_105`) was called on an incompatible `Format_Version`. |
+| `82` | `E_RECORD_NOT_FOUND` | Target `record_uuid` does not exist in `Values`. |
+| `83` | `E_UPGRADE_VALIDATION_FAILED` | `bejson_core_upgrade_to_105` pre-check or post-upgrade strict integrity verification failed. |
+| `84` | `E_DUPLICATE_FIELD_NAME` | `bejson_core_add_field` / `bejson_core_define_field` called with a field `"name"` already present in `Fields`. |
+| `85` | `E_DUPLICATE_FIELD_UUID` | Duplicate `"field_uuid"` detected across two or more fields in `Fields`. |
 
 ### 10.7 Core Recursive Nesting & Query DSL Codes (`130`–`139`)
 
@@ -1565,7 +1564,7 @@ Projects built on `libraries_105` with a canonical schema registry (`schema_regi
 2. **Manifest Integrity Test**: Verifies primary keys, `record_count` synchronization, bidirectional `Parent_Hierarchy` links, and `checkReferentialIntegrity`.
 3. **Round-Trip Test**: Write -> Read Back -> Verify across all 104/105 entity tables.
 4. **Lifecycle Smoke Test**: Factory Reset -> Seed via Owning Writers -> Create -> Verify across all views/queries.
-5. **Post-Reset Test**: Verifies zero null rows, zero duplicate UUIDs (`E91`/`E93`), and exact seed record counts.
+5. **Post-Reset Test**: Verifies zero null rows, zero duplicate UUIDs (`E80`/`E85`), and exact seed record counts.
 
 ---
 
@@ -1598,7 +1597,7 @@ When operating with the Antigravity CLI (`agy`), specialized skills under the **
 | **`template-105-template`** | `L4` | `$ADMIN_LIBRARIES_105` | Scaffolds zero-filler `105`/`105a`/`105db` data files and `105` owning writers |
 | **`bejson-105-core`** | `L5` | `$ADMIN_LIBRARIES_105` | Runtime CRUD on `105`/`105a`/`105db` documents (`field_uuid`, `record_uuid`, `by_name_row`) |
 | **`bejson-105-upgrade-automator`** | `L5` | `$ADMIN_LIBRARIES_105` | Atomic migration of `104`/`104a`/`104db` files to `105`/`105a`/`105db` (`.104.bak` + `.105tmp`) |
-| **`bejson-105-validator`** | `L2` | `$ADMIN_LIBRARIES_105` | Stage-gate validation of `105`/`105a`/`105db` files (`E80`–`E85`, `E90`–`E95` Fail-on-Switch) |
+| **`bejson-105-validator`** | `L2` | `$ADMIN_LIBRARIES_105` | Stage-gate validation of `105`/`105a`/`105db` files (`E80`–`E85` Fail-on-Switch) |
 | **`mfdb-105-validator`** | `L2` | `$ADMIN_LIBRARIES_105` | Stage-gate validation of MFDB v1.40 cross-entity FK referential integrity (`E39`, `E43`–`E47`) |
 | **`policy-bejson-auditor`** | `L2` | `104` & `105` | Audits ASTs for Policy §6.2 O(1) field-map compliance, zero raw field literals, and §10.6 tests |
 
@@ -1609,7 +1608,7 @@ When operating with the Antigravity CLI (`agy`), specialized skills under the **
 ### 14.1 Technical Troubleshooting & Frequently Asked Questions
 
 <details>
-<summary><strong>Q1: Why did my Format 105 document fail validation with Error 80 (E_FIELD_INTEGRITY_MISMATCH / E95 Fail-on-Switch)?</strong></summary>
+<summary><strong>Q1: Why did my Format 105 document fail validation with Error 80 (E_FIELD_INTEGRITY_MISMATCH Fail-on-Switch)?</strong></summary>
 
 **Answer:** You likely changed `"Format_Version": "104"` to `"105"` manually without compiling UUIDs, or a row in `Values` is missing its reserved `record_uuid` at column `0` (`105`/`105a`) or column `1` (`105db`). Always upgrade `104` files using `bejson_core_upgrade_to_105()` (`Lib_PY/Core/cli/bejson_upgrade_cli.py`) or `upgradeTo105()` (`Lib_TS`), and insert rows into `105` documents using `bejson_core_add_record_105()`.
 </details>
@@ -1627,9 +1626,9 @@ When operating with the Antigravity CLI (`agy`), specialized skills under the **
 </details>
 
 <details>
-<summary><strong>Q4: Where are the AI, BEHTML, CMS, Diagrams, Gaming, and Lists library families?</strong></summary>
+<summary><strong>Q4: Where are the AI, BEHTML, CMS, Diagrams, Gaming, and Lists library families, and how do they relate to Standards, Taxonomies, Tax_Scaffolds, Canvas, and Graphics?</strong></summary>
 
-**Answer:** Per the Ecosystem Separation Mandate ([`clarification.md`](file:///storage/emulated/0/Admin/Libraries/libraries_105/clarification.md)), `libraries_105` (`$ADMIN_LIBRARIES_105`) is **strictly `Core`-only**. All vertical domain families reside in `libraries_104` (`/storage/emulated/0/Admin/Libraries/libraries_104` / `$ADMIN_LIBRARIES_104`).
+**Answer:** Per the Ecosystem Separation Mandate ([`clarification.md`](file:///storage/emulated/0/Admin/Libraries/libraries_105/clarification.md)), `libraries_105` (`$ADMIN_LIBRARIES_105`) houses the 4-language `Core` engine (`Lib_{PY,JS,TS,SH}/Core`), `Lib_BEJSON/Standards` (`BEJSON_Format_105_Standard.105a.bejson`), `Taxonomies`, `Tax_Scaffolds`, and `Canvas`/`Graphics` (`Lib_{PY,JS}`). All Foundational Era (`104`) vertical domain families (`AI`, `BEHTML`, `CMS`, `Diagrams`, `Gaming`, `Lists`, `Templates`) reside in `libraries_104` (`/storage/emulated/0/Admin/Libraries/libraries_104` / `$ADMIN_LIBRARIES_104`).
 </details>
 
 <details>
