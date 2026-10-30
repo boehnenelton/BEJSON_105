@@ -149,6 +149,7 @@ export interface MFDBDatabaseMeta {
   schema_version?: string;
   author?: string;
   created_at?: string;
+  network_role?: "Master" | "Slave" | "Standalone";
 }
 
 export type MFDBFileRole = "manifest" | "entity" | "standalone";

@@ -42,8 +42,15 @@ const {
   E_MFDB_FK_UNRESOLVED,
   E_MFDB_MISSING_REQUIRED_FIELD,
   E_MFDB_NULL_REQUIRED,
-  E_MFDB_INVALID_ARCHIVE
+  E_MFDB_INVALID_ARCHIVE,
+  E_MFDB_FK_TARGET_ENTITY_UNKNOWN,
+  E_MFDB_FK_RESTRICT_VIOLATION,
+  E_MFDB_FK_CASCADE_CYCLE,
+  E_MFDB_FK_ENTITY_STILL_REFERENCED,
+  E_MFDB_FK_INVALID_ON_DELETE,
 } = BEJSON_ERRORS;
+
+const VALID_NETWORK_ROLES = ['Master', 'Slave', 'Standalone'];
 
 class MFDBValidationError extends Error {
   /**
@@ -242,6 +249,14 @@ function mfdb_validator_validate_manifest(manifestPath) {
   if (!(rt.length === 1 && rt[0] === 'mfdb')) {
     _mAddError(`[${E_MFDB_MANIFEST_RECORDS_TYPE}] Records_Type must be ["mfdb"]. Found: ${JSON.stringify(rt)}`, 'Records_Type');
     throw new MFDBValidationError('Bad manifest Records_Type', E_MFDB_MANIFEST_RECORDS_TYPE);
+  }
+
+  if (doc.Network_Role !== undefined && doc.Network_Role !== null && !VALID_NETWORK_ROLES.includes(doc.Network_Role)) {
+    _mAddError(
+      `[${E_MFDB_NOT_MANIFEST}] Invalid Network_Role: ${JSON.stringify(doc.Network_Role)} (must be one of ${JSON.stringify(VALID_NETWORK_ROLES)})`,
+      'Network_Role',
+    );
+    throw new MFDBValidationError(`Invalid Network_Role: ${doc.Network_Role}`, E_MFDB_NOT_MANIFEST);
   }
 
   const fieldNames = (doc.Fields || []).map(f => f.name);
@@ -464,13 +479,121 @@ function mfdb_validator_validate_database(manifestPath, strictFk = false) {
     const fkErrors = mfdb_validator_check_referential_integrity(manifestPath);
     if (fkErrors && fkErrors.length > 0) {
       for (const err of fkErrors) {
-        _mAddError(`[${err.code || E_MFDB_FK_UNRESOLVED}] ${err.detail || err.message || err}`, `Entity`);
+        _mAddError(`[${err.code || E_MFDB_FK_UNRESOLVED}] ${err.detail || err.message || err}`, `FK:${err.entity || '?'}`);
       }
-      throw new MFDBValidationError('Referential integrity validation failed', E_MFDB_FK_UNRESOLVED);
+      throw new MFDBValidationError(
+        'Referential integrity validation failed',
+        fkErrors[0].numeric_code || E_MFDB_FK_UNRESOLVED,
+      );
     }
   }
 
   return true;
+}
+
+/**
+ * Standalone, read-only, whole-database FK audit for 105-series entities.
+ * 104/104a/104db entities are skipped -- only 105/105a/105db entities can
+ * declare fk_target_entity / fk_on_delete.
+ * Returns a list of { code, numeric_code, entity, detail } objects.
+ * Empty list == the database is referentially sound.
+ */
+function mfdb_validator_check_referential_integrity(manifestPath) {
+  const errors = [];
+  const doc = _loadJson(manifestPath);
+  const entries = _rowsAsDicts(doc);
+  const knownEntities = new Set(entries.map(e => e.entity_name));
+
+  const entityDocs = {};
+  for (const entry of entries) {
+    const name = entry.entity_name;
+    try {
+      const resolved = _resolveEntityPath(manifestPath, entry.file_path);
+      entityDocs[name] = _loadJson(resolved);
+    } catch (e) {
+      errors.push({
+        code: 'E_MFDB_ENTITY_NOT_FOUND',
+        numeric_code: E_MFDB_ENTITY_NOT_FOUND,
+        entity: name,
+        detail: `could not load entity file: ${e.message}`,
+      });
+    }
+  }
+
+  for (const [entityName, edoc] of Object.entries(entityDocs)) {
+    if (!['105', '105a', '105db'].includes(edoc.Format_Version)) {
+      continue; // legacy entity: no FK schema possible, nothing to check
+    }
+
+    const fkFields = (edoc.Fields || []).filter(f => f.fk_target_entity);
+    if (fkFields.length === 0) continue;
+
+    const uuidCol = edoc.Format_Version === '105db' ? 1 : 0;
+    const fieldNames = (edoc.Fields || []).map(f => f.name);
+
+    for (const fkField of fkFields) {
+      const target = fkField.fk_target_entity;
+      const onDelete = fkField.fk_on_delete !== undefined ? fkField.fk_on_delete : 'restrict';
+
+      if (!['restrict', 'cascade', 'null'].includes(onDelete)) {
+        errors.push({
+          code: 'E_MFDB_FK_INVALID_ON_DELETE',
+          numeric_code: E_MFDB_FK_INVALID_ON_DELETE,
+          entity: entityName,
+          detail: `${entityName}.${fkField.name}: fk_on_delete=${JSON.stringify(onDelete)} is not restrict/cascade/null`,
+        });
+        continue;
+      }
+
+      if (!knownEntities.has(target)) {
+        errors.push({
+          code: 'E_MFDB_FK_TARGET_ENTITY_UNKNOWN',
+          numeric_code: E_MFDB_FK_TARGET_ENTITY_UNKNOWN,
+          entity: entityName,
+          detail: `${entityName}.${fkField.name}: fk_target_entity ${JSON.stringify(target)} is not registered in this manifest`,
+        });
+        continue;
+      }
+
+      const targetDoc = entityDocs[target];
+      if (!targetDoc || !['105', '105a', '105db'].includes(targetDoc.Format_Version)) {
+        errors.push({
+          code: 'E_MFDB_FK_TARGET_ENTITY_UNKNOWN',
+          numeric_code: E_MFDB_FK_TARGET_ENTITY_UNKNOWN,
+          entity: entityName,
+          detail: `${entityName}.${fkField.name}: target entity ${JSON.stringify(target)} is not a 105-series entity`,
+        });
+        continue;
+      }
+
+      const targetUuidCol = targetDoc.Format_Version === '105db' ? 1 : 0;
+      const targetUuids = new Set(
+        (targetDoc.Values || []).filter(row => row.length > targetUuidCol).map(row => row[targetUuidCol])
+      );
+
+      const col = fieldNames.indexOf(fkField.name);
+      if (col === -1) continue;
+      // 105db: Fields[0] is Record_Type_Parent at row col 0; Fields[i>=1] at i+1.
+      const absCol = edoc.Format_Version === '105db' ? (col === 0 ? 0 : col + 1) : col + 1;
+
+      for (const row of edoc.Values || []) {
+        if (row.length <= absCol) continue;
+        const fkVal = row[absCol];
+        if (fkVal === null || fkVal === undefined) continue; // nullable FK, not set -- always valid
+        if (!targetUuids.has(fkVal)) {
+          const refUuid = row.length > uuidCol ? row[uuidCol] : '?';
+          errors.push({
+            code: 'E_MFDB_FK_UNRESOLVED',
+            numeric_code: E_MFDB_FK_UNRESOLVED,
+            entity: entityName,
+            detail: `${entityName}#${refUuid}.${fkField.name} = ${JSON.stringify(fkVal)} does not exist in ${target}`,
+          });
+        }
+      }
+    }
+  }
+
+  return errors;
 }
 
 function validate_mfdb_database(manifestPath, strictFk = false) {
@@ -702,6 +825,13 @@ function mfdb_validator_detect_mfdb_in_chunk(doc) {
   if (JSON.stringify(manifestDoc.Records_Type) !== JSON.stringify(["mfdb"])) {
     result.errors.push("Manifest Records_Type must be exactly ['mfdb'].");
   }
+  if (
+    manifestDoc.Network_Role !== undefined &&
+    manifestDoc.Network_Role !== null &&
+    !VALID_NETWORK_ROLES.includes(manifestDoc.Network_Role)
+  ) {
+    result.errors.push(`Manifest Network_Role must be one of ${JSON.stringify(VALID_NETWORK_ROLES)}.`);
+  }
 
   const manifestFields = manifestDoc.Fields || [];
   const manifestFm = {};
@@ -760,8 +890,8 @@ function mfdb_validator_detect_mfdb_in_chunk(doc) {
       continue;
     }
 
-    if (entityDoc.Format_Version !== "104") {
-      entityResult.errors.push("Entity Format_Version must be '104'.");
+    if (entityDoc.Format_Version !== "104" && entityDoc.Format_Version !== "105") {
+      entityResult.errors.push("Entity Format_Version must be '104' or '105'.");
     }
     if (JSON.stringify(entityDoc.Records_Type) !== JSON.stringify([entityName])) {
       entityResult.errors.push(`Entity Records_Type must be exactly ['${entityName}'].`);
@@ -830,6 +960,12 @@ const exports_ = {
   E_MFDB_MISSING_REQUIRED_FIELD,
   E_MFDB_NULL_REQUIRED,
   E_MFDB_INVALID_ARCHIVE,
+  E_MFDB_FK_TARGET_ENTITY_UNKNOWN,
+  E_MFDB_FK_RESTRICT_VIOLATION,
+  E_MFDB_FK_CASCADE_CYCLE,
+  E_MFDB_FK_ENTITY_STILL_REFERENCED,
+  E_MFDB_FK_INVALID_ON_DELETE,
+  VALID_NETWORK_ROLES,
   // Class
   MFDBValidationError,
   // Internal helpers (needed by lib_bejson_Core_mfdb_core.js)
@@ -846,6 +982,7 @@ const exports_ = {
   mfdb_validator_validate_manifest,
   mfdb_validator_validate_entity_file,
   mfdb_validator_validate_database,
+  mfdb_validator_check_referential_integrity,
   mfdb_validator_get_report,
   // MFDB 1.32 chunked-package validation (relocated from bejson_chunking.js)
   mfdb_validator_is_mfdb132_package,

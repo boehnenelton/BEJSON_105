@@ -55,4 +55,6 @@ ed '.Parent_Hierarchy="other.mfdb.bejson"'; ok bidi_38 "$(chk)" "1|38|0"
 mk a; U() { printf '%08x-0000-4000-8000-%012x' "$1" "$2"; }
 ed ".Format_Version=\"105\"|.Fields[0].field_uuid=\"$(U 1 1)\"|.Values=[[\"$(U 2 2)\",\"a\"]]"; ok entity_105_ok "$(chk)" "0||0"
 mk a; ed '.Format_Version="104db"'; ok entity_104db_rejected "$(chk | cut -d'|' -f1)" "1"
+for R in Master Slave Standalone; do mk a; mn ".Network_Role=\"$R\""; ok "role_$R" "$(chk)" "0||0"; done
+mk a; mn '.Network_Role="RogueNode"';   ok role_invalid_30    "$(chk)" "1|30|0"
 echo "passed=$P failed=$F"; [[ $F -eq 0 ]]

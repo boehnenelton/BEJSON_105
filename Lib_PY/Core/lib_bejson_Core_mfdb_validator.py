@@ -175,11 +175,13 @@ def validate_mfdb_archive(archive_path: str) -> MFDBValidationResult:
         res.add_error(f"Invalid zip: {e}", "Zip Parser")
     return res
 
+VALID_NETWORK_ROLES = ("Master", "Slave", "Standalone")
+
 def validate_mfdb_manifest(manifest_path: str) -> MFDBValidationResult:
     res = MFDBValidationResult()
     p = Path(manifest_path)
     if not p.exists():
-        res.add_error(f"Manifest not found: {manifest_path}", "File System")
+        res.add_error(f"[{E_MFDB_MANIFEST_NOT_FOUND}] Manifest not found: {manifest_path}", "File System")
         return res
     
     bej_res = validate_bejson(manifest_path, is_file=True)
@@ -191,6 +193,10 @@ def validate_mfdb_manifest(manifest_path: str) -> MFDBValidationResult:
     if doc.get("Format_Version") != "104a" or doc.get("Records_Type") != ["mfdb"]:
         res.add_error(f"[{E_MFDB_MANIFEST_RECORDS_TYPE}] Invalid manifest format or records type (must be 104a with Records_Type [\"mfdb\"])", "Manifest")
         return res
+
+    if "Network_Role" in doc and doc["Network_Role"] is not None:
+        if not isinstance(doc["Network_Role"], str) or doc["Network_Role"] not in VALID_NETWORK_ROLES:
+            res.add_error(f"[{E_MFDB_NOT_MANIFEST}] Invalid Network_Role {doc['Network_Role']!r} (must be one of {VALID_NETWORK_ROLES})", "Network_Role")
 
     field_names = [f["name"] for f in doc.get("Fields", [])]
     for req in ("entity_name", "file_path"):
@@ -566,11 +572,15 @@ def mfdb_validator_detect_mfdb_in_chunk(doc: Dict[str, Any]) -> Dict[str, Any]:
     result["mfdb_detected"] = True
     result["db_name"] = manifest_doc.get("DB_Name")
     result["mfdb_version"] = manifest_doc.get("MFDB_Version")
+    result["network_role"] = manifest_doc.get("Network_Role")
 
     if manifest_doc.get("Format_Version") != "104a":
         result["errors"].append("Manifest Format_Version must be '104a'.")
     if manifest_doc.get("Records_Type") != ["mfdb"]:
         result["errors"].append("Manifest Records_Type must be exactly ['mfdb'].")
+    if "Network_Role" in manifest_doc and manifest_doc["Network_Role"] is not None:
+        if manifest_doc["Network_Role"] not in VALID_NETWORK_ROLES:
+            result["errors"].append(f"[{E_MFDB_NOT_MANIFEST}] Manifest Network_Role must be one of {VALID_NETWORK_ROLES}.")
 
     manifest_fm = {f["name"]: i for i, f in enumerate(manifest_doc.get("Fields", []))}
     if "entity_name" not in manifest_fm or "file_path" not in manifest_fm:
@@ -620,8 +630,8 @@ def mfdb_validator_detect_mfdb_in_chunk(doc: Dict[str, Any]) -> Dict[str, Any]:
             result["entities"].append(entity_result)
             continue
 
-        if entity_doc.get("Format_Version") != "104":
-            entity_result["errors"].append("Entity Format_Version must be '104'.")
+        if entity_doc.get("Format_Version") not in ("104", "105"):
+            entity_result["errors"].append("Entity Format_Version must be '104' or '105'.")
         if entity_doc.get("Records_Type") != [entity_name]:
             entity_result["errors"].append(f"Entity Records_Type must be exactly ['{entity_name}'].")
         if "Parent_Hierarchy" not in entity_doc:

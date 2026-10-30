@@ -54,6 +54,14 @@ const tests: Record<string, () => void> = {
   entity_104db_rejected() { const b = build(); b.entities.get("data/order.bejson").Format_Version = "104db"; check(!run(b.manifest, b.entities).valid, "104db entity must fail"); },
   entity_must_be_104_or_105() { const b = build(); b.entities.get("data/order.bejson").Format_Version = "104a"; check(!run(b.manifest, b.entities).valid, "104a entity must fail"); },
   missing_entity_doc_fails() { const b = build(); check(!run(b.manifest, new Map()).valid, "missing entity must fail"); },
+  network_role_valid_values() { for (const role of ["Master", "Slave", "Standalone"]) { const b = build(); b.manifest.Network_Role = role; const r = run(b.manifest, b.entities); check(r.valid, role + ": " + JSON.stringify(r.errors)); } },
+  network_role_invalid_is_30() { const b = build(); b.manifest.Network_Role = "RogueNode"; const r = run(b.manifest, b.entities); check(!r.valid && codes(r).includes(30), "30 expected, got " + codes(r)); },
+  fk_suffix_is_advisory_even_strict() {
+    const b = build(); const e = b.entities.get("data/order.bejson");
+    e.Fields.push({ name: "ghost_id_fk", type: "string" }); e.Values[0].push("nowhere");
+    const r = validateDatabase(b.manifest, b.entities as any, { manifestRelativePath: MANIFEST, strict: true });
+    check(r.valid && r.warnings.length > 0, "_fk naming must warn only: " + JSON.stringify(r.errors));
+  },
 };
 
 let failed = 0;

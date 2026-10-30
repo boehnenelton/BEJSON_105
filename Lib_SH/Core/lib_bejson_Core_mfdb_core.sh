@@ -660,7 +660,7 @@ mfdb_core_create_connected_slave_entity() {
     role=$(jq -r '.Network_Role // ""' "$manifest_path" 2>/dev/null)
     if [[ "$role" != "Master" ]]; then
         echo "[MFDB_FEDERATION] ERROR: ConnectedSlave may only be created on a Master node. Got: '$role'" >&2
-        return 1
+        return $E_MFDB_CORE_INVALID_OPERATION
     fi
 
     local fields_json='[

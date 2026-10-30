@@ -132,11 +132,34 @@ mfdb_validator_validate_archive() {
 mfdb_validator_validate_manifest() {
     local manifest_path="$1"
     mfdb_validator_reset_state
-    [[ ! -f "$manifest_path" ]] && return $E_MFDB_MANIFEST_NOT_FOUND
-    bejson_validator_validate_file "$manifest_path" || return $E_MFDB_NOT_MANIFEST
-    
-    local rt=$(jq -r '.Records_Type | @json' "$manifest_path" 2>/dev/null)
-    [[ "$rt" != '["mfdb"]' ]] && return $E_MFDB_MANIFEST_RECORDS_TYPE
+    if [[ ! -f "$manifest_path" ]]; then
+        __mfdb_add_error "[$E_MFDB_MANIFEST_NOT_FOUND] Manifest not found: $manifest_path" "File System"
+        return $E_MFDB_MANIFEST_NOT_FOUND
+    fi
+    if ! bejson_validator_validate_file "$manifest_path" >/dev/null 2>&1; then
+        __mfdb_add_error "[$E_MFDB_NOT_MANIFEST] Manifest failed BEJSON validation: $manifest_path" "BEJSON Validation"
+        return $E_MFDB_NOT_MANIFEST
+    fi
+
+    local fmt rt
+    fmt=$(jq -r '.Format_Version // empty' "$manifest_path" 2>/dev/null)
+    rt=$(jq -r '.Records_Type | @json' "$manifest_path" 2>/dev/null)
+    if [[ "$fmt" != "104a" || "$rt" != '["mfdb"]' ]]; then
+        __mfdb_add_error "[$E_MFDB_MANIFEST_RECORDS_TYPE] Invalid manifest format or records type (must be 104a with Records_Type [\"mfdb\"])" "Manifest"
+        return $E_MFDB_MANIFEST_RECORDS_TYPE
+    fi
+
+    if jq -e 'has("Network_Role") and .Network_Role != null' "$manifest_path" >/dev/null 2>&1; then
+        local nrole
+        nrole=$(jq -r 'if (.Network_Role|type)=="string" then .Network_Role else "__BAD__" end' "$manifest_path" 2>/dev/null)
+        case "$nrole" in
+            Master|Slave|Standalone) ;;
+            *)
+                __mfdb_add_error "[$E_MFDB_NOT_MANIFEST] Invalid Network_Role '$nrole' (must be Master, Slave, or Standalone)" "Network_Role"
+                return $E_MFDB_NOT_MANIFEST
+                ;;
+        esac
+    fi
     return 0
 }
 
@@ -466,6 +489,7 @@ mfdb_validator_detect_mfdb_in_chunk() {
 
         ($manifest.Format_Version == "104a") as $fmt_ok |
         ($manifest.Records_Type == ["mfdb"]) as $rt_ok |
+        (if ($manifest | has("Network_Role")) and ($manifest.Network_Role != null) then ($manifest.Network_Role | IN("Master", "Slave", "Standalone")) else true end) as $nr_ok |
         ($manifest.Fields // [] | map(.name)) as $mfields |
         ($mfields | index("entity_name")) as $en_idx |
         ($mfields | index("file_path")) as $fp_idx |
@@ -475,10 +499,12 @@ mfdb_validator_detect_mfdb_in_chunk() {
             "mfdb_detected": true, "valid": false,
             "db_name": ($manifest.DB_Name // null),
             "mfdb_version": ($manifest.MFDB_Version // null),
+            "network_role": ($manifest.Network_Role // null),
             "entities": [],
             "errors": (
               (if $fmt_ok then [] else ["Manifest Format_Version must be \"104a\"."] end)
               + (if $rt_ok then [] else ["Manifest Records_Type must be exactly [\"mfdb\"]."] end)
+              + (if $nr_ok then [] else ["[30] Manifest Network_Role must be Master, Slave, or Standalone."] end)
               + ["Manifest Fields must include \"entity_name\" and \"file_path\"."]
             ),
             "warnings": []
@@ -488,6 +514,7 @@ mfdb_validator_detect_mfdb_in_chunk() {
           "mfdb_detected": true,
           "db_name": ($manifest.DB_Name // null),
           "mfdb_version": ($manifest.MFDB_Version // null),
+          "network_role": ($manifest.Network_Role // null),
           "entities": [
             $manifest.Values[] as $erow |
             ($erow[$en_idx]) as $entity_name |
@@ -505,7 +532,7 @@ mfdb_validator_detect_mfdb_in_chunk() {
                      ["Entity row is flagged Is_Binary — content was never stored, cannot validate."]
                    else
                      ($chunk_row[2] | try (fromjson) as $edoc | (
-                        (if $edoc.Format_Version == "104" then [] else ["Entity Format_Version must be \"104\"."] end)
+                        (if ($edoc.Format_Version == "104" or $edoc.Format_Version == "105") then [] else ["Entity Format_Version must be \"104\" or \"105\"."] end)
                         + (if $edoc.Records_Type == [$entity_name] then [] else ["Entity Records_Type must be exactly [\"\($entity_name)\"]."] end)
                         + (if ($edoc | has("Parent_Hierarchy")) then [] else ["Entity is missing mandatory \"Parent_Hierarchy\" key."] end)
                      ) catch ["Entity file content is not valid JSON."])
@@ -517,6 +544,7 @@ mfdb_validator_detect_mfdb_in_chunk() {
           "errors": (
             (if $fmt_ok then [] else ["Manifest Format_Version must be \"104a\"."] end)
             + (if $rt_ok then [] else ["Manifest Records_Type must be exactly [\"mfdb\"]."] end)
+            + (if $nr_ok then [] else ["[30] Manifest Network_Role must be Master, Slave, or Standalone."] end)
           ),
           "warnings": []
         }

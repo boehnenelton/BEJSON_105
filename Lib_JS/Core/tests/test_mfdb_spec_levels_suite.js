@@ -262,4 +262,41 @@ function runSpecSuite(fmt) {
 runSpecSuite("104");
 runSpecSuite("105");
 
+test(`Spec_105: Network_Role Master/Slave/Standalone valid, invalid role rejected (30)`, () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mfdbspec_role_'));
+  try {
+    const m = M.mfdb_core_create_database(path.join(tmp, 'a'), 'Shop', [{ name: 'Order', fields: [S('code')], format_version: '105' }]);
+    for (const role of ['Master', 'Slave', 'Standalone']) {
+      const mf = jl(m); mf.Network_Role = role; jd(mf, m);
+      assert.strictEqual(MV.validate_mfdb_database(m).valid, true, role);
+    }
+    const mf = jl(m); mf.Network_Role = 'RogueNode'; jd(mf, m);
+    const r = MV.validate_mfdb_database(m);
+    assert.strictEqual(r.valid, false);
+    assert.ok(r.errors.join(' ').includes('[30]'));
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test(`Spec_105: check_referential_integrity is 105-only; strict mode fails on orphan FK`, () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mfdbspec_ri_'));
+  try {
+    const m = M.mfdb_core_create_database(path.join(tmp, 'a'), 'Shop', [
+      { name: 'authors', fields: [S('name')], format_version: '105' },
+      { name: 'books', fields: [S('title'), { name: 'author_fk', type: 'string', fk_target_entity: 'authors', fk_on_delete: 'restrict' }], format_version: '105' },
+      { name: 'legacy', fields: [S('x'), S('ghost_id_fk')], format_version: '104' },
+    ]);
+    const a = M.mfdb_core_add_entity_record_105(m, 'authors', ['Ada']).record_uuid;
+    M.mfdb_core_add_entity_record_105(m, 'books', ['B1', a]);
+    M.mfdb_core_add_entity_record(m, 'legacy', ['x', 'nowhere']);
+    assert.deepStrictEqual(MV.mfdb_validator_check_referential_integrity(m), []);
+    assert.strictEqual(MV.validate_mfdb_database(m, true).valid, true);
+    M.mfdb_core_add_entity_record_105(m, 'books', ['B2', 'dangling-uuid']);
+    const f = MV.mfdb_validator_check_referential_integrity(m);
+    assert.strictEqual(f.length, 1);
+    assert.strictEqual(f[0].numeric_code, 39);
+    assert.strictEqual(MV.validate_mfdb_database(m, false).valid, true);
+    assert.strictEqual(MV.validate_mfdb_database(m, true).valid, false);
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
 console.log(`\nAll ${passed} MFDB spec level tests passed!`);
