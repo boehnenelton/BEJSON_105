@@ -5,28 +5,41 @@ Description:    Elton Boehnen's BEJSON 105a Graphics Library Family.
                 FPS and timeline pacing declarations, row-per-frame animation ledgers,
                 slideshow generation, and multi-format GIF/WebM/APNG/MP4 export engines.
 Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-Version:        1.0.0
-Date:           2026-10-27
+Version:        1.1.0
+Date:           2026-10-30
+Changelog:
+  1.0.1 - 2026-10-30: Import of the diagram loader uses the cased module name.
 """
 
 from .lib_bejson_Graphics_graphics_schemas import (
     GRAPHIC_CANVAS_CONFIG_FIELDS,
     GRAPHIC_ROW_FRAME_FIELDS,
     GRAPHIC_TEMPLATE_REGISTRY_FIELDS,
+    GRAPHIC_ANIMATION_TIMELINE_FIELDS,
+    GRAPHIC_SLIDE_FIELDS,
+    GRAPHIC_MFDB_MANIFEST_FIELDS,
     build_field_map_105,
     create_graphic_stage_config_105a,
     create_row_per_frame_animation_105a,
     create_slideshow_animation_105a,
+    create_branding_slide_deck_105a,
     validate_graphic_105a_doc,
+    compute_frame_timeline_105a,
+    create_svg_animation_timeline_105a,
+    create_graphics_mfdb_manifest_105a,
 )
 
 from .lib_bejson_Graphics_graphics_canvas_templates import (
     BLANK_SLATE_ARCHETYPES,
+    BRANDING_SLIDE_ARCHETYPES,
     generate_blank_slate_html,
     get_canvas_template_registry_105a,
     get_template_html,
     instantiate_stage_file,
     list_registered_templates,
+    list_branding_slide_templates,
+    get_branding_slide_template_html,
+    save_canvas_template_registry_105a,
 )
 
 from .lib_bejson_Graphics_graphics_core import (
@@ -34,10 +47,19 @@ from .lib_bejson_Graphics_graphics_core import (
     compile_frames_to_gif,
     compile_frames_to_mp4,
     compile_frames_to_webm,
+    compile_presentation_slides_to_video,
+    async_compile_presentation_slides_to_video,
     compile_row_per_frame_to_animated_svg,
     create_isometric_cube_svg,
     render_row_per_frame_animation,
     render_still_frame,
+    render_spinning_cube_svg,
+    render_radar_scanner_svg,
+    render_branding_title_slide_svg,
+    render_branding_architecture_slide_svg,
+    render_branding_feature_slide_svg,
+    render_branding_metrics_slide_svg,
+    render_branding_summary_slide_svg,
 )
 
 from .lib_bejson_Graphics_graphics_diagram_loader import (
@@ -48,33 +70,103 @@ from .lib_bejson_Graphics_graphics_diagram_loader import (
     render_diagram_svg,
 )
 
+from .lib_bejson_Graphics_graphics_errors import (
+    GraphicsValidationError,
+    ERROR_NAMES,
+    E_GRAPHICS_CORE_VALIDATION_FAILED,
+    E_GRAPHICS_INVALID_RECORDS_TYPE,
+    E_GRAPHICS_INVALID_DIMENSIONS,
+    E_GRAPHICS_INVALID_ASPECT_RATIO,
+    E_GRAPHICS_INVALID_FPS,
+    E_GRAPHICS_INVALID_DURATION,
+    E_GRAPHICS_INVALID_FRAME_SEQUENCE,
+    E_GRAPHICS_INVALID_TIMELINE_ROW,
+    E_GRAPHICS_INVALID_SVG_MARKUP,
+    E_GRAPHICS_PALETTE_VIOLATION,
+    E_GRAPHICS_STAGE_CONFIG_INVALID,
+    E_GRAPHICS_TEMPLATE_NOT_FOUND,
+    E_GRAPHICS_BARRIER_OF_ENTRY_FAILED,
+)
+
+from .lib_bejson_Graphics_graphics_validator import (
+    validate_graphics_barrier,
+    bejson_graphics_validator_validate_doc,
+    bejson_graphics_validator_validate_file,
+    bejson_graphics_validator_get_report,
+    bejson_graphics_validator_check_palette,
+    bejson_graphics_validator_check_svg,
+    VALID_GRAPHICS_RECORDS_TYPES,
+)
+
 __all__ = [
     "GRAPHIC_CANVAS_CONFIG_FIELDS",
     "GRAPHIC_ROW_FRAME_FIELDS",
     "GRAPHIC_TEMPLATE_REGISTRY_FIELDS",
+    "GRAPHIC_ANIMATION_TIMELINE_FIELDS",
+    "GRAPHIC_SLIDE_FIELDS",
+    "GRAPHIC_MFDB_MANIFEST_FIELDS",
     "build_field_map_105",
     "create_graphic_stage_config_105a",
     "create_row_per_frame_animation_105a",
     "create_slideshow_animation_105a",
+    "create_branding_slide_deck_105a",
     "validate_graphic_105a_doc",
+    "compute_frame_timeline_105a",
+    "create_svg_animation_timeline_105a",
+    "create_graphics_mfdb_manifest_105a",
     "BLANK_SLATE_ARCHETYPES",
+    "BRANDING_SLIDE_ARCHETYPES",
     "generate_blank_slate_html",
     "get_canvas_template_registry_105a",
     "get_template_html",
     "instantiate_stage_file",
     "list_registered_templates",
+    "list_branding_slide_templates",
+    "get_branding_slide_template_html",
+    "save_canvas_template_registry_105a",
     "compile_frames_to_apng",
     "compile_frames_to_gif",
     "compile_frames_to_mp4",
     "compile_frames_to_webm",
+    "compile_presentation_slides_to_video",
+    "async_compile_presentation_slides_to_video",
     "compile_row_per_frame_to_animated_svg",
     "create_isometric_cube_svg",
     "render_row_per_frame_animation",
     "render_still_frame",
+    "render_spinning_cube_svg",
+    "render_radar_scanner_svg",
+    "render_branding_title_slide_svg",
+    "render_branding_architecture_slide_svg",
+    "render_branding_feature_slide_svg",
+    "render_branding_metrics_slide_svg",
+    "render_branding_summary_slide_svg",
     "calculate_diagram_bounds",
     "compute_fit_viewport",
     "compute_shape_focus_viewport",
     "create_diagram_frame_sequence_105a",
     "render_diagram_svg",
+    "GraphicsValidationError",
+    "ERROR_NAMES",
+    "E_GRAPHICS_CORE_VALIDATION_FAILED",
+    "E_GRAPHICS_INVALID_RECORDS_TYPE",
+    "E_GRAPHICS_INVALID_DIMENSIONS",
+    "E_GRAPHICS_INVALID_ASPECT_RATIO",
+    "E_GRAPHICS_INVALID_FPS",
+    "E_GRAPHICS_INVALID_DURATION",
+    "E_GRAPHICS_INVALID_FRAME_SEQUENCE",
+    "E_GRAPHICS_INVALID_TIMELINE_ROW",
+    "E_GRAPHICS_INVALID_SVG_MARKUP",
+    "E_GRAPHICS_PALETTE_VIOLATION",
+    "E_GRAPHICS_STAGE_CONFIG_INVALID",
+    "E_GRAPHICS_TEMPLATE_NOT_FOUND",
+    "E_GRAPHICS_BARRIER_OF_ENTRY_FAILED",
+    "validate_graphics_barrier",
+    "bejson_graphics_validator_validate_doc",
+    "bejson_graphics_validator_validate_file",
+    "bejson_graphics_validator_get_report",
+    "bejson_graphics_validator_check_palette",
+    "bejson_graphics_validator_check_svg",
+    "VALID_GRAPHICS_RECORDS_TYPES",
 ]
 

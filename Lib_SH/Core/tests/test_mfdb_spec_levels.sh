@@ -42,7 +42,7 @@ mk a; ed 'del(.Parent_Hierarchy)';      ok no_ph_36           "$(chk)" "1|36|0"
 mk a; ed '.Parent_Hierarchy="nope.mfdb.bejson"'; ok orphan_37 "$(chk)" "1|37|0"
 mk a; mn '.Values[0][1]="gone.bejson"'; ok missing_file_33   "$(chk)" "1|33|0"
 mk a; mn '.Values+=[["users","u2.bejson",0]]'; ok dup_name_35 "$(chk)" "1|33,35|0"
-mk a; mn '.Values+=[["u2","users.bejson",1]]'; ok dup_path_35 "$(chk)" "1|34,35|0"
+mk a; mn '.Values+=[["u2","users.bejson",1]]'; ok dup_path_35 "$(chk)" "1|35|0"
 mk a; mn '.Values[0][0]=null';          ok null_41            "$(chk)" "1|41|0"
 mk a; mn '.Fields=[.Fields[1],.Fields[2]]|.Values=[["users.bejson",1]]'; ok missing_field_40 "$(chk)" "1|40|0"
 mk a; mn '.Values[0][2]=9';             ok count_drift_warn   "$(chk)" "0||1"
@@ -57,4 +57,10 @@ ed ".Format_Version=\"105\"|.Fields[0].field_uuid=\"$(U 1 1)\"|.Values=[[\"$(U 2
 mk a; ed '.Format_Version="104db"'; ok entity_104db_rejected "$(chk | cut -d'|' -f1)" "1"
 for R in Master Slave Standalone; do mk a; mn ".Network_Role=\"$R\""; ok "role_$R" "$(chk)" "0||0"; done
 mk a; mn '.Network_Role="RogueNode"';   ok role_invalid_30    "$(chk)" "1|30|0"
+# absolute file_path to an EXISTING file outside the root is rejected ([33] traversal message)
+mk a; mkdir -p "$D/../ext_a"; cp "$E" "$D/../ext_a/outside.bejson"
+jq --arg p "$(cd "$D/../ext_a" && pwd)/outside.bejson" '.Values[0][1]=$p' "$M" > "$M.t" && mv "$M.t" "$M"
+mfdb_validator_reset_state; mfdb_validator_validate_database "$M" >/dev/null 2>&1; ok absolute_existing_rejected "$?" "1"
+# duplicate entity_name is reported alone (35): manifest errors end validation before entity checks
+mk a; mn '.Values+=[["users","u2.bejson",0]]|.Values[1][1]="users.bejson"'; ok dup_only_35 "$(chk | cut -d'|' -f2)" "35"
 echo "passed=$P failed=$F"; [[ $F -eq 0 ]]

@@ -8,10 +8,12 @@ BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
-Version:        1.0.0
-Date:           2026-10-27
+Version:        1.0.1
+Date:           2026-10-30
+Changelog:
+  1.0.1 - 2026-10-30: Imports standardized to the cased module names; Records_Type fix.
 Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID:  2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f
+RELATIONAL_ID:  b17ad1ac-6d59-49f9-bc13-fde2b3a785ad
 Release_Version: 300
 """
 
@@ -41,8 +43,23 @@ except ImportError:
     GRAPHIC_TEMPLATE_REGISTRY_FIELDS = []
     def build_field_map_105(fields): return {f["name"]: i + 1 for i, f in enumerate(fields)}
 
+try:
+    from lib_bejson_Graphics_graphics_core import (
+        render_branding_title_slide_svg,
+        render_branding_architecture_slide_svg,
+        render_branding_feature_slide_svg,
+        render_branding_metrics_slide_svg,
+        render_branding_summary_slide_svg
+    )
+except ImportError:
+    render_branding_title_slide_svg = None
+    render_branding_architecture_slide_svg = None
+    render_branding_feature_slide_svg = None
+    render_branding_metrics_slide_svg = None
+    render_branding_summary_slide_svg = None
+
 logger = logging.getLogger("lib_bejson_Graphics_graphics_canvas_templates")
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 # ---------------------------------------------------------------------------
 # Canonical Blank-Slate Stage Template Generator
@@ -448,6 +465,69 @@ BLANK_SLATE_ARCHETYPES: List[Dict[str, Any]] = [
 
 
 # ---------------------------------------------------------------------------
+# Canonical BEJSON Presentation Slide Archetypes (Widescreen 16:9)
+# ---------------------------------------------------------------------------
+
+BRANDING_SLIDE_ARCHETYPES: List[Dict[str, Any]] = [
+    {
+        "template_id": "slide_branding_title_1280",
+        "template_name": "slide_branding_title_1280x720.html",
+        "category": "branding_slide",
+        "width_px": 1280,
+        "height_px": 720,
+        "aspect_ratio": "16:9",
+        "stage_selector": "#capture-stage",
+        "description": "16:9 Hero Title / Cover presentation slide template with isometric cube branding, laser accents, and credentials.",
+        "svg_generator": lambda: render_branding_title_slide_svg() if render_branding_title_slide_svg else ""
+    },
+    {
+        "template_id": "slide_branding_architecture_1280",
+        "template_name": "slide_branding_architecture_1280x720.html",
+        "category": "branding_slide",
+        "width_px": 1280,
+        "height_px": 720,
+        "aspect_ratio": "16:9",
+        "stage_selector": "#capture-stage",
+        "description": "16:9 3-Pillar Architectural Blueprint presentation slide template with chamfered card surfaces and red accents.",
+        "svg_generator": lambda: render_branding_architecture_slide_svg() if render_branding_architecture_slide_svg else ""
+    },
+    {
+        "template_id": "slide_branding_feature_1280",
+        "template_name": "slide_branding_feature_1280x720.html",
+        "category": "branding_slide",
+        "width_px": 1280,
+        "height_px": 720,
+        "aspect_ratio": "16:9",
+        "stage_selector": "#capture-stage",
+        "description": "16:9 Split-screen Feature & Code Console presentation slide template with syntax card and status indicators.",
+        "svg_generator": lambda: render_branding_feature_slide_svg() if render_branding_feature_slide_svg else ""
+    },
+    {
+        "template_id": "slide_branding_metrics_1280",
+        "template_name": "slide_branding_metrics_1280x720.html",
+        "category": "branding_slide",
+        "width_px": 1280,
+        "height_px": 720,
+        "aspect_ratio": "16:9",
+        "stage_selector": "#capture-stage",
+        "description": "16:9 System Telemetry & Benchmark KPI presentation slide template with 4 metrics cards and radar wave sweep.",
+        "svg_generator": lambda: render_branding_metrics_slide_svg() if render_branding_metrics_slide_svg else ""
+    },
+    {
+        "template_id": "slide_branding_summary_1280",
+        "template_name": "slide_branding_summary_1280x720.html",
+        "category": "branding_slide",
+        "width_px": 1280,
+        "height_px": 720,
+        "aspect_ratio": "16:9",
+        "stage_selector": "#capture-stage",
+        "description": "16:9 Conclusion & Deliverables presentation slide template with takeaway checklist and official ecosystem brand seal.",
+        "svg_generator": lambda: render_branding_summary_slide_svg() if render_branding_summary_slide_svg else ""
+    }
+]
+
+
+# ---------------------------------------------------------------------------
 # Embedded BEJSON 105a Scaffold & Template Registry
 # ---------------------------------------------------------------------------
 
@@ -487,6 +567,53 @@ def get_canvas_template_registry_105a(
             arc["aspect_ratio"],
             arc["stage_selector"],
             arc["description"],
+            html,
+            h_hash
+        ]
+        values_rows.append(row)
+
+    # 1.1 Register canonical branding slide templates
+    renderers = {}
+    try:
+        from lib_bejson_Graphics_graphics_core import (
+            render_branding_title_slide_svg,
+            render_branding_architecture_slide_svg,
+            render_branding_feature_slide_svg,
+            render_branding_metrics_slide_svg,
+            render_branding_summary_slide_svg
+        )
+        renderers = {
+            "slide_branding_title_1280": render_branding_title_slide_svg,
+            "slide_branding_architecture_1280": render_branding_architecture_slide_svg,
+            "slide_branding_feature_1280": render_branding_feature_slide_svg,
+            "slide_branding_metrics_1280": render_branding_metrics_slide_svg,
+            "slide_branding_summary_1280": render_branding_summary_slide_svg,
+        }
+    except Exception:
+        pass
+
+    for s_arc in BRANDING_SLIDE_ARCHETYPES:
+        fn = renderers.get(s_arc["template_id"])
+        svg_content = fn() if fn else (s_arc["svg_generator"]() if callable(s_arc.get("svg_generator")) else "")
+        html = generate_blank_slate_html(
+            width_px=s_arc["width_px"],
+            height_px=s_arc["height_px"],
+            bg_theme="#000000",
+            title=s_arc["description"],
+            initial_svg_markup=svg_content
+        )
+        h_hash = hashlib.sha256(html.encode("utf-8")).hexdigest()
+        rec_uuid = str(uuid.uuid4())
+        row = [
+            rec_uuid,
+            s_arc["template_id"],
+            s_arc["template_name"],
+            s_arc["category"],
+            s_arc["width_px"],
+            s_arc["height_px"],
+            s_arc["aspect_ratio"],
+            s_arc["stage_selector"],
+            s_arc["description"],
             html,
             h_hash
         ]
@@ -610,3 +737,46 @@ def instantiate_stage_file(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
     return output_path
+
+
+def list_branding_slide_templates() -> List[Dict[str, Any]]:
+    """Returns metadata for all registered branding presentation slide templates."""
+    reg = get_canvas_template_registry_105a()
+    fmap = build_field_map_105(reg["Fields"])
+    slides = []
+    for row in reg["Values"]:
+        if row[fmap["category"]] == "branding_slide":
+            slides.append({
+                "template_id": row[fmap["template_id"]],
+                "template_name": row[fmap["template_name"]],
+                "width_px": row[fmap["width_px"]],
+                "height_px": row[fmap["height_px"]],
+                "aspect_ratio": row[fmap["aspect_ratio"]],
+                "description": row[fmap["description"]],
+                "checksum_sha256": row[fmap["checksum_sha256"]][:8]
+            })
+    return slides
+
+
+def get_branding_slide_template_html(template_id: str) -> Optional[str]:
+    """Retrieves the full HTML stage markup for a specified branding slide template."""
+    reg = get_canvas_template_registry_105a()
+    fmap = build_field_map_105(reg["Fields"])
+    for row in reg["Values"]:
+        if row[fmap["template_id"]] == template_id or row[fmap["template_name"]] == template_id:
+            return row[fmap["html_template"]]
+    return None
+
+
+def save_canvas_template_registry_105a(registry_file_path: Optional[str] = None) -> Path:
+    """
+    Serializes and commits the active BEJSON 105a template registry to disk.
+    Defaults to canvas_templates_registry.105a.bejson alongside this module.
+    """
+    target = Path(registry_file_path) if registry_file_path else (_HERE / "canvas_templates_registry.105a.bejson")
+    doc = get_canvas_template_registry_105a()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "w", encoding="utf-8") as f:
+        json.dump(doc, f, indent=2)
+    return target
+

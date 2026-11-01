@@ -7,10 +7,12 @@
  *                 do not restate or reinterpret this acronym elsewhere.
  * MFDB:           MFDB stands for Multi File Database. Authoritative definition;
  *                 do not restate or reinterpret this acronym elsewhere.
- * Version:        1.0.0
- * Date:           2026-10-25
+ * Version:        1.0.1
+ * Date:           2026-10-30
+ * Changelog:
+ *   1.0.1 - 2026-10-30: Records_Type key fix (was Record_Type).
  * Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
- * RELATIONAL_ID:  5f9a1c2e-3d4b-4a5c-8901-2e3f4a5b6c7d
+ * RELATIONAL_ID:  34ae84bb-c103-4ccd-ae13-ffeed8fccb1f
  * Release_Version: 300
  */
 

@@ -7,12 +7,14 @@
  * Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
  *                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
  *                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
- * Version:         2.1.5
+ * Version:         2.2.0
  * Release_Version: 300
- * Date:            2026-10-29
+ * Date:            2026-10-30
+ * Changelog:
+ *   2.2.0 - 2026-10-30: Added mfdb_validator_check_referential_integrity (standalone FK audit, PY/TS/SH parity, verified on a shared corpus); Network_Role validation; strict-FK errors carry the numeric FK code.  Absolute file_path / Parent_Hierarchy treated as escaping the root.
  * Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
  * Format_Creator:  Elton Boehnen
- * RELATIONAL_ID:   111769a2-5a7d-4349-8d67-3f2836e69f81
+ * RELATIONAL_ID:   9d25d7ac-28ea-4395-bac9-dd054b06dfbc
  */
 
 'use strict';
@@ -158,6 +160,8 @@ function _resolveEntityPath(manifestPath, filePathRel) {
 function _bejson_mfdb_escapes_root(relativePath) {
   if (!relativePath || typeof relativePath !== 'string') return false;
   const normalized = relativePath.replace(/\\/g, '/');
+  // Absolute paths (POSIX root or a Windows drive letter) are outside the MFDB root by definition.
+  if (normalized.startsWith('/') || /^[A-Za-z]:/.test(normalized)) return true;
   const parts = normalized.split('/');
   let depth = 0;
   for (const part of parts) {

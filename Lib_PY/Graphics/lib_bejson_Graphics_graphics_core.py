@@ -7,10 +7,12 @@ BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
-Version:        1.0.0
-Date:           2026-10-27
+Version:        1.1.0
+Date:           2026-10-30
+Changelog:
+  1.0.1 - 2026-10-30: Imports standardized to the cased module names (lowercase stubs removed).
 Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID:  4a5b6c7d-8e9f-4a1b-b2c3-d4e5f6a7b8c9
+RELATIONAL_ID:  9ade1e3b-88ad-4a74-84d7-18b90b40b634
 Release_Version: 300
 """
 
@@ -52,7 +54,7 @@ from lib_bejson_Graphics_graphics_canvas_templates import (
 )
 
 logger = logging.getLogger("lib_bejson_Graphics_graphics_core")
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 # Policy §8.1 Tri-Color Palette
 COLOR_BLACK = "#000000"
@@ -160,6 +162,379 @@ def create_isometric_cube_svg(
   <polygon points="{' '.join(p_left)}" fill="#0e0e14" stroke="{stroke_color}" stroke-width="2" />
   <polygon points="{' '.join(p_right)}" fill="#12121a" stroke="{stroke_color}" stroke-width="2" />
   <circle cx="{center_x}" cy="{center_y}" r="{3 * pulse_intensity}" fill="{accent_color}" />
+</svg>"""
+
+
+def render_spinning_cube_svg(
+    rotation_deg: float,
+    width_px: int = 400,
+    height_px: int = 400,
+    accent_color: str = COLOR_RED
+) -> str:
+    """Renders 3D projected isometric cube SVG with floating cap, normal culling, and reticle."""
+    cx = width_px / 2.0
+    cy = height_px / 2.0
+    size = width_px * 0.18
+
+    rad = math.radians(rotation_deg)
+    pitch = math.radians(30)
+    cos_a, sin_a = math.cos(rad), math.sin(rad)
+    cos_p, sin_p = math.cos(pitch), math.sin(pitch)
+
+    verts = []
+    for x in (-size, size):
+        for y in (-size, size):
+            for z in (-size, size):
+                rx = x * cos_a + z * sin_a
+                ry = y
+                rz = -x * sin_a + z * cos_a
+                px = rx
+                py = ry * cos_p - rz * sin_p
+                pz = ry * sin_p + rz * cos_p
+                verts.append((cx + px, cy + py, pz))
+
+    faces = [
+        ([0, 4, 6, 2], "front",  (0, 0, -1)),
+        ([4, 5, 7, 6], "right",  (1, 0, 0)),
+        ([5, 1, 3, 7], "back",   (0, 0, 1)),
+        ([1, 0, 2, 3], "left",   (-1, 0, 0)),
+        ([0, 1, 5, 4], "top",    (0, -1, 0)),
+        ([2, 6, 7, 3], "bottom", (0, 1, 0)),
+    ]
+
+    sorted_faces = []
+    for face_verts_idx, face_name, (nx, ny, nz) in faces:
+        rnx = nx * cos_a + nz * sin_a
+        rny = ny
+        rnz = -nx * sin_a + nz * cos_a
+        pnz = rny * sin_p + rnz * cos_p
+        cz = sum(verts[i][2] for i in face_verts_idx) / 4.0
+        sorted_faces.append((cz, pnz, face_verts_idx, face_name))
+
+    sorted_faces.sort(key=lambda item: item[0])
+
+    svg_lines = [
+        f'<svg width="{width_px}" height="{height_px}" viewBox="0 0 {width_px} {height_px}" xmlns="http://www.w3.org/2000/svg">',
+        f'<rect width="{width_px}" height="{height_px}" fill="#000000"/>',
+        f'<ellipse cx="{cx}" cy="{cy}" rx="{size * 2.2}" ry="{size * 0.9}" fill="none" stroke="{accent_color}" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.6"/>'
+    ]
+
+    for cz, pnz, face_verts_idx, face_name in sorted_faces:
+        if pnz > 0:
+            pts = " ".join(f"{verts[i][0]:.1f},{verts[i][1]:.1f}" for i in face_verts_idx)
+            if face_name == "top":
+                fill, fill_op, stroke = accent_color, "0.4", accent_color
+            elif face_name in ("front", "left"):
+                fill, fill_op, stroke = "#0E0E16", "0.95", "#FFFFFF"
+            else:
+                fill, fill_op, stroke = "#161622", "0.95", "#FFFFFF"
+            svg_lines.append(f'<polygon points="{pts}" fill="{fill}" fill-opacity="{fill_op}" stroke="{stroke}" stroke-width="2"/>')
+
+    svg_lines.append(f'<circle cx="{cx}" cy="{cy}" r="5" fill="{accent_color}"/>')
+    svg_lines.append('</svg>')
+    return "\n".join(svg_lines)
+
+
+def render_radar_scanner_svg(
+    rotation_deg: float,
+    width_px: int = 320,
+    height_px: int = 320,
+    accent_color: str = COLOR_RED
+) -> str:
+    """Renders high-contrast radar sweep scanner SVG."""
+    cx = width_px / 2.0
+    cy = height_px / 2.0
+    r = (width_px / 2.0) - 20
+
+    rad = math.radians(rotation_deg)
+    bx = cx + r * math.cos(rad)
+    by = cy + r * math.sin(rad)
+
+    trail_rad = math.radians(rotation_deg - 45)
+    tx = cx + r * math.cos(trail_rad)
+    ty = cy + r * math.sin(trail_rad)
+
+    return f"""<svg width="{width_px}" height="{height_px}" viewBox="0 0 {width_px} {height_px}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{width_px}" height="{height_px}" fill="#000000"/>
+  <circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <circle cx="{cx}" cy="{cy}" r="{r*0.66}" fill="none" stroke="#1C1C28" stroke-width="1"/>
+  <circle cx="{cx}" cy="{cy}" r="{r*0.33}" fill="none" stroke="#1C1C28" stroke-width="1"/>
+  <line x1="{cx-r}" y1="{cy}" x2="{cx+r}" y2="{cy}" stroke="#1C1C28" stroke-width="1"/>
+  <line x1="{cx}" y1="{cy-r}" x2="{cx}" y2="{cy+r}" stroke="#1C1C28" stroke-width="1"/>
+  <path d="M{cx},{cy} L{bx:.1f},{by:.1f} A{r},{r} 0 0,0 {tx:.1f},{ty:.1f} Z" fill="{accent_color}" fill-opacity="0.25"/>
+  <line x1="{cx}" y1="{cy}" x2="{bx:.1f},{by:.1f}" stroke="{accent_color}" stroke-width="2"/>
+  <circle cx="{cx}" cy="{cy}" r="4" fill="{accent_color}"/>
+  <circle cx="{cx + r*0.4}" cy="{cy - r*0.3}" r="3" fill="#FFFFFF"/>
+  <circle cx="{cx - r*0.5}" cy="{cy + r*0.4}" r="3" fill="#FFFFFF"/>
+</svg>"""
+
+
+# ---------------------------------------------------------------------------
+# Canonical BEJSON Branding Presentation Slide Renderers (Widescreen 16:9)
+# ---------------------------------------------------------------------------
+
+def render_branding_title_slide_svg(
+    title: str = "BEJSON 105 ARCHITECTURE",
+    subtitle: str = "Deterministic Data, Spatial Layout & Graphics Engine",
+    author: str = "Elton Boehnen",
+    badge_text: str = "BEJSON ECOSYSTEM STANDARDS",
+    version_text: str = "FORMAT 105a // REL. 300",
+    width_px: int = 1280,
+    height_px: int = 720
+) -> str:
+    """Renders high-contrast 16:9 title/cover slide with isometric cube emblem."""
+    w, h = width_px, height_px
+    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{w}" height="{h}" fill="#000000"/>
+  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
+  <line x1="24" y1="24" x2="64" y2="24" stroke="#DE2626" stroke-width="3"/>
+  <line x1="24" y1="24" x2="24" y2="64" stroke="#DE2626" stroke-width="3"/>
+  <line x1="{w-24}" y1="24" x2="{w-64}" y2="24" stroke="#DE2626" stroke-width="3"/>
+  <line x1="{w-24}" y1="24" x2="{w-24}" y2="64" stroke="#DE2626" stroke-width="3"/>
+  <line x1="24" y1="{h-24}" x2="64" y2="{h-24}" stroke="#DE2626" stroke-width="3"/>
+  <line x1="24" y1="{h-24}" x2="24" y2="{h-64}" stroke="#DE2626" stroke-width="3"/>
+  <line x1="{w-24}" y1="{h-24}" x2="{w-64}" y2="{h-24}" stroke="#DE2626" stroke-width="3"/>
+  <line x1="{w-24}" y1="{h-24}" x2="{w-24}" y2="{h-64}" stroke="#DE2626" stroke-width="3"/>
+  <rect x="64" y="48" width="280" height="32" rx="16" fill="#000000" stroke="#2A2A38" stroke-width="1.5"/>
+  <circle cx="80" cy="64" r="5" fill="#DE2626"/>
+  <text x="96" y="69" fill="#FFFFFF" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">{badge_text}</text>
+  <rect x="{w-280}" y="48" width="216" height="32" rx="16" fill="#000000" stroke="#DE2626" stroke-width="1.5"/>
+  <text x="{w-260}" y="69" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">{version_text}</text>
+  <text x="80" y="280" fill="#FFFFFF" font-size="50" font-family="monospace" font-weight="900" letter-spacing="2">{title}</text>
+  <line x1="80" y1="310" x2="720" y2="310" stroke="#DE2626" stroke-width="3"/>
+  <text x="80" y="360" fill="#AAAAAA" font-size="22" font-family="monospace">{subtitle}</text>
+  <g transform="translate({w-320}, 360)">
+    <ellipse cx="0" cy="0" rx="140" ry="60" fill="none" stroke="#DE2626" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.6"/>
+    <polygon points="0,-70 60,-35 60,35 0,70 -60,35 -60,-35" fill="#14141E" stroke="#FFFFFF" stroke-width="2"/>
+    <line x1="0" y1="-70" x2="0" y2="70" stroke="#2A2A38" stroke-width="1.5"/>
+    <line x1="-60" y1="-35" x2="60" y2="35" stroke="#2A2A38" stroke-width="1.5"/>
+    <line x1="60" y1="-35" x2="-60" y2="35" stroke="#2A2A38" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="6" fill="#DE2626"/>
+  </g>
+  <line x1="64" y1="{h-80}" x2="{w-64}" y2="{h-80}" stroke="#2A2A38" stroke-width="1"/>
+  <text x="64" y="{h-48}" fill="#888899" font-size="14" font-family="monospace">Author: {author} · boehnenelton2024@gmail.com</text>
+  <text x="{w-64}" y="{h-48}" text-anchor="end" fill="#888899" font-size="14" font-family="monospace">boehnenelton2024.pages.dev · github.com/boehnenelton</text>
+</svg>"""
+
+
+def render_branding_architecture_slide_svg(
+    title: str = "THREE-TIER SYSTEM DECOMPOSITION",
+    subtitle: str = "Decoupled persistence, mathematical layout, and visual presentation",
+    pillars: Optional[List[Tuple[str, str, str, List[str], str]]] = None,
+    width_px: int = 1280,
+    height_px: int = 720
+) -> str:
+    """Renders 16:9 architecture blueprint slide with 3 structured pillar cards."""
+    w, h = width_px, height_px
+    if pillars is None:
+        pillars = [
+            ("01", "CORE FOUNDATION", "BEJSON 104/105 Persistence", ["O(1) Field Map Caching", "MFDB 1.40 Multi-File DB", "E90-E95 UUID Integrity", "Atomic Posix File I/O"], "PERSISTENCE"),
+            ("02", "SPATIAL LAYOUT", "BEHTML Spatial Engine", ["8-Lane / 16-Sublane Grid", "Row Quantization (Ry=32px)", "Policy §8.1 Tri-Color", "Zero Filler Skeleton Law"], "COORDINATES"),
+            ("03", "GRAPHICS ENGINE", "Vector & Studio Core", ["105a Timeline Quantization", "Two-Tier Barrier of Entry", "Playwright ARM64 Exporters", "Remove_Frame_Source Scoop"], "ANIMATION")
+        ]
+
+    cards_svg = []
+    card_w = 360
+    card_gap = 36
+    start_x = 64
+    for i, (p_num, p_title, p_sub, p_feats, p_tag) in enumerate(pillars):
+        cx = start_x + i * (card_w + card_gap)
+        cy = 160
+        cw, ch = card_w, 450
+        feat_svg = []
+        for fi, feat in enumerate(p_feats):
+            fy = cy + 180 + fi * 42
+            feat_svg.append(f'<rect x="{cx+24}" y="{fy-10}" width="6" height="6" fill="#DE2626"/>')
+            feat_svg.append(f'<text x="{cx+40}" y="{fy-4}" fill="#FFFFFF" font-size="14" font-family="monospace">{feat}</text>')
+        feats_markup = '\n    '.join(feat_svg)
+        card_markup = f"""<g>
+    <rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
+    <rect x="{cx}" y="{cy}" width="{cw}" height="4" fill="#DE2626"/>
+    <text x="{cx+24}" y="{cy+42}" fill="#DE2626" font-size="14" font-family="monospace" font-weight="bold">PILLAR // {p_num}</text>
+    <text x="{cx+24}" y="{cy+80}" fill="#FFFFFF" font-size="22" font-family="monospace" font-weight="bold">{p_title}</text>
+    <text x="{cx+24}" y="{cy+112}" fill="#888899" font-size="14" font-family="monospace">{p_sub}</text>
+    <line x1="{cx+24}" y1="{cy+136}" x2="{cx+cw-24}" y2="{cy+136}" stroke="#1C1C28" stroke-width="1"/>
+    {feats_markup}
+    <rect x="{cx+24}" y="{cy+ch-48}" width="{cw-48}" height="28" rx="14" fill="#000000" stroke="#2A2A38" stroke-width="1"/>
+    <text x="{cx+cw/2}" y="{cy+ch-30}" text-anchor="middle" fill="#888899" font-size="11" font-family="monospace" font-weight="bold" letter-spacing="1.5">{p_tag}</text>
+  </g>"""
+        cards_svg.append(card_markup)
+
+    pillars_markup = '\n  '.join(cards_svg)
+    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{w}" height="{h}" fill="#000000"/>
+  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
+  <text x="64" y="64" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">01 // ARCHITECTURE &amp; TAXONOMY</text>
+  <text x="64" y="104" fill="#FFFFFF" font-size="32" font-family="monospace" font-weight="bold">{title}</text>
+  <text x="64" y="132" fill="#888899" font-size="16" font-family="monospace">{subtitle}</text>
+  {pillars_markup}
+  <line x1="64" y1="{h-56}" x2="{w-64}" y2="{h-56}" stroke="#2A2A38" stroke-width="1"/>
+  <text x="64" y="{h-32}" fill="#888899" font-size="12" font-family="monospace">ELTON BOEHNEN BEJSON ECOSYSTEM · RELEASE 300</text>
+  <text x="{w-64}" y="{h-32}" text-anchor="end" fill="#888899" font-size="12" font-family="monospace">CONFIDENTIAL // SPECIFICATION SLIDE</text>
+</svg>"""
+
+
+def render_branding_feature_slide_svg(
+    title: str = "DETERMINISTIC CONFORMANCE",
+    subtitle: str = "Strict Barrier of Entry validation and atomic delivery pipelines",
+    width_px: int = 1280,
+    height_px: int = 720
+) -> str:
+    """Renders 16:9 split-view slide with features and terminal code console card."""
+    w, h = width_px, height_px
+    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{w}" height="{h}" fill="#000000"/>
+  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
+  <text x="64" y="64" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">02 // RUNTIME SPECIFICATION</text>
+  <text x="64" y="104" fill="#FFFFFF" font-size="32" font-family="monospace" font-weight="bold">{title}</text>
+  <text x="64" y="132" fill="#888899" font-size="16" font-family="monospace">{subtitle}</text>
+  <g transform="translate(64, 160)">
+    <rect width="480" height="130" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
+    <rect width="4" height="130" fill="#DE2626"/>
+    <text x="24" y="36" fill="#FFFFFF" font-size="18" font-family="monospace" font-weight="bold">1. TWO-TIER BARRIER OF ENTRY</text>
+    <text x="24" y="68" fill="#888899" font-size="13" font-family="monospace">Core Family + Graphics Domain double gate.</text>
+    <text x="24" y="92" fill="#888899" font-size="13" font-family="monospace">Zero unverified payloads pass into execution.</text>
+  </g>
+  <g transform="translate(64, 310)">
+    <rect width="480" height="130" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
+    <rect width="4" height="130" fill="#DE2626"/>
+    <text x="24" y="36" fill="#FFFFFF" font-size="18" font-family="monospace" font-weight="bold">2. ZERO-COLLISION TAXONOMY</text>
+    <text x="24" y="68" fill="#888899" font-size="13" font-family="monospace">Long self-describing variable identifiers.</text>
+    <text x="24" y="92" fill="#888899" font-size="13" font-family="monospace">Policy §6.1 hierarchy-group-purpose triad.</text>
+  </g>
+  <g transform="translate(64, 460)">
+    <rect width="480" height="130" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
+    <rect width="4" height="130" fill="#DE2626"/>
+    <text x="24" y="36" fill="#FFFFFF" font-size="18" font-family="monospace" font-weight="bold">3. ATOMIC SOURCE SCOOP</text>
+    <text x="24" y="68" fill="#888899" font-size="13" font-family="monospace">Remove_Frame_Source: true prunes artifacts.</text>
+    <text x="24" y="92" fill="#888899" font-size="13" font-family="monospace">Byte-for-byte reconciliation before cleanup.</text>
+  </g>
+  <g transform="translate(576, 160)">
+    <rect width="640" height="430" rx="4" fill="#050508" stroke="#2A2A38" stroke-width="1.5"/>
+    <rect width="640" height="36" fill="#0F0F16"/>
+    <circle cx="24" cy="18" r="5" fill="#DE2626"/>
+    <circle cx="42" cy="18" r="5" fill="#2A2A38"/>
+    <circle cx="60" cy="18" r="5" fill="#2A2A38"/>
+    <text x="80" y="22" fill="#888899" font-size="12" font-family="monospace">termux - validate_barrier.py</text>
+    <rect x="510" y="8" width="114" height="20" rx="10" fill="#000000" stroke="#DE2626" stroke-width="1"/>
+    <text x="567" y="22" text-anchor="middle" fill="#DE2626" font-size="10" font-family="monospace" font-weight="bold">STATUS: VALID</text>
+    <text x="24" y="72" fill="#DE2626" font-size="14" font-family="monospace">from</text>
+    <text x="68" y="72" fill="#FFFFFF" font-size="14" font-family="monospace">Graphics.validator import validate_graphics_barrier</text>
+    <text x="24" y="110" fill="#888899" font-size="14" font-family="monospace"># Verify two-tier barrier gate</text>
+    <text x="24" y="140" fill="#FFFFFF" font-size="14" font-family="monospace">res = validate_graphics_barrier(manifest, is_file=True)</text>
+    <text x="24" y="180" fill="#DE2626" font-size="14" font-family="monospace">assert</text>
+    <text x="84" y="180" fill="#FFFFFF" font-size="14" font-family="monospace">res.valid is True</text>
+    <text x="24" y="210" fill="#888899" font-size="14" font-family="monospace"># Output: Barrier passed 100% (Core + Graphics)</text>
+  </g>
+  <line x1="64" y1="{h-56}" x2="{w-64}" y2="{h-56}" stroke="#2A2A38" stroke-width="1"/>
+  <text x="64" y="{h-32}" fill="#888899" font-size="12" font-family="monospace">ELTON BOEHNEN BEJSON ECOSYSTEM · RELEASE 300</text>
+</svg>"""
+
+
+def render_branding_metrics_slide_svg(
+    title: str = "SYSTEM PERFORMANCE & TELEMETRY",
+    subtitle: str = "Quantitative audit across ARM64 Termux and POSIX runtimes",
+    width_px: int = 1280,
+    height_px: int = 720
+) -> str:
+    """Renders 16:9 metrics dashboard slide with 4 KPI cards and continuous telemetry strip."""
+    w, h = width_px, height_px
+    kpis = [
+        ("100%", "BARRIER PASS", "Core & Graphics Gate"),
+        ("O(1)", "FIELD CACHE", "Zero Index Churn"),
+        ("<0.16s", "PID BATCH SINK", "Standards Log Commit"),
+        ("500-519", "GRAPHICS CODES", "Deterministic Registry")
+    ]
+    kpi_cards = []
+    card_w = 264
+    gap = 28
+    for i, (val, lbl, desc) in enumerate(kpis):
+        cx = 64 + i * (card_w + gap)
+        cy = 160
+        card = f"""<g>
+    <rect x="{cx}" y="{cy}" width="{card_w}" height="200" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
+    <rect x="{cx}" y="{cy}" width="{card_w}" height="4" fill="#DE2626"/>
+    <text x="{cx+24}" y="{cy+60}" fill="#DE2626" font-size="42" font-family="monospace" font-weight="900">{val}</text>
+    <text x="{cx+24}" y="{cy+100}" fill="#FFFFFF" font-size="16" font-family="monospace" font-weight="bold">{lbl}</text>
+    <text x="{cx+24}" y="{cy+130}" fill="#888899" font-size="12" font-family="monospace">{desc}</text>
+  </g>"""
+        kpi_cards.append(card)
+    kpi_markup = '\n  '.join(kpi_cards)
+
+    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{w}" height="{h}" fill="#000000"/>
+  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
+  <text x="64" y="64" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">03 // BENCHMARKS &amp; TELEMETRY</text>
+  <text x="64" y="104" fill="#FFFFFF" font-size="32" font-family="monospace" font-weight="bold">{title}</text>
+  <text x="64" y="132" fill="#888899" font-size="16" font-family="monospace">{subtitle}</text>
+  {kpi_markup}
+  <g transform="translate(64, 385)">
+    <rect width="1140" height="225" rx="4" fill="#050508" stroke="#2A2A38" stroke-width="1.5"/>
+    <text x="24" y="32" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold">CONTINUOUS SYSTEM TELEMETRY STRIP</text>
+    <circle cx="100" cy="125" r="60" fill="none" stroke="#2A2A38" stroke-width="1"/>
+    <circle cx="100" cy="125" r="40" fill="none" stroke="#1C1C28" stroke-width="1"/>
+    <circle cx="100" cy="125" r="20" fill="none" stroke="#1C1C28" stroke-width="1"/>
+    <line x1="40" y1="125" x2="160" y2="125" stroke="#2A2A38" stroke-width="1"/>
+    <line x1="100" y1="65" x2="100" y2="185" stroke="#2A2A38" stroke-width="1"/>
+    <line x1="100" y1="125" x2="145" y2="85" stroke="#DE2626" stroke-width="2"/>
+    <circle cx="145" cy="85" r="3" fill="#DE2626"/>
+    <path d="M220,125 Q280,60 340,125 T460,125 T580,125 T700,125 T820,125 T940,125 T1060,125" fill="none" stroke="#DE2626" stroke-width="2" opacity="0.8"/>
+    <line x1="200" y1="125" x2="1100" y2="125" stroke="#2A2A38" stroke-width="1" stroke-dasharray="4,4"/>
+  </g>
+  <line x1="64" y1="{h-56}" x2="{w-64}" y2="{h-56}" stroke="#2A2A38" stroke-width="1"/>
+  <text x="64" y="{h-32}" fill="#888899" font-size="12" font-family="monospace">ELTON BOEHNEN BEJSON ECOSYSTEM · RELEASE 300</text>
+</svg>"""
+
+
+def render_branding_summary_slide_svg(
+    title: str = "PRODUCTION DELIVERABLES & CONCLUSION",
+    subtitle: str = "Enterprise-grade offline-first tools built for Android Termux and Linux",
+    width_px: int = 1280,
+    height_px: int = 720
+) -> str:
+    """Renders 16:9 conclusion and deliverables slide with official ecosystem seal."""
+    w, h = width_px, height_px
+    takeaways = [
+        "Clean-Slate Architecture: Zero bloat, zero filler, zero unneeded dependencies.",
+        "Atomic Frame Pruning: Intermediate SVG frame sources removed on completion.",
+        "Multi-Format Exporters: Direct rendering to GIF, WebM, MP4, and APNG.",
+        "Full Polyglot Parity: Unified Python, JavaScript, TypeScript, and Bash libraries."
+    ]
+    t_lines = []
+    for i, t in enumerate(takeaways):
+        ty = 60 + i * 50
+        t_lines.append(f'<circle cx="24" cy="{ty-5}" r="8" fill="#000000" stroke="#DE2626" stroke-width="2"/>')
+        t_lines.append(f'<text x="21" y="{ty-1}" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold">✓</text>')
+        t_lines.append(f'<text x="48" y="{ty}" fill="#FFFFFF" font-size="14" font-family="monospace">{t}</text>')
+    t_markup = '\n    '.join(t_lines)
+
+    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{w}" height="{h}" fill="#000000"/>
+  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
+  <text x="64" y="64" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">04 // PRODUCTION READINESS</text>
+  <text x="64" y="104" fill="#FFFFFF" font-size="32" font-family="monospace" font-weight="bold">{title}</text>
+  <text x="64" y="132" fill="#888899" font-size="16" font-family="monospace">{subtitle}</text>
+  <g transform="translate(64, 160)">
+    <rect width="600" height="350" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
+    <rect width="4" height="350" fill="#DE2626"/>
+    <text x="24" y="32" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold">CORE ARCHITECTURAL TAKEAWAYS</text>
+    {t_markup}
+  </g>
+  <g transform="translate(696, 160)">
+    <rect width="520" height="350" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
+    <rect width="520" height="4" fill="#DE2626"/>
+    <text x="24" y="36" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold">ECOSYSTEM &amp; CONNECT</text>
+    <text x="24" y="80" fill="#888899" font-size="12" font-family="monospace">DOCUMENTATION PORTAL:</text>
+    <text x="24" y="104" fill="#FFFFFF" font-size="15" font-family="monospace">https://boehnenelton2024.pages.dev</text>
+    <text x="24" y="148" fill="#888899" font-size="12" font-family="monospace">SOURCE REPOSITORIES:</text>
+    <text x="24" y="172" fill="#FFFFFF" font-size="15" font-family="monospace">https://github.com/boehnenelton</text>
+    <text x="24" y="216" fill="#888899" font-size="12" font-family="monospace">AUTHOR CONTACT:</text>
+    <text x="24" y="240" fill="#FFFFFF" font-size="15" font-family="monospace">boehnenelton2024@gmail.com</text>
+    <rect x="24" y="280" width="472" height="42" rx="4" fill="#000000" stroke="#DE2626" stroke-width="1"/>
+    <text x="260" y="306" text-anchor="middle" fill="#FFFFFF" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">ELTON BOEHNEN BEJSON ECOSYSTEM 2026</text>
+  </g>
+  <line x1="64" y1="{h-56}" x2="{w-64}" y2="{h-56}" stroke="#2A2A38" stroke-width="1"/>
+  <text x="64" y="{h-32}" fill="#888899" font-size="12" font-family="monospace">ELTON BOEHNEN BEJSON ECOSYSTEM · RELEASE 300</text>
 </svg>"""
 
 
@@ -494,15 +869,42 @@ def compile_row_per_frame_to_animated_svg(
 # Multi-Format Video, GIF, WebM & APNG Exporters
 # ---------------------------------------------------------------------------
 
+def _prune_frame_sources(frames_dir_or_list: Any) -> int:
+    """Removes transient frame source images (.png, .svg) after final output compilation."""
+    removed_count = 0
+    if isinstance(frames_dir_or_list, (str, Path)) and Path(frames_dir_or_list).is_dir():
+        f_dir = Path(frames_dir_or_list).resolve()
+        for pattern in ("*.png", "*.svg"):
+            for frame_file in f_dir.glob(pattern):
+                try:
+                    frame_file.unlink()
+                    removed_count += 1
+                except Exception as exc:
+                    logger.debug(f"Failed to remove frame {frame_file}: {exc}")
+    elif isinstance(frames_dir_or_list, list):
+        for f_path in frames_dir_or_list:
+            p = Path(f_path)
+            if p.exists() and p.is_file():
+                try:
+                    p.unlink()
+                    removed_count += 1
+                except Exception as exc:
+                    logger.debug(f"Failed to remove frame {p}: {exc}")
+    logger.info(f"Removed {removed_count} frame source files (remove_frame_source=True)")
+    return removed_count
+
+
 def compile_frames_to_gif(
     frames_dir_or_list: Any,
     output_gif_path: str,
     fps: int = 24,
-    loop: int = 0
+    loop: int = 0,
+    remove_frame_source: bool = False
 ) -> str:
     """
     Compiles a directory or list of PNG frame images into an optimized animated GIF.
     Uses ffmpeg with 2-pass palettegen when available; falls back to Pillow.
+    If remove_frame_source is True, transient frame source files are deleted after compilation.
     """
     out_file = Path(output_gif_path).resolve()
     out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -525,6 +927,8 @@ def compile_frames_to_gif(
                 res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 if res.returncode == 0 and out_file.exists():
                     logger.info(f"Compiled GIF via ffmpeg: {out_file} ({out_file.stat().st_size} bytes)")
+                    if remove_frame_source:
+                        _prune_frame_sources(frames_dir_or_list)
                     return str(out_file)
             except Exception as exc:
                 logger.warning(f"ffmpeg GIF compilation fallback: {exc}")
@@ -552,20 +956,99 @@ def compile_frames_to_gif(
             optimize=True
         )
         logger.info(f"Compiled GIF via Pillow: {out_file} ({out_file.stat().st_size} bytes, {len(images)} frames)")
+        if remove_frame_source:
+            _prune_frame_sources(frames_dir_or_list)
         return str(out_file)
     except Exception as exc:
         logger.error(f"Failed to compile GIF: {exc}")
         raise
 
 
+def _resolve_slides_and_durations(
+    frames_dir_or_slides: Any,
+    default_dwell_sec: Optional[float] = None,
+    default_fps: int = 24
+) -> Tuple[List[Tuple[Path, float]], bool]:
+    """
+    Normalizes inputs into a list of (image_path, duration_sec) tuples.
+    Returns (tuples_list, is_slide_dwell_mode).
+    """
+    doc = None
+    base_dir = Path.cwd()
+    if isinstance(frames_dir_or_slides, (str, Path)):
+        p = Path(frames_dir_or_slides).resolve()
+        if p.is_file() and p.suffix.lower() == ".bejson":
+            base_dir = p.parent
+            with open(p, "r", encoding="utf-8") as f:
+                doc = json.load(f)
+    elif isinstance(frames_dir_or_slides, dict) and "Values" in frames_dir_or_slides:
+        doc = frames_dir_or_slides
+
+    if doc is not None:
+        f_map = build_field_map_105(doc)
+        tuples = []
+        for r in doc.get("Values", []):
+            fn = None
+            for key in ("slide_filename", "frame_filename"):
+                if key in f_map and f_map[key] < len(r):
+                    fn = r[f_map[key]]
+                    if fn:
+                        break
+
+            dur = None
+            if default_dwell_sec is not None:
+                dur = float(default_dwell_sec)
+            elif "duration_sec" in f_map and f_map["duration_sec"] < len(r) and r[f_map["duration_sec"]] is not None:
+                dur = float(r[f_map["duration_sec"]])
+            elif "frame_duration_ms" in f_map and f_map["frame_duration_ms"] < len(r) and r[f_map["frame_duration_ms"]] is not None:
+                dur = float(r[f_map["frame_duration_ms"]]) / 1000.0
+            else:
+                dur = 1.0 / max(1, default_fps)
+
+            if fn:
+                img_path = base_dir / fn
+                if img_path.suffix.lower() == ".svg":
+                    png_alt = img_path.with_suffix(".png")
+                    if png_alt.exists():
+                        img_path = png_alt
+                tuples.append((img_path, dur))
+        return tuples, True
+
+    if isinstance(frames_dir_or_slides, (str, Path)) and Path(frames_dir_or_slides).is_dir():
+        f_dir = Path(frames_dir_or_slides).resolve()
+        if default_dwell_sec is not None:
+            png_files = sorted(f_dir.glob("*.png"))
+            return [(p, float(default_dwell_sec)) for p in png_files], True
+        else:
+            return [], False
+
+    if isinstance(frames_dir_or_slides, list):
+        tuples = []
+        for item in frames_dir_or_slides:
+            if isinstance(item, tuple) and len(item) == 2:
+                p, d = item
+                tuples.append((Path(p).resolve(), float(d)))
+            else:
+                dur = float(default_dwell_sec) if default_dwell_sec is not None else (1.0 / max(1, default_fps))
+                tuples.append((Path(item).resolve(), dur))
+        return tuples, True
+
+    return [], False
+
+
 def compile_frames_to_webm(
-    frames_dir: str,
+    frames_dir_or_slides: Any,
     output_webm_path: str,
     fps: int = 24,
-    crf: int = 28
+    crf: int = 28,
+    dwell_sec: Optional[float] = None,
+    cpu_used: int = 4,
+    deadline: str = "realtime",
+    remove_frame_source: bool = False
 ) -> str:
     """
-    Compiles rendered PNG frames into an optimized WebM (VP9) video using ffmpeg.
+    Compiles rendered PNG frames or slide sequences into an optimized WebM (VP9) video using ffmpeg.
+    Supports custom slide dwell durations (e.g., 4s, 8s, 12s per slide).
     """
     out_file = Path(output_webm_path).resolve()
     out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -574,23 +1057,64 @@ def compile_frames_to_webm(
     if not ffmpeg_bin:
         raise RuntimeError("ffmpeg is required to compile WebM video")
 
-    f_dir = Path(frames_dir).resolve()
-    cmd = [
-        ffmpeg_bin, "-y",
-        "-framerate", str(fps),
-        "-pattern_type", "glob",
-        "-i", str(f_dir / "*.png"),
-        "-c:v", "libvpx-vp9",
-        "-pix_fmt", "yuv420p",
-        "-b:v", "0",
-        "-crf", str(crf),
-        str(out_file)
-    ]
+    slide_tuples, is_dwell_mode = _resolve_slides_and_durations(frames_dir_or_slides, dwell_sec, fps)
+
+    if is_dwell_mode:
+        if not slide_tuples:
+            raise FileNotFoundError("No slide frames found for WebM compilation")
+
+        cmd = [ffmpeg_bin, "-y"]
+        filter_inputs = []
+        for idx, (p, dur) in enumerate(slide_tuples):
+            cmd.extend(["-loop", "1", "-t", f"{dur:.3f}", "-i", str(p)])
+            filter_inputs.append(f"[{idx}:v]")
+
+        filter_complex = f"{''.join(filter_inputs)}concat=n={len(slide_tuples)}:v=1:a=0[v]"
+        cmd.extend([
+            "-filter_complex", filter_complex,
+            "-map", "[v]",
+            "-c:v", "libvpx-vp9",
+            "-deadline", deadline,
+            "-cpu-used", str(cpu_used),
+            "-row-mt", "1",
+            "-pix_fmt", "yuv420p",
+            "-b:v", "0",
+            "-crf", str(crf),
+            "-r", str(fps),
+            str(out_file)
+        ])
+    else:
+        f_dir = Path(frames_dir_or_slides).resolve()
+        cmd = [
+            ffmpeg_bin, "-y",
+            "-framerate", str(fps),
+            "-pattern_type", "glob",
+            "-i", str(f_dir / "*.png"),
+            "-c:v", "libvpx-vp9",
+            "-deadline", deadline,
+            "-cpu-used", str(cpu_used),
+            "-row-mt", "1",
+            "-pix_fmt", "yuv420p",
+            "-b:v", "0",
+            "-crf", str(crf),
+            str(out_file)
+        ]
+
     res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res.returncode != 0:
         raise RuntimeError(f"ffmpeg WebM compilation failed: {res.stderr}")
 
     logger.info(f"Compiled WebM video: {out_file} ({out_file.stat().st_size} bytes)")
+    if remove_frame_source:
+        if is_dwell_mode:
+            for p, _ in slide_tuples:
+                if p.exists():
+                    try:
+                        p.unlink()
+                    except Exception as exc:
+                        logger.warning(f"Failed to remove frame source {p}: {exc}")
+        else:
+            _prune_frame_sources(frames_dir_or_slides)
     return str(out_file)
 
 
@@ -630,12 +1154,16 @@ def compile_frames_to_apng(
 
 
 def compile_frames_to_mp4(
-    frames_dir: str,
+    frames_dir_or_slides: Any,
     output_mp4_path: str,
-    fps: int = 24
+    fps: int = 24,
+    dwell_sec: Optional[float] = None,
+    preset: str = "veryfast",
+    remove_frame_source: bool = False
 ) -> str:
     """
-    Compiles rendered frames into an H.264 MP4 video using ffmpeg.
+    Compiles rendered PNG frames or slide sequences into an H.264 MP4 video using ffmpeg.
+    Supports custom slide dwell durations (e.g., 4s, 8s, 12s per slide).
     """
     out_file = Path(output_mp4_path).resolve()
     out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -644,22 +1172,199 @@ def compile_frames_to_mp4(
     if not ffmpeg_bin:
         raise RuntimeError("ffmpeg is required to compile MP4 video")
 
-    f_dir = Path(frames_dir).resolve()
-    cmd = [
-        ffmpeg_bin, "-y",
-        "-framerate", str(fps),
-        "-pattern_type", "glob",
-        "-i", str(f_dir / "*.png"),
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        str(out_file)
-    ]
+    slide_tuples, is_dwell_mode = _resolve_slides_and_durations(frames_dir_or_slides, dwell_sec, fps)
+
+    if is_dwell_mode:
+        if not slide_tuples:
+            raise FileNotFoundError("No slide frames found for MP4 compilation")
+
+        cmd = [ffmpeg_bin, "-y"]
+        filter_inputs = []
+        for idx, (p, dur) in enumerate(slide_tuples):
+            cmd.extend(["-loop", "1", "-t", f"{dur:.3f}", "-i", str(p)])
+            filter_inputs.append(f"[{idx}:v]")
+
+        filter_complex = f"{''.join(filter_inputs)}concat=n={len(slide_tuples)}:v=1:a=0[v]"
+        cmd.extend([
+            "-filter_complex", filter_complex,
+            "-map", "[v]",
+            "-c:v", "libx264",
+            "-preset", preset,
+            "-pix_fmt", "yuv420p",
+            "-r", str(fps),
+            str(out_file)
+        ])
+    else:
+        f_dir = Path(frames_dir_or_slides).resolve()
+        cmd = [
+            ffmpeg_bin, "-y",
+            "-framerate", str(fps),
+            "-pattern_type", "glob",
+            "-i", str(f_dir / "*.png"),
+            "-c:v", "libx264",
+            "-preset", preset,
+            "-pix_fmt", "yuv420p",
+            str(out_file)
+        ]
+
     res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res.returncode != 0:
         raise RuntimeError(f"ffmpeg MP4 compilation failed: {res.stderr}")
 
     logger.info(f"Compiled MP4 video: {out_file} ({out_file.stat().st_size} bytes)")
+    if remove_frame_source:
+        if is_dwell_mode:
+            for p, _ in slide_tuples:
+                if p.exists():
+                    try:
+                        p.unlink()
+                    except Exception as exc:
+                        logger.warning(f"Failed to remove frame source {p}: {exc}")
+        else:
+            _prune_frame_sources(frames_dir_or_slides)
     return str(out_file)
+
+
+async def async_compile_presentation_slides_to_video(
+    slide_deck_or_path: Any,
+    output_video_path: str,
+    dwell_sec: Optional[float] = 4.0,
+    fps: int = 24,
+    video_format: str = "mp4",
+    crf: int = 28,
+    preset: str = "veryfast",
+    remove_frame_source: bool = False
+) -> str:
+    """
+    Renders presentation slide SVGs via Playwright (if PNGs do not yet exist)
+    and compiles them into an MP4 or WebM video demo reel honoring dwell duration.
+    """
+    from termux_playwright import async_playwright_termux, launch
+
+    doc = None
+    base_dir = Path.cwd()
+    if isinstance(slide_deck_or_path, (str, Path)):
+        p = Path(slide_deck_or_path).resolve()
+        base_dir = p.parent
+        with open(p, "r", encoding="utf-8") as f:
+            doc = json.load(f)
+    elif isinstance(slide_deck_or_path, dict):
+        doc = slide_deck_or_path
+    else:
+        raise ValueError("slide_deck_or_path must be a file path or dict")
+
+    f_map = build_field_map_105(doc)
+    w = doc.get("Canvas_Width_Px") or doc.get("Width_Px") or 1280
+    h = doc.get("Canvas_Height_Px") or doc.get("Height_Px") or 720
+
+    slide_records = []
+    for r in doc.get("Values", []):
+        fn = r[f_map.get("slide_filename", 9)] if "slide_filename" in f_map else None
+        svg_markup = r[f_map.get("svg_markup", 8)] if "svg_markup" in f_map else None
+        dur = dwell_sec if dwell_sec is not None else float(r[f_map.get("duration_sec", 4)] or 4.0)
+        slide_records.append({"filename": fn, "svg": svg_markup, "duration": dur})
+
+    # Render SVGs to PNGs if needed
+    rendered_tuples = []
+    async with async_playwright_termux() as pw:
+        browser = await launch(pw, headless=True)
+        page = await browser.new_page(viewport={"width": w, "height": h}, device_scale_factor=1)
+
+        for idx, srec in enumerate(slide_records):
+            fn = srec["filename"]
+            svg_content = srec["svg"]
+            dur = srec["duration"]
+
+            png_path = None
+            if fn:
+                candidate = base_dir / fn
+                if candidate.suffix.lower() == ".png" and candidate.exists():
+                    png_path = candidate
+                elif candidate.suffix.lower() == ".svg":
+                    png_alt = candidate.with_suffix(".png")
+                    if png_alt.exists():
+                        png_path = png_alt
+                    elif not svg_content and candidate.exists():
+                        svg_content = candidate.read_text(encoding="utf-8")
+
+            if png_path is None:
+                png_path = base_dir / f"slide_{idx:04d}.png"
+                html = f"<!DOCTYPE html><html><head><style>html,body{{margin:0;padding:0;width:{w}px;height:{h}px;background:#000000;overflow:hidden;}}svg{{width:100%;height:100%;display:block;}}</style></head><body>{svg_content}</body></html>"
+                tmp_html = base_dir / f"_tmp_render_{idx:04d}.html"
+                tmp_html.write_text(html, encoding="utf-8")
+                await page.goto(f"file://{tmp_html.resolve()}")
+                buf = await page.screenshot()
+                tmp_html.unlink()
+                png_path.write_bytes(buf)
+
+            rendered_tuples.append((png_path, dur))
+
+        await browser.close()
+
+    v_fmt = video_format.lower()
+    if v_fmt in ("webm", ".webm"):
+        return compile_frames_to_webm(
+            rendered_tuples,
+            output_video_path,
+            fps=fps,
+            crf=crf,
+            remove_frame_source=remove_frame_source
+        )
+    else:
+        return compile_frames_to_mp4(
+            rendered_tuples,
+            output_video_path,
+            fps=fps,
+            preset=preset,
+            remove_frame_source=remove_frame_source
+        )
+
+
+def compile_presentation_slides_to_video(
+    slide_deck_or_path: Any,
+    output_video_path: str,
+    dwell_sec: Optional[float] = 4.0,
+    fps: int = 24,
+    video_format: str = "mp4",
+    crf: int = 28,
+    preset: str = "veryfast",
+    remove_frame_source: bool = False
+) -> str:
+    """Synchronous wrapper for async_compile_presentation_slides_to_video."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            return pool.submit(
+                asyncio.run,
+                async_compile_presentation_slides_to_video(
+                    slide_deck_or_path=slide_deck_or_path,
+                    output_video_path=output_video_path,
+                    dwell_sec=dwell_sec,
+                    fps=fps,
+                    video_format=video_format,
+                    crf=crf,
+                    preset=preset,
+                    remove_frame_source=remove_frame_source
+                )
+            ).result()
+    else:
+        return asyncio.run(
+            async_compile_presentation_slides_to_video(
+                slide_deck_or_path=slide_deck_or_path,
+                output_video_path=output_video_path,
+                dwell_sec=dwell_sec,
+                fps=fps,
+                video_format=video_format,
+                crf=crf,
+                preset=preset,
+                remove_frame_source=remove_frame_source
+            )
+        )
 
 
 # ---------------------------------------------------------------------------

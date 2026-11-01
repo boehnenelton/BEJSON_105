@@ -276,7 +276,17 @@ function main() {
   }
 
   console.log(`\n${"=".repeat(60)}`);
-  console.log(`TOTAL: ${passed} passed, ${failed} failed`);
+
+  console.log("\n=== Section 9: fk_on_delete null vs absent (parity with Python/JS) ===");
+  {
+    const { manifest, authors, books, reviews } = buildFixture();
+    const nullBooks = { ...books, Fields: books.Fields.map((f) => (f.name === "author_fk" ? { ...f, fk_on_delete: null as unknown as undefined } : f)) };
+    const f1 = checkReferentialIntegrity(manifest, byPath(manifest, authors, nullBooks, reviews));
+    assert(f1.length === 1 && f1[0].code === 47, "explicit null fk_on_delete is INVALID_ON_DELETE (47)");
+    const absentBooks = { ...books, Fields: books.Fields.map((f) => { if (f.name !== "author_fk") return f; const g = { ...f }; delete g.fk_on_delete; return g; }) };
+    const f2 = checkReferentialIntegrity(manifest, byPath(manifest, authors, absentBooks, reviews));
+    assert(f2.length === 0, "absent fk_on_delete defaults to restrict");
+  }  console.log(`TOTAL: ${passed} passed, ${failed} failed`);
   console.log("=".repeat(60));
   if (failed > 0) throw new Error(`${failed} test(s) failed`);
 }

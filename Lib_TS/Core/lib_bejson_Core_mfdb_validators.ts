@@ -7,15 +7,16 @@
  *                 from lib_bejson_Core_bejson_chunking.ts, which should only
  *                 own packaging/IO, not validation logic. See changelog note
  *                 dated 2026-07-13.
- * Version:        2.3.0
- * Date:           2026-10-28
+ * Version:        2.4.0
+ * Date:           2026-10-30
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  d53f3b34-529d-412b-933f-d00b00af6921
+ * RELATIONAL_ID:  9e3da099-937b-4e96-8ad8-5cf485537cfa
  * Release_Version: 300
  *
  * Changelog:
+ *   2.4.0 - 2026-10-30: Network_Role validation; empty entity_name/file_path rejected (41); path-escape check; explicit fk_on_delete:null is invalid (parity with PY/JS).  Absolute paths escape the root; root-escaping Parent_Hierarchy reports [38] only; orphan reports [37] when resolvedPaths is supplied.
  *   2.3.0 - MFDB spec Level 1-3 enforced (port of Python mfdb_validator 2.4.0): bidirectional manifest<->entity is a
  *           hard error [38] (manifestRelativePath option); entity Format_Version may be 104 or 105 only;
  *           discoverRole classifies 105 entities. record_count drift stays a warning.
@@ -207,6 +208,10 @@ export interface EntityValidationOptions {
   manifestRelativePath?: string;
   
   entityRelativePath?: string;
+
+  /** Relative paths known to exist on disk (same set validateManifest uses). With it, a Parent_Hierarchy target that
+   *  is not the manifest and not in this set is reported as [37] (orphan) instead of [38]. */
+  resolvedPaths?: Set<string>;
 }
 
 export function validateEntityFile(
@@ -272,7 +277,12 @@ export function validateEntityFile(
     const lands = manifestRel !== undefined
       ? resolvedPh === _posixResolve("x", manifestRel).replace(/^\.\//, "")
       : (resolvedPh.indexOf("/") === -1 && /\.mfdb\.bejson$/.test(resolvedPh));
-    if (!lands) {
+    const phStr = entity.Parent_Hierarchy as string;
+    const phEscapes = _escapesRoot(phStr, Math.max(options.entityRelativePath.replace(/\\/g, "/").split("/").filter((x) => x !== "" && x !== ".").length - 1, 0));
+    if (!lands && !phEscapes && options.resolvedPaths !== undefined && !options.resolvedPaths.has(resolvedPh)) {
+      _emitError(r, E.MANIFEST_FILE_NOT_FOUND,
+        "[" + E.MANIFEST_FILE_NOT_FOUND + "] Manifest not found at \"" + resolvedPh + "\" (orphan entity).", "Parent_Hierarchy");
+    } else if (!lands || phEscapes) {
       _emitError(r, E.BIDIRECTIONAL_PATH_FAILED,
         "[" + E.BIDIRECTIONAL_PATH_FAILED + "] Bidirectional check failed: Parent_Hierarchy \"" + entity.Parent_Hierarchy +
         "\" from \"" + options.entityRelativePath + "\" resolves to \"" + resolvedPh + "\", which is not the manifest" +
@@ -281,14 +291,12 @@ export function validateEntityFile(
     }
   }
 
-  // No path escaping
-  if (typeof entity.Parent_Hierarchy === "string") {
-    const entityDepth = options.entityRelativePath
-      ? options.entityRelativePath.replace(/\\/g, "/").split("/").filter((x) => x !== "" && x !== ".").length - 1
-      : 1;
-    if (entity.Parent_Hierarchy.includes("..") && _escapesRoot(entity.Parent_Hierarchy, Math.max(entityDepth, 0))) {
-      _emitError(r, E.MISSING_PARENT_HIERARCHY,
-        "Parent_Hierarchy must not escape the database root directory.", "Parent_Hierarchy");
+  // No path escaping. With entityRelativePath the escape is reported above as [38]; without it (standalone call)
+  // it is reported here, coded 38 as well (it cannot be the listing manifest).
+  if (typeof entity.Parent_Hierarchy === "string" && options.entityRelativePath === undefined) {
+    if (_escapesRoot(entity.Parent_Hierarchy, 1)) {
+      _emitError(r, E.BIDIRECTIONAL_PATH_FAILED,
+        "[" + E.BIDIRECTIONAL_PATH_FAILED + "] Parent_Hierarchy must not escape the database root directory.", "Parent_Hierarchy");
     }
   }
 
@@ -338,6 +346,7 @@ export function validateDatabase(
       expectedEntityName: record.entity_name,
       entityRelativePath: record.file_path,
       manifestRelativePath: options.manifestRelativePath,
+      resolvedPaths: options.resolvedPaths,
     });
     for (const e of l2.errors) _emitError(r, e.code, "[L2:" + record.entity_name + "] " + e.message, e.field, e.recordIndex);
     for (const w of l2.warnings) _emitWarning(r, w.code, "[L2:" + record.entity_name + "] " + w.message, w.field, w.recordIndex);
@@ -422,7 +431,7 @@ export function checkReferentialIntegrity(
 
     for (const fkField of fkFields) {
       const target = fkField.fk_target_entity as string;
-      const onDelete = fkField.fk_on_delete ?? "restrict";
+      const onDelete = fkField.fk_on_delete === undefined ? "restrict" : fkField.fk_on_delete; // explicit null is invalid (parity with Python/JS)
 
       if (!["restrict", "cascade", "null"].includes(onDelete)) {
         findings.push({
@@ -593,7 +602,10 @@ function _posixResolve(fromFile: string, rel: string): string {
 }
 
 function _escapesRoot(relPath: string, startDepth = 0): boolean {
-  const parts = relPath.replace(/\\/g, "/").split("/");
+  const norm = relPath.replace(/\\/g, "/");
+  // Absolute paths (POSIX root or a Windows drive letter) are outside the MFDB root by definition.
+  if (norm.startsWith("/") || /^[A-Za-z]:/.test(norm)) return true;
+  const parts = norm.split("/");
   let depth = startDepth;
   for (const part of parts) {
     if (part === "..") {

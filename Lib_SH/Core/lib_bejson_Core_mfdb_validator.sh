@@ -8,12 +8,14 @@
 #                 lib_bejson_Core_bejson_chunking.sh, which should only own
 #                 packaging/IO, not validation logic. See changelog note
 #                 dated 2026-07-13.
-# Version:        2.4.0
-# Date:           2026-10-27
+# Version:        2.5.0
+# Date:           2026-10-30
+# Changelog:
+#   2.5.0 - 2026-10-30: Network_Role validation (code 30); manifest errors carry codes; entity Format_Version 104|105 in the JSON summary; explicit fk_on_delete:null is invalid (parity with PY/JS).  Two-phase flow like the reference: manifest-level errors (null/duplicate/escape/missing file) end validation before entity checks; exact root-escape test; [33] on escape.
 # Author:         Elton Boehnen
 # Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 # Format_Creator: Elton Boehnen
-# RELATIONAL_ID:  0acff0dd-49f1-4411-b692-52c1a2123e3a
+# RELATIONAL_ID:  c37015fb-ed96-4134-aefe-d3e24a3b31f0
 # Release_Version: 300
 #
 # FEATURE (2026-10-27, 2.4.0): MFDB spec Level 1/2/3 now ENFORCED (port of PY
@@ -173,6 +175,24 @@ mfdb_validator_validate_manifest() {
 # mfdb132_archive_commit (validation gate) -- without this function defined,
 # both hit "command not found" at runtime.
 
+# __mfdb_escapes_root <relative_path>
+# Returns 0 (true) when the path is absolute (POSIX root or drive letter) or climbs above the MFDB root.
+# Same depth algorithm as PY _bejson_mfdb_escapes_root / JS / TS _escapesRoot.
+__mfdb_escapes_root() {
+    local p="${1//\\//}"
+    [[ "$p" == /* || "$p" =~ ^[A-Za-z]: ]] && return 0
+    local depth=0 part
+    local IFS='/'
+    for part in $p; do
+        if [[ "$part" == ".." ]]; then
+            depth=$((depth-1)); [[ $depth -lt 0 ]] && return 0
+        elif [[ -n "$part" && "$part" != "." ]]; then
+            depth=$((depth+1))
+        fi
+    done
+    return 1
+}
+
 # __mfdb_resolve_entity_path <manifest_path> <file_path_rel>
 # Mirrors Python's _resolve_entity_path: resolve file_path_rel relative to
 # the manifest's directory (not relative to CWD).
@@ -315,6 +335,7 @@ mfdb_validator_validate_database() {
     en_idx=$(printf '%s' "$fields_json" | jq -r 'index("entity_name") // -1')
     fp_idx=$(printf '%s' "$fields_json" | jq -r 'index("file_path") // -1')
     local rc_idx seen_names="" seen_paths=""
+    local -a pass2_names=() pass2_paths=() pass2_rows=()
     rc_idx=$(printf '%s' "$fields_json" | jq -r 'index("record_count") // -1')
     if [[ "$en_idx" -lt 0 || "$fp_idx" -lt 0 ]]; then
         __mfdb_add_error "Manifest Fields must include entity_name and file_path" "Structure"
@@ -338,8 +359,8 @@ mfdb_validator_validate_database() {
             __mfdb_add_error "[$E_MFDB_DUPLICATE_ENTRY] Duplicate path: $file_path" "Values"; overall_rc=1
         fi
         seen_names+="$entity_name "; seen_paths+="$file_path "
-        if [[ "$file_path" == /* || "$file_path" == *..* ]]; then
-            __mfdb_add_error "Path traversal detected in file_path for entity '$entity_name': '$file_path'" "Values"
+        if __mfdb_escapes_root "$file_path"; then
+            __mfdb_add_error "[$E_MFDB_ENTITY_NOT_FOUND] Path traversal detected in file_path for entity '$entity_name': '$file_path'" "Values"
             overall_rc=1
             continue
         fi
@@ -349,6 +370,16 @@ mfdb_validator_validate_database() {
             overall_rc=1
             continue
         fi
+        pass2_names+=("$entity_name"); pass2_paths+=("$resolved"); pass2_rows+=("$row")
+    done <<< "$rows"
+
+    # Manifest-level errors (null/duplicate/escape/missing file) end validation here, as in the Python reference:
+    # entity files are only validated against a manifest that is itself sound.
+    [[ $overall_rc -ne 0 ]] && return 1
+
+    local pi
+    for pi in "${!pass2_names[@]}"; do
+        entity_name="${pass2_names[$pi]}"; resolved="${pass2_paths[$pi]}"; row="${pass2_rows[$pi]}"
         if ! mfdb_validator_validate_entity_file "$resolved" "$entity_name" "$manifest_path"; then
             __mfdb_add_error "Entity '$entity_name' failed validation" "Entity:$entity_name"
             overall_rc=1
@@ -361,7 +392,7 @@ mfdb_validator_validate_database() {
                 [[ "$declared" != "$actual" ]] && __mfdb_add_warning "record_count $declared in manifest != $actual rows in file" "Entity:$entity_name"
             fi
         fi
-    done <<< "$rows"
+    done
 
     if [[ "$strict_fk" == "1" || "$strict_fk" == "true" ]]; then
         local fk_line fk_code fk_entity fk_detail
@@ -659,7 +690,7 @@ mfdb_validator_check_referential_integrity() {
                 | select(.[$col] as $v | ($tu | index($v)) == null)
                 | [(if length > $uc then .[$uc] else "?" end), (.[$col] | tostring)] | @tsv' "$epath")
         done < <(jq -r '.Fields | to_entries[] | select(.value.fk_target_entity) |
-                [.value.name, .value.fk_target_entity, (.value.fk_on_delete // "restrict"), .key] | @tsv' "$epath")
+                [.value.name, .value.fk_target_entity, (.value | (if has("fk_on_delete") then (.fk_on_delete | if type=="string" then . else "__invalid:"+tojson end) else "restrict" end)), .key] | @tsv' "$epath")
     done < <(printf '%s\n' "${!ri_path[@]}" | sort)
 
     return $rc

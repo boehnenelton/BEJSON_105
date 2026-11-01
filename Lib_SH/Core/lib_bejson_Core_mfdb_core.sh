@@ -7,12 +7,14 @@
 # Glossary:        BEJSON 104, 104a and 104db are the three file formats (Format_Version). 104db = ONE file holding 2+ entity types
 #                  (Record_Type_Parent discriminator, null-padding). MFDB is NOT a format and NOT 104db: it is a layer made of one 104a manifest
 #                  (104a.mfdb.bejson) plus dense 104 entity files linked by Parent_Hierarchy. MFDB-132 = an MFDB packed into one Chunked-104a document.
-# Version:         2.3.0
+# Version:         2.3.1
 # Release_Version: 300
-# Date:            2026-10-27
+# Date:            2026-10-30
+# Changelog:
+#   2.3.1 - 2026-10-30: Invalid-operation return code fix; explicit fk_on_delete:null is invalid (parity with PY/JS).
 # Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 # Format_Creator:  Elton Boehnen
-# RELATIONAL_ID:   4aa4dee4-b170-4f9f-882e-ca4b897027ee
+# RELATIONAL_ID:   e423943c-2aa8-4a49-ad6d-5bf4db683533
 # Changelog 2.3.0 (2026-10-27): mfdb_core_discover recognises 105/105a/105db entity files (Parent_Hierarchy) as 'entity'; mfdb_core_add_entity_record refuses 105-series entities (E_MFDB_CORE_INVALID_OPERATION=54, nothing written). SH has no deep_verify/self_heal.
 # -----------------------------------------------------------------------------
 
@@ -1194,7 +1196,7 @@ mfdb_core_check_fk_write() {
     fi
     target="$(jq -r '.fk_target_entity // empty' <<< "$fk_json")"
     [[ -z "$target" ]] && return 0
-    on_delete="$(jq -r '.fk_on_delete // "restrict"' <<< "$fk_json")"
+    on_delete="$(jq -r '(if has("fk_on_delete") then (.fk_on_delete | if type=="string" then . else "__invalid:"+tojson end) else "restrict" end)' <<< "$fk_json")"
     case "$on_delete" in
         restrict|cascade|null) ;;
         *) echo "ERROR: $from_entity.$fk_name: fk_on_delete must be restrict/cascade/null, got '$on_delete'" >&2
@@ -1343,7 +1345,7 @@ __mfdb_ri_plan() {
         refkey="${rent}#${ruuid}"
         [[ $'\n'"$__MFDB_RI_DELETED" == *$'\n'"$refkey"$'\n'* ]] && continue
         rpath="$(mfdb_core_get_entity_path "$manifest" "$rent")" || { rc=$?; break; }
-        on_delete="$(jq -r --arg n "$rfield" '.Fields[] | select(.name == $n) | .fk_on_delete // "restrict"' "$rpath")"
+        on_delete="$(jq -r --arg n "$rfield" '.Fields[] | select(.name == $n) | (if has("fk_on_delete") then (.fk_on_delete | if type=="string" then . else "__invalid:"+tojson end) else "restrict" end)' "$rpath")"
         case "$on_delete" in
             restrict)
                 echo "ERROR: Cannot delete ${entity}#${ru}: restricted by ${rent}.${rfield} -> record ${ruuid}" >&2

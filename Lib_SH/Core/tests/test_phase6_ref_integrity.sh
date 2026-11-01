@@ -150,5 +150,11 @@ expect_eq "audit: bad fk_on_delete reported (47)" "$(mfdb_validator_check_refere
 build; jq '.Fields[1].fk_target_entity="ghost"' "$DIR/books.bejson" > "$DIR/t" && mv "$DIR/t" "$DIR/books.bejson"
 expect_eq "audit: unregistered target reported (43)" "$(mfdb_validator_check_referential_integrity "$MP" | cut -f1 | head -1)" E_MFDB_FK_TARGET_ENTITY_UNKNOWN
 
+# explicit fk_on_delete:null is INVALID (only an absent key defaults to restrict) -- parity with PY/JS
+build; jq '.Fields[1].fk_on_delete=null' "$DIR/books.bejson" > "$DIR/t" && mv "$DIR/t" "$DIR/books.bejson"
+expect_eq "audit: explicit null fk_on_delete reported (47)" "$(mfdb_validator_check_referential_integrity "$MP" | cut -f1 | head -1)" E_MFDB_FK_INVALID_ON_DELETE
+build; jq 'del(.Fields[1].fk_on_delete)' "$DIR/books.bejson" > "$DIR/t" && mv "$DIR/t" "$DIR/books.bejson"
+expect_rc "audit: absent fk_on_delete defaults to restrict" 0 mfdb_validator_check_referential_integrity "$MP"
+
 echo; echo "$PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]

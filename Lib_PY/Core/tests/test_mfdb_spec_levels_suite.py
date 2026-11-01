@@ -135,6 +135,21 @@ class Base:
         mf = jl(self.m); mf["Network_Role"] = "RogueNode"; jd(mf, self.m)
         r, e = self.errs(); self.assertFalse(r.valid); self.assertIn("[30]", e)
 
+    def test_absolute_file_path_outside_root_rejected(self):
+        """An absolute file_path to a file that EXISTS outside the database root must not validate."""
+        ext = os.path.join(self.tmp, "ext"); os.makedirs(ext)
+        outside = os.path.join(ext, "outside.bejson")
+        d = jl(self.ent); d["Parent_Hierarchy"] = os.path.relpath(self.m, ext); jd(d, outside)
+        mf = jl(self.m); n = [f["name"] for f in mf["Fields"]]
+        mf["Values"][1][n.index("file_path")] = outside; jd(mf, self.m)
+        r, e = self.errs(); self.assertFalse(r.valid); self.assertIn("traversal", e.lower())
+
+    def test_manifest_error_stops_entity_validation(self):
+        """A duplicate entity_name is reported alone (35); no cascading entity-name mismatch (34)."""
+        mf = jl(self.m); n = [f["name"] for f in mf["Fields"]]
+        mf["Values"][1][n.index("entity_name")] = mf["Values"][0][n.index("entity_name")]; jd(mf, self.m)
+        r, e = self.errs(); self.assertIn("[35]", e); self.assertNotIn("[34]", e)
+
 
 class TestSpec104(Base, unittest.TestCase):
     FMT = "104"

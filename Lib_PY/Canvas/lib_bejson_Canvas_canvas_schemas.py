@@ -7,10 +7,12 @@ BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
-Version:        1.0.0
-Date:           2026-10-25
+Version:        1.0.1
+Date:           2026-10-30
+Changelog:
+  1.0.1 - 2026-10-30: Records_Type key fix (was Record_Type).
 Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID:  4d7b8e1a-9f2c-4e3a-b851-7c9d0e1f2a3b
+RELATIONAL_ID:  671cee92-d90a-46f1-b2b6-3dcf67bb0373
 Release_Version: 300
 """
 
@@ -43,7 +45,7 @@ except ImportError:
     bejson_core_load_file = None
 
 logger = logging.getLogger("lib_bejson_Canvas_canvas_schemas")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 # ---------------------------------------------------------------------------
 # Canonical BEJSON 105a Field Definitions

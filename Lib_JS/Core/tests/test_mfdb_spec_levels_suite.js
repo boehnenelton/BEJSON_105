@@ -262,6 +262,22 @@ function runSpecSuite(fmt) {
 runSpecSuite("104");
 runSpecSuite("105");
 
+test(`Spec_105: absolute file_path to an existing file outside the root is rejected`, () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mfdbspec_abs_'));
+  try {
+    const m = M.mfdb_core_create_database(path.join(tmp, 'a'), 'Shop', [{ name: 'Order', fields: [S('code')], format_version: '105' }], { mfdb_version: '1.40' });
+    M.mfdb_core_add_entity_record_105(m, 'Order', ['O1']);
+    const ent = M._get_entity_path(m, 'Order');
+    const ext = path.join(tmp, 'ext'); fs.mkdirSync(ext);
+    const outside = path.join(ext, 'outside.bejson');
+    const d = jl(ent); d.Parent_Hierarchy = path.relative(ext, m); jd(d, outside);
+    const mf = jl(m); const n = mf.Fields.map(f => f.name); mf.Values[0][n.indexOf('file_path')] = outside; jd(mf, m);
+    const r = MV.validate_mfdb_database(m);
+    assert.strictEqual(r.valid, false);
+    assert.ok(r.errors.join(' ').includes('[33]') && r.errors.join(' ').includes('escapes root'));
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
 test(`Spec_105: Network_Role Master/Slave/Standalone valid, invalid role rejected (30)`, () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mfdbspec_role_'));
   try {

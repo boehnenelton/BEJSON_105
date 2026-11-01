@@ -56,6 +56,17 @@ const tests: Record<string, () => void> = {
   missing_entity_doc_fails() { const b = build(); check(!run(b.manifest, new Map()).valid, "missing entity must fail"); },
   network_role_valid_values() { for (const role of ["Master", "Slave", "Standalone"]) { const b = build(); b.manifest.Network_Role = role; const r = run(b.manifest, b.entities); check(r.valid, role + ": " + JSON.stringify(r.errors)); } },
   network_role_invalid_is_30() { const b = build(); b.manifest.Network_Role = "RogueNode"; const r = run(b.manifest, b.entities); check(!r.valid && codes(r).includes(30), "30 expected, got " + codes(r)); },
+  absolute_file_path_rejected() { const b = build(); b.manifest.Values[0][b.manifest.Fields.findIndex((f: any) => f.name === "file_path")] = "/etc/outside.bejson"; check(!run(b.manifest, b.entities).valid, "absolute file_path must fail"); },
+  absolute_parent_hierarchy_is_38() { const b = build(); b.entities.get("data/order.bejson").Parent_Hierarchy = "/tmp/" + MANIFEST; const r = run(b.manifest, b.entities); check(!r.valid && codes(r).includes(38), "38 expected, got " + codes(r)); },
+  orphan_is_37_when_resolved_paths_given() {
+    const b = build(); b.entities.get("data/order.bejson").Parent_Hierarchy = "../nope.mfdb.bejson";
+    const r = validateDatabase(b.manifest, b.entities as any, { manifestRelativePath: MANIFEST, resolvedPaths: new Set(["data/order.bejson"]) });
+    check(!r.valid && codes(r).includes(37) && !codes(r).includes(38), "37 expected, got " + codes(r));
+  },
+  parent_hierarchy_escaping_root_is_38_only() {
+    const b = build(); b.entities.get("data/order.bejson").Parent_Hierarchy = "../../x/" + MANIFEST;
+    const r = run(b.manifest, b.entities); check(!r.valid && codes(r).join() === "38", "only 38 expected, got " + codes(r));
+  },
   fk_suffix_is_advisory_even_strict() {
     const b = build(); const e = b.entities.get("data/order.bejson");
     e.Fields.push({ name: "ghost_id_fk", type: "string" }); e.Values[0].push("nowhere");

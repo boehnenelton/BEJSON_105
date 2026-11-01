@@ -10,8 +10,10 @@
 
 const schemas = require('./lib_bejson_Graphics_graphics_schemas');
 const templates = require('./lib_bejson_Graphics_graphics_canvas_templates');
+const validator = require('./lib_bejson_Graphics_graphics_validator');
 
 module.exports = {
   ...schemas,
-  ...templates
+  ...templates,
+  ...validator
 };

@@ -2,15 +2,16 @@
  * Library:        lib_bejson_Core_bejson_types.ts
  * Family:         Core
  * Description:    Type definitions and interface contracts for TypeScript libraries. NOTE: Error codes are mirrored across SH, JS, PY, and TS registries. Reference canonical codes in lib_bejson_Core_bejson_errors.js / lib_bejson_Core_bejson_errors.sh.
- * Version:        2.9.0
- * Date:           2026-09-25
+ * Version:        2.9.1
+ * Date:           2026-10-30
  * Author:         Elton Boehnen
  * Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
  * Format_Creator: Elton Boehnen
- * RELATIONAL_ID:  745360d6-76cf-43c1-b65b-78cb115f9bc5
+ * RELATIONAL_ID:  35db67de-fef9-4d0d-8325-68b7ebbcea55
  * Release_Version: 300
  *
  * Changelog:
+ *   2.9.1 - 2026-10-30: MFDBDatabaseMeta gains optional network_role.
  *   2.9.0 - REMOVED the Schema Constraints block (110-114: REQUIRED_FIELD_NULL,
  *           UNIQUE_CONSTRAINT_VIOLATION, ENUM_VALUE_INVALID, VALUE_OUT_OF_RANGE,
  *           LENGTH_OUT_OF_RANGE) from BEJSON_105_CODES, and the matching

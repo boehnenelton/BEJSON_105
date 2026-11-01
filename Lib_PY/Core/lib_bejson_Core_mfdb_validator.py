@@ -7,15 +7,16 @@ Description:    Bidirectional path and manifest-entity relationship validator.
                 lib_bejson_Core_bejson_chunking.py, which should only own
                 packaging/IO, not validation logic. See CHANGELOG note dated
                 2026-07-13.
-Version:        2.4.0
-Date:           2026-10-27
+Version:        2.4.1
+Date:           2026-10-30
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
-RELATIONAL_ID:  df4361f5-0918-485d-8a5a-46ceea0f19c0
+RELATIONAL_ID:  78cfd1e3-4810-4555-97ee-4cacba11a3a2
 Release_Version: 300
 
 Changelog:
+  2.4.1 - 2026-10-30: Optional Network_Role manifest header validated (Master|Slave|Standalone, code 30); dict validator accepts 105 entities; missing-manifest error carries [37] (third-party, reviewed).  Path-escape error now carries [33] (parity with JS/TS/SH).
   2.4.0 - MFDB spec Level 2/3 checks now actually enforced (previously only
           documented): entity Records_Type must be exactly one string equal to
           the manifest entity_name (34, case-sensitive); bidirectional check --
@@ -213,7 +214,7 @@ def validate_mfdb_manifest(manifest_path: str) -> MFDBValidationResult:
         # NEW-08: reject file_path values that attempt to escape the MFDB root
         if fp and _bejson_mfdb_escapes_root(fp):
             res.add_error(
-                f"Path traversal detected in file_path for entity '{en}': '{fp}'",
+                f"[{E_MFDB_ENTITY_NOT_FOUND}] Path traversal detected in file_path for entity '{en}': '{fp}'",
                 "Values"
             )
             continue

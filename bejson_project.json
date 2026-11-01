@@ -1,0 +1,22 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104a",
+  "Format_Creator": "Elton Boehnen",
+  "Project_Name": "libraries_105",
+  "Project_Version": "5.9.2",
+  "Package_Version": "115",
+  "Versioned_UUID": "f67a8d86-12df-4516-9dee-b2fa82161c4a",
+  "Project_GUID": "1952586a-42b4-44ce-9471-40831d0bf46b",
+  "Type": "library",
+  "Status": "Active",
+  "Records_Type": [
+    "RootPackage"
+  ],
+  "Fields": [
+    {
+      "name": "change_log",
+      "type": "string"
+    }
+  ],
+  "Values": []
+}
