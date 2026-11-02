@@ -3,9 +3,9 @@
   "Format_Version": "104a",
   "Format_Creator": "Elton Boehnen",
   "Project_Name": "libraries_105",
-  "Project_Version": "5.9.2",
-  "Package_Version": "115",
-  "Versioned_UUID": "f67a8d86-12df-4516-9dee-b2fa82161c4a",
+  "Project_Version": "5.9.3",
+  "Package_Version": "116",
+  "Versioned_UUID": "49d90536-7ede-4c38-90d2-2010a868eb2a",
   "Project_GUID": "1952586a-42b4-44ce-9471-40831d0bf46b",
   "Type": "library",
   "Status": "Active",
@@ -18,5 +18,9 @@
       "type": "string"
     }
   ],
-  "Values": []
+  "Values": [
+    [
+      "5.9.3 | 2026-11-02 | Add Standards stateful loaded chamber logging module, unit tests, and multi-language conformance suite."
+    ]
+  ]
 }

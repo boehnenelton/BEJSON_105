@@ -18,13 +18,25 @@ bejson_standards_audit_log_file(log_path)                  # {"passed": bool, "p
 logging.getLogger().addHandler(BEJSONLogHandler(log_path)) # plain logging calls feed the sink
 ```
 
-| Module | Role |
-|---|---|
 | `_errors` | codes 250-261 assigned (block 250-269) |
 | `_validator` | pure checks, schema, period math, non-throwing audit; never writes |
 | `_core` | locked read-modify-write, atomic commit, row-cap trim, archiving, secure-file hardening, migration |
 | `_export` | the shared filter; json / ndjson / markdown / html; file, stream or text destinations |
 | `_registry` | public API, batching, secure routing, auto-archive, handler |
+| `_state` | stateful context manager (Loaded Chamber Pattern): subsystem, category, actor, session, default flags, key prefix |
+
+## Stateful Logging (Loaded Chamber Pattern)
+```python
+from lib_bejson_Standards_registry import (bejson_standards_set_context, bejson_standards_get_context,
+                                          bejson_standards_clear_context, bejson_standards_log)
+
+# Lock chamber context once per session/task
+bejson_standards_set_context(subsystem="audit_engine", category="audit", actor="antigravity",
+                             session=session_id, key_prefix="audit.check", flags=["automated"])
+
+# Minimal logging: inherits subsystem, category, actor, session, and default flags automatically!
+bejson_standards_log(log_path, "INFO", "readiness", "Readiness probe passed")
+```
 
 ## Schema v3
 Names follow `log_<role>_<attribute>_<suffix>`: **event** (timestamp, level, priority, key, category, subject, message, error code, context, flags, secure flag), **sender** (subsystem, actor, session, process id), **target** (uuid fk), then a reserved slot (always null).

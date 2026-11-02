@@ -42,9 +42,17 @@ import lib_bejson_Standards_core as core  # noqa: E402
 import lib_bejson_Standards_errors as err  # noqa: E402
 import lib_bejson_Standards_export as export  # noqa: E402
 import lib_bejson_Standards_validator as val  # noqa: E402
+import lib_bejson_Standards_state as st  # noqa: E402
 
 logger = logging.getLogger(__name__)
-VERSION = "3.1.0"
+VERSION = "3.2.0"
+
+# Re-export stateful context API (Loaded Chamber Pattern)
+bejson_standards_set_context = st.bejson_standards_set_context
+bejson_standards_get_context = st.bejson_standards_get_context
+bejson_standards_clear_context = st.bejson_standards_clear_context
+bejson_standards_load_state = st.bejson_standards_load_state
+bejson_standards_persist_state = st.bejson_standards_persist_state
 
 DEFAULT_BATCH_SIZE = 25
 DEFAULT_FLUSH_INTERVAL_SECONDS = 5.0
@@ -246,7 +254,20 @@ def _log_impl(log_path: str, level: str, event_key: str, message: str, error_cod
                 _stderr(f"{err.ERROR_NAMES[err.E_STANDARDS_LOG_SECURE_PATH_MISSING]}: secure entry {event_key!r} refused; "
                         f"configure_sink(secure_path=...) first (it is never written to the main log)")
                 return False
-        sub = subsystem or sink.default_subsystem
+        # Resolve parameters against active Loaded Chamber context (or explicit arguments)
+        (sub, category, actor, session, event_key, flags, priority, target_uuid) = (
+            st.bejson_standards_resolve_context(
+                explicit_subsystem=subsystem,
+                explicit_category=category,
+                explicit_actor=actor,
+                explicit_session=session,
+                explicit_event_key=event_key,
+                explicit_flags=flags,
+                explicit_priority=priority,
+                explicit_target_uuid=target_uuid
+            )
+        )
+        sub = sub or sink.default_subsystem
         rank = val.LEVEL_RANK[canon]
         row = core.bejson_standards_core_build_row(
             canon, sub, event_key, message, error_code=error_code, target_uuid=target_uuid,
