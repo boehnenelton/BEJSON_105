@@ -197,20 +197,27 @@ class TestGraphicsBarrierValidator(unittest.TestCase):
     def test_branding_slide_renderers_and_barrier(self):
         """Tests that all 5 branding slide renderers produce valid SVG and create valid 105a slide decks."""
         from lib_bejson_Graphics_graphics_core import (
+            render_slide_split_visual_svg,
+            render_slide_key_points_svg,
+            render_slide_visual_focus_light_svg,
+            render_slide_visual_focus_dark_svg,
+            render_slide_process_flow_svg,
             render_branding_title_slide_svg,
             render_branding_architecture_slide_svg,
             render_branding_feature_slide_svg,
             render_branding_metrics_slide_svg,
-            render_branding_summary_slide_svg
+            render_branding_summary_slide_svg,
         )
         from lib_bejson_Graphics_graphics_schemas import create_branding_slide_deck_105a
 
         slides_data = [
-            {"slide_type": "title", "title": "BEJSON 105", "svg_markup": render_branding_title_slide_svg(), "duration_sec": 3.0},
-            {"slide_type": "architecture", "title": "ARCHITECTURE", "svg_markup": render_branding_architecture_slide_svg(), "duration_sec": 3.0},
-            {"slide_type": "feature", "title": "CONFORMANCE", "svg_markup": render_branding_feature_slide_svg(), "duration_sec": 3.0},
-            {"slide_type": "metrics", "title": "TELEMETRY", "svg_markup": render_branding_metrics_slide_svg(), "duration_sec": 3.0},
-            {"slide_type": "summary", "title": "DELIVERABLES", "svg_markup": render_branding_summary_slide_svg(), "duration_sec": 3.0}
+            {"slide_type": "split_visual", "title": "BEJSON 105", "svg_markup": render_slide_split_visual_svg(), "duration_sec": 3.0},
+            {"slide_type": "key_points", "title": "CONFORMANCE", "svg_markup": render_slide_key_points_svg(), "duration_sec": 3.0},
+            {"slide_type": "visual_focus_light", "title": "LIGHT FOCUS", "svg_markup": render_slide_visual_focus_light_svg(), "duration_sec": 3.0},
+            {"slide_type": "visual_focus_dark", "title": "DARK FOCUS", "svg_markup": render_slide_visual_focus_dark_svg(), "duration_sec": 3.0},
+            {"slide_type": "process_flow", "title": "PIPELINE FLOW", "svg_markup": render_slide_process_flow_svg(), "duration_sec": 3.0},
+            # Verify legacy alias calls still function
+            {"slide_type": "legacy_alias", "title": "LEGACY TITLE", "svg_markup": render_branding_title_slide_svg(), "duration_sec": 2.0},
         ]
 
         deck_doc = create_branding_slide_deck_105a(
@@ -225,7 +232,7 @@ class TestGraphicsBarrierValidator(unittest.TestCase):
 
         res = validate_graphics_barrier(str(deck_path), is_file=True)
         self.assertTrue(res.valid, f"Slide deck barrier validation failed: {res.errors}")
-        self.assertEqual(len(deck_doc["Values"]), 5)
+        self.assertEqual(len(deck_doc["Values"]), 6)
 
     def test_canvas_template_registry_slide_archetypes(self):
         """Tests that branding slide templates are properly registered in the family registry."""
@@ -238,15 +245,17 @@ class TestGraphicsBarrierValidator(unittest.TestCase):
         slides = list_branding_slide_templates()
         self.assertEqual(len(slides), 5, "Should register exactly 5 canonical branding slide templates")
         slide_ids = {s["template_id"] for s in slides}
-        self.assertIn("slide_branding_title_1280", slide_ids)
-        self.assertIn("slide_branding_architecture_1280", slide_ids)
-        self.assertIn("slide_branding_feature_1280", slide_ids)
-        self.assertIn("slide_branding_metrics_1280", slide_ids)
-        self.assertIn("slide_branding_summary_1280", slide_ids)
+        self.assertIn("slide_split_visual_1280", slide_ids)
+        self.assertIn("slide_key_points_1280", slide_ids)
+        self.assertIn("slide_visual_focus_light_1280", slide_ids)
+        self.assertIn("slide_visual_focus_dark_1280", slide_ids)
+        self.assertIn("slide_process_flow_1280", slide_ids)
 
-        # Verify HTML can be retrieved
-        title_html = get_branding_slide_template_html("slide_branding_title_1280")
-        self.assertIsNotNone(title_html)
+        # Verify HTML can be retrieved via canonical ID and via legacy alias
+        split_html = get_branding_slide_template_html("slide_split_visual_1280")
+        self.assertIsNotNone(split_html)
+        alias_html = get_branding_slide_template_html("slide_branding_title_1280")
+        self.assertIsNotNone(alias_html)
     def test_video_compilation_with_dwell_durations(self):
         """Tests compiling slide sequences into MP4 video with custom dwell durations (4s, 8s, 12s)."""
         from PIL import Image

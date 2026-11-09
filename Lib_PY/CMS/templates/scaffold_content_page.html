@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Title</title>
+<!--
+Name:           BEHTML Content & Documentation Page Scaffold
+Description:    Deep documentation and article page scaffold featuring breadcrumb topbar, red-accent header card, metadata table, content/code block, and dedicated language/category paging feet.
+Author:         Elton Boehnen
+Release_Version: 300
+Package_Version: 105
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-canvas: #060606;
+    --bg-surface: #101010;
+    --bg-surface-elevated: #161616;
+    --bg-code: #0a0a0a;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #CCCCCC;
+    --fg-muted: #888888;
+    --border-color: #262626;
+    --border-light: #3a3a3a;
+    --accent-red: #DE2626;
+    --radius-main: 6px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 24px 20px 60px;
+  }
+
+  code, pre, .becss-mono {
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* Navigation Bar */
+  .becss-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .becss-nav-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .becss-nav-link {
+    color: var(--fg-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+    background: var(--bg-surface);
+  }
+
+  .becss-nav-link:hover {
+    color: #FFFFFF;
+    background: var(--bg-surface-elevated);
+  }
+
+  .becss-badge {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-red);
+    text-transform: uppercase;
+  }
+
+  /* Header Card */
+  .becss-header-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-main);
+    border-top: 3px solid var(--accent-red);
+    padding: 32px 28px;
+    margin-bottom: 28px;
+  }
+
+  .becss-page-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+
+  .becss-page-sub {
+    font-size: 1.05rem;
+    color: var(--fg-secondary);
+    margin-bottom: 12px;
+  }
+
+  .becss-file-path {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 12px;
+    color: var(--fg-muted);
+    margin-bottom: 16px;
+  }
+
+  .becss-pill-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .becss-pill {
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 3px;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* Content / Code Box Section */
+  .becss-section-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+
+  .becss-section-header {
+    background: var(--bg-surface-elevated);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .becss-code-area {
+    width: 100%;
+    min-height: 240px;
+    background: var(--bg-code);
+    border: none;
+    color: var(--fg-primary);
+    padding: 16px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+  }
+
+  /* Metadata Table */
+  .becss-meta-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 28px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-main);
+    overflow: hidden;
+  }
+
+  .becss-meta-table th,
+  .becss-meta-table td {
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .becss-meta-table th {
+    background: var(--bg-surface-elevated);
+    color: var(--fg-muted);
+    font-weight: 600;
+    width: 30%;
+  }
+
+  .becss-meta-table td {
+    color: var(--fg-secondary);
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* Paging Feet */
+  .becss-paging-feet {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+
+  .becss-btn-sm {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  .becss-btn-sm:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <nav class="becss-navbar" aria-label="Navigation">
+      <div class="becss-nav-left">
+        <a href="#" class="becss-nav-link">topnav</a>
+        <span class="becss-badge">Module Tag</span>
+      </div>
+      <div>
+        <a href="#" class="becss-nav-link">nav_link_1</a>
+      </div>
+    </nav>
+
+    <header class="becss-header-card">
+      <h1 class="becss-page-title">Page Title</h1>
+      <p class="becss-page-sub">Subtitle</p>
+      <div class="becss-file-path">path/to/resource</div>
+      <div class="becss-pill-row">
+        <span class="becss-pill">badge_1</span>
+        <span class="becss-pill">badge_2</span>
+      </div>
+    </header>
+
+    <section class="becss-section-box">
+      <div class="becss-section-header">
+        <span>Section Heading</span>
+        <button type="button" class="becss-btn-sm">Copy</button>
+      </div>
+      <textarea class="becss-code-area" readonly>Body Paragraph text</textarea>
+    </section>
+
+    <table class="becss-meta-table">
+      <tbody>
+        <tr>
+          <th>Field Name 1</th>
+          <td>Value 1</td>
+        </tr>
+        <tr>
+          <th>Field Name 2</th>
+          <td>Value 2</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <nav class="becss-paging-feet" aria-label="Module Pagination">
+      <a href="#" class="becss-btn-sm">Prev: prev_item</a>
+      <span class="becss-mono" style="font-size: 12px; color: var(--fg-muted);">Module X of Y</span>
+      <a href="#" class="becss-btn-sm">Next: next_item</a>
+    </nav>
+  </div>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Title</title>
+<!--
+Name:           BEHTML Editorial Blog Post Scaffold
+Description:    Editorial article layout featuring hero title, author byline, drop-cap ready prose container, tag list, and next/prev article navigation.
+Author:         Elton Boehnen
+Release_Version: 300
+Package_Version: 105
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-canvas: #060606;
+    --bg-surface: #101010;
+    --bg-surface-elevated: #161616;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #CCCCCC;
+    --fg-muted: #888888;
+    --border-color: #262626;
+    --border-light: #3a3a3a;
+    --accent-red: #DE2626;
+    --radius-main: 6px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.8;
+    min-height: 100vh;
+    padding: 24px 20px 80px;
+  }
+
+  code, pre, .becss-mono {
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .becss-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 32px;
+  }
+
+  .becss-brand {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fg-primary);
+    text-decoration: none;
+  }
+
+  .becss-badge {
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .becss-post-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 28px;
+    margin-bottom: 32px;
+  }
+
+  .becss-post-tag {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+
+  .becss-post-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 12px;
+  }
+
+  .becss-post-byline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--fg-muted);
+  }
+
+  .becss-post-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-size: 15px;
+    color: var(--fg-secondary);
+    margin-bottom: 40px;
+  }
+
+  .becss-post-body h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.6rem;
+    color: var(--fg-primary);
+    margin-top: 16px;
+  }
+
+  .becss-post-footer-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 32px;
+  }
+
+  .becss-tag-pill {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--fg-muted);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+  }
+
+  .becss-post-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 16px 20px;
+    font-size: 13px;
+  }
+
+  .becss-btn-sm {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  .becss-btn-sm:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="becss-navbar">
+      <a href="#" class="becss-brand">
+        <span class="becss-badge">BLOG</span>
+        <span>App Brand</span>
+      </a>
+      <a href="#" class="becss-btn-sm">nav_link_1</a>
+    </header>
+
+    <main>
+      <article>
+        <header class="becss-post-header">
+          <span class="becss-post-tag">Category</span>
+          <h1 class="becss-post-title">Page Title</h1>
+          <div class="becss-post-byline">
+            <span>Author</span>
+            <span>&bull;</span>
+            <span class="becss-mono">Timestamp</span>
+          </div>
+        </header>
+
+        <div class="becss-post-body">
+          <p>Body Paragraph text</p>
+          <h2>Section Heading</h2>
+          <p>Body Paragraph text</p>
+        </div>
+
+        <div class="becss-post-footer-tags">
+          <span class="becss-tag-pill">tag_1</span>
+          <span class="becss-tag-pill">tag_2</span>
+        </div>
+      </article>
+
+      <nav class="becss-post-nav" aria-label="Article Navigation">
+        <a href="#" class="becss-btn-sm">Prev Article</a>
+        <a href="#" class="becss-btn-sm">Next Article</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>

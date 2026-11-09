@@ -1,0 +1,71 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}{{ archetype.archetype_name }} — Details{% endblock %}
+
+{% block content %}
+<section>
+    <a href="/" class="fw-btn fw-btn-secondary" style="margin-bottom: 1.5rem; display: inline-block;">← Back to Catalog</a>
+    
+    <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">{{ archetype.archetype_name }}</h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;">{{ archetype.domain_purpose }}</p>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <div>
+            <h2 style="font-size: 1.3rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-dim); padding-bottom: 0.5rem;">Generated Entity Models ($M$)</h2>
+            {% for entity in archetype.entities %}
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-dim); padding: 1.2rem; margin-bottom: 1.2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h3 style="font-size: 1.1rem; color: #fff;">{{ entity.entity_name }}</h3>
+                    <span class="fw-pill" style="color: var(--accent-red);">prefix: {{ entity.entity_prefix }}</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;">{{ entity.table_description }}</p>
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 1px solid var(--border-bright); color: var(--text-muted);">
+                            <th style="padding: 0.4rem 0;">Field Name</th>
+                            <th style="padding: 0.4rem 0;">Type</th>
+                            <th style="padding: 0.4rem 0;">Constraint</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in entity.fields %}
+                        <tr style="border-bottom: 1px solid var(--border-dim);">
+                            <td style="padding: 0.4rem 0; font-family: var(--font-mono); color: #ddd;">{{ f.name }}</td>
+                            <td style="padding: 0.4rem 0; color: #aaa;">{{ f.type }}</td>
+                            <td style="padding: 0.4rem 0; color: #888;">
+                                {% if f.fk_target_entity %}FK -> {{ f.fk_target_entity }} ({{ f.fk_on_delete }}){% else %}-{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div>
+            <h2 style="font-size: 1.3rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-dim); padding-bottom: 0.5rem;">Bound Templates ($T$)</h2>
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-dim); padding: 1.2rem; margin-bottom: 1.5rem;">
+                <ul style="list-style: none;">
+                    {% for tmpl in archetype.bound_templates %}
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-dim); font-family: var(--font-mono); font-size: 0.85rem; color: #ddd;">
+                        📄 {{ tmpl }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <h2 style="font-size: 1.3rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-dim); padding-bottom: 0.5rem;">Polymorphic Renderer ($V$)</h2>
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-dim); padding: 1.2rem;">
+                <div style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent-red); font-weight: 700;">
+                    {{ archetype.primary_renderer_class_name }}
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+                    Decoupled strategy class emitted inside standalone <code>build_site.py</code> pipeline.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

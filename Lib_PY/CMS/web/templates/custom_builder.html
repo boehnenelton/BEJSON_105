@@ -1,0 +1,173 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Custom Taxonomy Builder — MTV Scaffolding Engine{% endblock %}
+
+{% block content %}
+<section>
+    <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem;">Custom Taxonomy Builder</h1>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Construct a bespoke taxonomy from scratch with custom entities, canonical prefixes, fields, and template bindings.</p>
+
+    <div style="background: var(--bg-secondary); border: 1px solid var(--border-dim); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--accent-red);">1. Platform Metadata</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.3rem;">Archetype ID (slug):</label>
+                <input type="text" id="customArchId" style="width: 100%; padding: 0.6rem; background: var(--bg-surface); border: 1px solid var(--border-bright); color: #fff;" value="knowledge_vault" />
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.3rem;">Platform Display Name:</label>
+                <input type="text" id="customArchName" style="width: 100%; padding: 0.6rem; background: var(--bg-surface); border: 1px solid var(--border-bright); color: #fff;" value="Knowledge Vault Platform" />
+            </div>
+        </div>
+        <div>
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.3rem;">Domain Purpose:</label>
+            <input type="text" id="customDomainPurpose" style="width: 100%; padding: 0.6rem; background: var(--bg-surface); border: 1px solid var(--border-bright); color: #fff;" value="Curated knowledge base, articles, and research whitepapers." />
+        </div>
+    </div>
+
+    <div style="background: var(--bg-secondary); border: 1px solid var(--border-dim); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--accent-red);">2. Select BEHTML Templates ($T$)</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.8rem;">
+            {% for tmpl in available_templates %}
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer;">
+                <input type="checkbox" name="customTemplates" value="{{ tmpl }}" {% if loop.index in [1, 2, 7, 8] %}checked{% endif %} />
+                <span>{{ tmpl }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div style="background: var(--bg-secondary); border: 1px solid var(--border-dim); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 style="font-size: 1.2rem; color: var(--accent-red);">3. Entity Schemas ($M$)</h2>
+            <button onclick="addCustomEntityRow()" class="fw-btn fw-btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">+ Add Entity</button>
+        </div>
+
+        <div id="entitiesContainer">
+            <!-- Default Entity: Category -->
+            <div class="entity-block" style="background: var(--bg-surface); border: 1px solid var(--border-bright); padding: 1rem; margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 0.8rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 700;">Entity Name:</label>
+                        <input type="text" class="ent-name" value="Category" style="width: 100%; padding: 0.4rem; background: #111; border: 1px solid var(--border-dim); color: #fff;" />
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 700;">Prefix:</label>
+                        <input type="text" class="ent-prefix" value="cat_" style="width: 100%; padding: 0.4rem; background: #111; border: 1px solid var(--border-dim); color: #fff;" />
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Fields: <code>cat_uuid (PK)</code>, <code>cat_name (string)</code>, <code>cat_slug (string)</code>
+                </div>
+            </div>
+
+            <!-- Default Entity: ContentRecord -->
+            <div class="entity-block" style="background: var(--bg-surface); border: 1px solid var(--border-bright); padding: 1rem; margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 0.8rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 700;">Entity Name:</label>
+                        <input type="text" class="ent-name" value="VaultItem" style="width: 100%; padding: 0.4rem; background: #111; border: 1px solid var(--border-dim); color: #fff;" />
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 700;">Prefix:</label>
+                        <input type="text" class="ent-prefix" value="item_" style="width: 100%; padding: 0.4rem; background: #111; border: 1px solid var(--border-dim); color: #fff;" />
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    Fields: <code>item_uuid (PK)</code>, <code>item_title (string)</code>, <code>item_cat_uuid_fk (string, FK->Category)</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: var(--bg-secondary); border: 1px solid var(--border-dim); padding: 1.5rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--accent-red);">4. Target Output Path</h2>
+        <input type="text" id="customTargetPath" style="width: 100%; padding: 0.6rem; background: var(--bg-surface); border: 1px solid var(--border-bright); color: #fff; font-family: var(--font-mono); margin-bottom: 1rem;" value="/data/data/com.termux/files/home/downloads/custom_vault_scaffold" />
+        
+        <div id="builderStatus" style="font-size: 0.9rem; margin-bottom: 1rem;"></div>
+        <button onclick="submitCustomScaffold()" class="fw-btn" style="padding: 0.8rem 1.6rem;">Materialize Custom MTV Unit</button>
+    </div>
+</section>
+
+<script>
+function addCustomEntityRow() {
+    const container = document.getElementById("entitiesContainer");
+    const div = document.createElement("div");
+    div.className = "entity-block";
+    div.style = "background: var(--bg-surface); border: 1px solid var(--border-bright); padding: 1rem; margin-bottom: 1rem;";
+    div.innerHTML = `
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 0.8rem;">
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 700;">Entity Name:</label>
+                <input type="text" class="ent-name" placeholder="e.g. Artifact" style="width: 100%; padding: 0.4rem; background: #111; border: 1px solid var(--border-dim); color: #fff;" />
+            </div>
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 700;">Prefix:</label>
+                <input type="text" class="ent-prefix" placeholder="e.g. art_" style="width: 100%; padding: 0.4rem; background: #111; border: 1px solid var(--border-dim); color: #fff;" />
+            </div>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">Standard fields (UUID PK, title, slug) will be synthesized automatically.</div>
+    `;
+    container.appendChild(div);
+}
+
+async function submitCustomScaffold() {
+    const archId = document.getElementById("customArchId").value.trim();
+    const archName = document.getElementById("customArchName").value.trim();
+    const purpose = document.getElementById("customDomainPurpose").value.trim();
+    const targetPath = document.getElementById("customTargetPath").value.trim();
+    const statusDiv = document.getElementById("builderStatus");
+
+    const checkedTemplates = Array.from(document.querySelectorAll("input[name='customTemplates']:checked")).map(cb => cb.value);
+    const entityBlocks = document.querySelectorAll(".entity-block");
+    const entities = [];
+
+    entityBlocks.forEach(b => {
+        const name = b.querySelector(".ent-name").value.trim();
+        const prefix = b.querySelector(".ent-prefix").value.trim();
+        if (name) {
+            entities.push({
+                name: name,
+                prefix: prefix || (name.toLowerCase() + "_"),
+                description: "Table for " + name,
+                fields: [
+                    {name: (prefix || name.toLowerCase() + "_") + "title", type: "string", description: "Title text"},
+                    {name: (prefix || name.toLowerCase() + "_") + "slug", type: "string", description: "URL slug"}
+                ]
+            });
+        }
+    });
+
+    statusDiv.style.color = "#88ff88";
+    statusDiv.innerText = "Synthesizing custom 105 MFDB and BEHTML templates...";
+
+    try {
+        const response = await fetch("/api/custom/materialize", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                archetype_id: archId,
+                archetype_name: archName,
+                domain_purpose: purpose,
+                target_path: targetPath,
+                bound_templates: checkedTemplates,
+                entities: entities
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            statusDiv.style.color = "#88ff88";
+            statusDiv.innerText = "Successfully materialized at: " + result.report.project_directory;
+            alert("Custom MTV Unit Materialized Successfully!\\nPath: " + result.report.project_directory);
+        } else {
+            statusDiv.style.color = "#ff8888";
+            statusDiv.innerText = "Error: " + result.error;
+        }
+    } catch (e) {
+        statusDiv.style.color = "#ff8888";
+        statusDiv.innerText = "Network / execution error: " + e.message;
+    }
+}
+</script>
+{% endblock %}

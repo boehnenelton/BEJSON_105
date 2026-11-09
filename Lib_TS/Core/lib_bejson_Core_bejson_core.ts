@@ -4,6 +4,7 @@
  * Description:    Low-level primitive operations for BEJSON document manipulation.
  * BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
  *                 do not restate or reinterpret this acronym elsewhere.
+ *                 (Pronounced Bee-Jay-Son / Bay-nin Elton JSON)
  * MFDB:           MFDB stands for Multi File Database. Authoritative definition;
  *                 do not restate or reinterpret this acronym elsewhere.
  * Version:        2.3.0

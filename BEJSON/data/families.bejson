@@ -112,6 +112,13 @@
       "false",
       "Lib_JS/Graphics",
       "Format 105a blank-slate stages and row-per-frame animation ledgers (JS parity)."
+    ],
+    [
+      "CMS",
+      "PY",
+      "false",
+      "Lib_PY/CMS",
+      "Format 105 Taxonomy-Driven MTV Scaffolding Engine & Admin Dashboard (Model, Template, View with MFDB v1.40 and 13 canonical BEHTML 8-lane templates)."
     ]
   ]
 }

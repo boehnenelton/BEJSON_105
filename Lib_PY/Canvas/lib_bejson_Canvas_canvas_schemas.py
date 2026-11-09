@@ -5,6 +5,7 @@ Description:    BEJSON 105a Schema Definitions and Validation for SVG Canvas Tem
                 Animation Framerates, Dimensions, and Playwright Capture Pipelines.
 BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
+                (Pronounced Bee-Jay-Son / Bay-nin Elton JSON)
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 Version:        1.0.1

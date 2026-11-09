@@ -5,6 +5,7 @@ Description:    Playwright SVG Capture Engine, Dynamic Frame File-Based Animatio
                 and BEJSON 105a Row-Per-Frame Animation Controller.
 BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
+                (Pronounced Bee-Jay-Son / Bay-nin Elton JSON)
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 Version:        1.1.0
@@ -270,272 +271,262 @@ def render_radar_scanner_svg(
 
 
 # ---------------------------------------------------------------------------
-# Canonical BEJSON Branding Presentation Slide Renderers (Widescreen 16:9)
+# Canonical BEJSON Minimal Point-Focus Presentation Slide Renderers (16:9)
 # ---------------------------------------------------------------------------
 
-def render_branding_title_slide_svg(
-    title: str = "BEJSON 105 ARCHITECTURE",
-    subtitle: str = "Deterministic Data, Spatial Layout & Graphics Engine",
-    author: str = "Elton Boehnen",
-    badge_text: str = "BEJSON ECOSYSTEM STANDARDS",
-    version_text: str = "FORMAT 105a // REL. 300",
+def bejson_logo_svg(x: int = 1030, y: int = 655, is_dark: bool = True) -> str:
+    """Renders canonical BEJSON text logo with isometric 3D cube emblem."""
+    txt_col = "#FFFFFF" if is_dark else "#111111"
+    cutout_col = "#111113" if is_dark else "#F8F9FA"
+    left_col = "#1C1C22" if is_dark else "#E5E7EB"
+    return f"""<g transform="translate({x}, {y})">
+    <text x="0" y="22" fill="{txt_col}" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="900" letter-spacing="1.5">BEJSON</text>
+    <g transform="translate(112, 0)">
+      <polygon points="14,2 26,8 14,14 2,8" fill="#FFFFFF" stroke="{txt_col}" stroke-width="1" stroke-linejoin="round"/>
+      <polygon points="14,5 22,9 14,13 6,9" fill="{cutout_col}" opacity="0.9"/>
+      <polygon points="2,8 14,14 14,28 2,22" fill="{left_col}" stroke="{txt_col}" stroke-width="1" stroke-linejoin="round"/>
+      <polygon points="14,14 26,8 26,22 14,28" fill="#DE2626" stroke="{txt_col}" stroke-width="1" stroke-linejoin="round"/>
+    </g>
+  </g>"""
+
+
+def render_slide_split_visual_svg(
+    title: str = "TITLE",
+    tagline: str = "TAGLINE",
+    content: str = "[ INSERT CONTENT / TEXT HERE ]",
+    visual_placeholder: str = "[ INSERT IMAGE OR VISUAL PLACEHOLDER ]",
     width_px: int = 1280,
-    height_px: int = 720
+    height_px: int = 720,
+    inner_svg: Optional[str] = None,
+    *args,
+    **kwargs
 ) -> str:
-    """Renders high-contrast 16:9 title/cover slide with isometric cube emblem."""
+    """
+    Renders sleek, minimal 16:9 Split-Screen Visual presentation slide.
+    Left: Large dedicated visual/image container with subtle corner registration tick marks.
+    Right: High-impact Title, Tagline, and narrative content block.
+    Bottom: Thin red accent rule with canonical BEJSON 3D cube branding.
+    """
+    if "subtitle" in kwargs and tagline == "TAGLINE":
+        tagline = kwargs["subtitle"]
+
     w, h = width_px, height_px
+    logo = bejson_logo_svg(x=w - 230, y=h - 60, is_dark=True)
+    visual_slot = inner_svg if inner_svg else f"""<rect x="64" y="64" width="540" height="520" rx="4" fill="#0E0E10" stroke="#24242A" stroke-width="1.5"/>
+  <path d="M 64 88 L 64 64 L 88 64" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
+  <path d="M 580 64 L 604 64 L 604 88" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
+  <path d="M 64 560 L 64 584 L 88 584" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
+  <path d="M 580 584 L 604 584 L 604 560" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
+  <text x="334" y="328" fill="#555562" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{visual_placeholder}</text>"""
+
     return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#000000"/>
-  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
-  <line x1="24" y1="24" x2="64" y2="24" stroke="#DE2626" stroke-width="3"/>
-  <line x1="24" y1="24" x2="24" y2="64" stroke="#DE2626" stroke-width="3"/>
-  <line x1="{w-24}" y1="24" x2="{w-64}" y2="24" stroke="#DE2626" stroke-width="3"/>
-  <line x1="{w-24}" y1="24" x2="{w-24}" y2="64" stroke="#DE2626" stroke-width="3"/>
-  <line x1="24" y1="{h-24}" x2="64" y2="{h-24}" stroke="#DE2626" stroke-width="3"/>
-  <line x1="24" y1="{h-24}" x2="24" y2="{h-64}" stroke="#DE2626" stroke-width="3"/>
-  <line x1="{w-24}" y1="{h-24}" x2="{w-64}" y2="{h-24}" stroke="#DE2626" stroke-width="3"/>
-  <line x1="{w-24}" y1="{h-24}" x2="{w-24}" y2="{h-64}" stroke="#DE2626" stroke-width="3"/>
-  <rect x="64" y="48" width="280" height="32" rx="16" fill="#000000" stroke="#2A2A38" stroke-width="1.5"/>
-  <circle cx="80" cy="64" r="5" fill="#DE2626"/>
-  <text x="96" y="69" fill="#FFFFFF" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">{badge_text}</text>
-  <rect x="{w-280}" y="48" width="216" height="32" rx="16" fill="#000000" stroke="#DE2626" stroke-width="1.5"/>
-  <text x="{w-260}" y="69" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">{version_text}</text>
-  <text x="80" y="280" fill="#FFFFFF" font-size="50" font-family="monospace" font-weight="900" letter-spacing="2">{title}</text>
-  <line x1="80" y1="310" x2="720" y2="310" stroke="#DE2626" stroke-width="3"/>
-  <text x="80" y="360" fill="#AAAAAA" font-size="22" font-family="monospace">{subtitle}</text>
-  <g transform="translate({w-320}, 360)">
-    <ellipse cx="0" cy="0" rx="140" ry="60" fill="none" stroke="#DE2626" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.6"/>
-    <polygon points="0,-70 60,-35 60,35 0,70 -60,35 -60,-35" fill="#14141E" stroke="#FFFFFF" stroke-width="2"/>
-    <line x1="0" y1="-70" x2="0" y2="70" stroke="#2A2A38" stroke-width="1.5"/>
-    <line x1="-60" y1="-35" x2="60" y2="35" stroke="#2A2A38" stroke-width="1.5"/>
-    <line x1="60" y1="-35" x2="-60" y2="35" stroke="#2A2A38" stroke-width="1.5"/>
-    <circle cx="0" cy="0" r="6" fill="#DE2626"/>
-  </g>
-  <line x1="64" y1="{h-80}" x2="{w-64}" y2="{h-80}" stroke="#2A2A38" stroke-width="1"/>
-  <text x="64" y="{h-48}" fill="#888899" font-size="14" font-family="monospace">Author: {author} · boehnenelton2024@gmail.com</text>
-  <text x="{w-64}" y="{h-48}" text-anchor="end" fill="#888899" font-size="14" font-family="monospace">boehnenelton2024.pages.dev · github.com/boehnenelton</text>
+  <rect width="{w}" height="{h}" fill="#111113"/>
+  {visual_slot}
+  <text x="660" y="130" fill="#FFFFFF" font-size="48" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
+  <text x="660" y="175" fill="#777782" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
+  <text x="660" y="340" fill="#888894" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{content}</text>
+  <line x1="64" y1="{h-65}" x2="{w-64}" y2="{h-65}" stroke="#DE2626" stroke-width="2"/>
+  {logo}
 </svg>"""
 
 
-def render_branding_architecture_slide_svg(
-    title: str = "THREE-TIER SYSTEM DECOMPOSITION",
-    subtitle: str = "Decoupled persistence, mathematical layout, and visual presentation",
-    pillars: Optional[List[Tuple[str, str, str, List[str], str]]] = None,
+def render_slide_key_points_svg(
+    title: str = "SECTION TITLE",
+    tagline: str = "TAGLINE OR SUBTITLE",
+    narrative: str = "[ INSERT PARAGRAPH OR NARRATIVE TEXT HERE ]",
+    key_points: Optional[List[str]] = None,
     width_px: int = 1280,
-    height_px: int = 720
+    height_px: int = 720,
+    *args,
+    **kwargs
 ) -> str:
-    """Renders 16:9 architecture blueprint slide with 3 structured pillar cards."""
+    """
+    Renders sleek, minimal 16:9 Key Points presentation slide.
+    Left: Bold Section Title, Tagline, and narrative paragraph.
+    Right: Clean Key Points bulleted list with subtle indicator dots.
+    Bottom: Thin red accent rule with canonical BEJSON 3D cube branding.
+    """
+    if "subtitle" in kwargs and tagline == "TAGLINE OR SUBTITLE":
+        tagline = kwargs["subtitle"]
+
     w, h = width_px, height_px
-    if pillars is None:
-        pillars = [
-            ("01", "CORE FOUNDATION", "BEJSON 104/105 Persistence", ["O(1) Field Map Caching", "MFDB 1.40 Multi-File DB", "E90-E95 UUID Integrity", "Atomic Posix File I/O"], "PERSISTENCE"),
-            ("02", "SPATIAL LAYOUT", "BEHTML Spatial Engine", ["8-Lane / 16-Sublane Grid", "Row Quantization (Ry=32px)", "Policy §8.1 Tri-Color", "Zero Filler Skeleton Law"], "COORDINATES"),
-            ("03", "GRAPHICS ENGINE", "Vector & Studio Core", ["105a Timeline Quantization", "Two-Tier Barrier of Entry", "Playwright ARM64 Exporters", "Remove_Frame_Source Scoop"], "ANIMATION")
-        ]
+    logo = bejson_logo_svg(x=w - 230, y=h - 60, is_dark=True)
+    pts = key_points or ["[ INSERT KEY POINT 1 ]", "[ INSERT KEY POINT 2 ]", "[ INSERT KEY POINT 3 ]"]
+    bullets_svg = []
+    for i, pt in enumerate(pts):
+        by = 335 + i * 50
+        bullets_svg.append(f"""<circle cx="695" cy="{by-5}" r="3.5" fill="#777784"/>
+  <text x="715" y="{by}" fill="#888894" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{pt}</text>""")
+    bullets_markup = "\n  ".join(bullets_svg)
+
+    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{w}" height="{h}" fill="#111113"/>
+  <!-- Subtle coordinate crosshairs -->
+  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#222228" stroke-width="1.5"/>
+  <path d="M 640 {h-44} L 640 {h-24} M 630 {h-34} L 650 {h-34}" stroke="#222228" stroke-width="1.5"/>
+  <path d="M 34 350 L 34 370 M 24 360 L 44 360" stroke="#222228" stroke-width="1.5"/>
+  <path d="M {w-34} 350 L {w-34} 370 M {w-44} 360 L {w-24} 360" stroke="#222228" stroke-width="1.5"/>
+  <!-- Left Column -->
+  <text x="64" y="130" fill="#FFFFFF" font-size="48" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
+  <text x="64" y="175" fill="#777782" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
+  <text x="64" y="280" fill="#666672" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{narrative}</text>
+  <!-- Right Column -->
+  <text x="680" y="280" fill="#FFFFFF" font-size="26" font-family="system-ui, -apple-system, sans-serif" font-weight="700" letter-spacing="1">KEY POINTS</text>
+  {bullets_markup}
+  <line x1="64" y1="{h-65}" x2="{w-64}" y2="{h-65}" stroke="#DE2626" stroke-width="2"/>
+  {logo}
+</svg>"""
+
+
+def render_slide_visual_focus_light_svg(
+    title: str = "TITLE OF YOUR SLIDE",
+    description: str = "Add your descriptive text, notes, or bullet points in this lower section to keep the visual area open",
+    placeholder_text: str = "[ INSERT VISUALS HERE ]",
+    width_px: int = 1280,
+    height_px: int = 720,
+    inner_svg: Optional[str] = None,
+    *args,
+    **kwargs
+) -> str:
+    """
+    Renders sleek, clean 16:9 Light Mode Visual Focus presentation slide.
+    Top 70%: Open visual canvas area with delicate coordinate registration marks.
+    Middle: Clean red horizontal divider rule.
+    Bottom 30%: Bold black title, descriptive paragraph, and BEJSON branding.
+    """
+    if "subtitle" in kwargs and description.startswith("Add your descriptive text"):
+        description = kwargs["subtitle"]
+
+    w, h = width_px, height_px
+    logo = bejson_logo_svg(x=w - 230, y=h - 85, is_dark=False)
+    visual_slot = inner_svg if inner_svg else f"""<!-- Visual Area Registration Marks -->
+  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#D8D9E0" stroke-width="1.5"/>
+  <path d="M 100 240 L 100 260 M 90 250 L 110 250" stroke="#D8D9E0" stroke-width="1.5"/>
+  <path d="M {w-100} 240 L {w-100} 260 M {w-110} 250 L {w-90} 250" stroke="#D8D9E0" stroke-width="1.5"/>
+  <path d="M 640 450 L 640 470 M 630 460 L 650 460" stroke="#D8D9E0" stroke-width="1.5"/>
+  <path d="M 120 100 L 120 80 L 140 80" fill="none" stroke="#C0C0CA" stroke-width="1.5"/>
+  <path d="M {w-120} 440 L {w-120} 460 L {w-140} 460" fill="none" stroke="#C0C0CA" stroke-width="1.5"/>
+  <text x="640" y="255" fill="#888892" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{placeholder_text}</text>"""
+
+    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{w}" height="{h}" fill="#F8F9FA"/>
+  {visual_slot}
+  <!-- Divider -->
+  <line x1="64" y1="510" x2="{w-64}" y2="510" stroke="#DE2626" stroke-width="2.5"/>
+  <!-- Lower Section -->
+  <text x="64" y="575" fill="#111111" font-size="36" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
+  <text x="64" y="618" fill="#44444A" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400">{description}</text>
+  {logo}
+</svg>"""
+
+
+def render_slide_visual_focus_dark_svg(
+    title: str = "TITLE",
+    tagline: str = "TAGLINE",
+    placeholder_text: str = "[ INSERT VISUAL HERE ]",
+    width_px: int = 1280,
+    height_px: int = 720,
+    inner_svg: Optional[str] = None,
+    *args,
+    **kwargs
+) -> str:
+    """
+    Renders sleek, clean 16:9 Dark Mode Visual Focus presentation slide.
+    Top 70%: Open visual canvas area with delicate coordinate registration marks.
+    Middle: Clean red horizontal divider rule.
+    Bottom 30%: High-impact white Title, Tagline, and BEJSON branding.
+    """
+    if "subtitle" in kwargs and tagline == "TAGLINE":
+        tagline = kwargs["subtitle"]
+
+    w, h = width_px, height_px
+    logo = bejson_logo_svg(x=w - 230, y=h - 85, is_dark=True)
+    visual_slot = inner_svg if inner_svg else f"""<!-- Visual Area Registration Marks -->
+  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#222228" stroke-width="1.5"/>
+  <path d="M 100 250 L 100 270 M 90 260 L 110 260" stroke="#222228" stroke-width="1.5"/>
+  <path d="M {w-100} 250 L {w-100} 270 M {w-110} 260 L {w-90} 260" stroke="#222228" stroke-width="1.5"/>
+  <path d="M 640 460 L 640 480 M 630 470 L 650 470" stroke="#222228" stroke-width="1.5"/>
+  <path d="M 120 100 L 120 80 L 140 80" fill="none" stroke="#2A2A32" stroke-width="1.5"/>
+  <path d="M {w-120} 450 L {w-120} 470 L {w-140} 470" fill="none" stroke="#2A2A32" stroke-width="1.5"/>
+  <text x="640" y="260" fill="#555562" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{placeholder_text}</text>"""
+
+    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{w}" height="{h}" fill="#111113"/>
+  {visual_slot}
+  <!-- Divider -->
+  <line x1="64" y1="520" x2="{w-64}" y2="520" stroke="#DE2626" stroke-width="2"/>
+  <!-- Lower Section -->
+  <text x="64" y="585" fill="#FFFFFF" font-size="44" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
+  <text x="64" y="635" fill="#777782" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
+  {logo}
+</svg>"""
+
+
+def render_slide_process_flow_svg(
+    title: str = "FLOW",
+    steps: Optional[List[Dict[str, Any]]] = None,
+    width_px: int = 1280,
+    height_px: int = 720,
+    *args,
+    **kwargs
+) -> str:
+    """
+    Renders sleek, clean 16:9 Horizontal Process Flow presentation slide.
+    Top-left: Red accent bar above title.
+    Center: 3 clean rounded rectangular cards connected by directional red arrows.
+    Bottom: Subtle footer divider line and canonical BEJSON branding.
+    """
+    w, h = width_px, height_px
+    logo = bejson_logo_svg(x=w - 230, y=h - 60, is_dark=True)
+    card_w = 270
+    card_h = 180
+    c1_x = 125
+    c2_x = 505
+    c3_x = 885
+    c_y = 260
+    cards_data = steps or [{"label": "Step 1", "sub": ""}, {"label": "Step 2", "sub": ""}, {"label": "Step 3", "sub": ""}]
 
     cards_svg = []
-    card_w = 360
-    card_gap = 36
-    start_x = 64
-    for i, (p_num, p_title, p_sub, p_feats, p_tag) in enumerate(pillars):
-        cx = start_x + i * (card_w + card_gap)
-        cy = 160
-        cw, ch = card_w, 450
-        feat_svg = []
-        for fi, feat in enumerate(p_feats):
-            fy = cy + 180 + fi * 42
-            feat_svg.append(f'<rect x="{cx+24}" y="{fy-10}" width="6" height="6" fill="#DE2626"/>')
-            feat_svg.append(f'<text x="{cx+40}" y="{fy-4}" fill="#FFFFFF" font-size="14" font-family="monospace">{feat}</text>')
-        feats_markup = '\n    '.join(feat_svg)
-        card_markup = f"""<g>
-    <rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
-    <rect x="{cx}" y="{cy}" width="{cw}" height="4" fill="#DE2626"/>
-    <text x="{cx+24}" y="{cy+42}" fill="#DE2626" font-size="14" font-family="monospace" font-weight="bold">PILLAR // {p_num}</text>
-    <text x="{cx+24}" y="{cy+80}" fill="#FFFFFF" font-size="22" font-family="monospace" font-weight="bold">{p_title}</text>
-    <text x="{cx+24}" y="{cy+112}" fill="#888899" font-size="14" font-family="monospace">{p_sub}</text>
-    <line x1="{cx+24}" y1="{cy+136}" x2="{cx+cw-24}" y2="{cy+136}" stroke="#1C1C28" stroke-width="1"/>
-    {feats_markup}
-    <rect x="{cx+24}" y="{cy+ch-48}" width="{cw-48}" height="28" rx="14" fill="#000000" stroke="#2A2A38" stroke-width="1"/>
-    <text x="{cx+cw/2}" y="{cy+ch-30}" text-anchor="middle" fill="#888899" font-size="11" font-family="monospace" font-weight="bold" letter-spacing="1.5">{p_tag}</text>
-  </g>"""
-        cards_svg.append(card_markup)
+    positions = [c1_x, c2_x, c3_x]
+    for i, c_x in enumerate(positions):
+        lbl = cards_data[i].get("label", f"Step {i+1}") if i < len(cards_data) else f"Step {i+1}"
+        sub = cards_data[i].get("sub", "") if i < len(cards_data) else ""
+        lbl_svg = f'<text x="{c_x + card_w/2}" y="{c_y + card_h/2 + 6}" fill="#FFFFFF" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="600" text-anchor="middle">{lbl}</text>' if lbl else ''
+        sub_svg = f'<text x="{c_x + card_w/2}" y="{c_y + card_h/2 + 30}" fill="#777782" font-size="13" font-family="system-ui, -apple-system, sans-serif" text-anchor="middle">{sub}</text>' if sub else ''
+        cards_svg.append(f"""<rect x="{c_x}" y="{c_y}" width="{card_w}" height="{card_h}" rx="12" fill="#16161A" stroke="#26262E" stroke-width="1.5"/>
+  {lbl_svg}
+  {sub_svg}""")
 
-    pillars_markup = '\n  '.join(cards_svg)
+    cards_markup = "\n  ".join(cards_svg)
+
     return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#000000"/>
-  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
-  <text x="64" y="64" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">01 // ARCHITECTURE &amp; TAXONOMY</text>
-  <text x="64" y="104" fill="#FFFFFF" font-size="32" font-family="monospace" font-weight="bold">{title}</text>
-  <text x="64" y="132" fill="#888899" font-size="16" font-family="monospace">{subtitle}</text>
-  {pillars_markup}
-  <line x1="64" y1="{h-56}" x2="{w-64}" y2="{h-56}" stroke="#2A2A38" stroke-width="1"/>
-  <text x="64" y="{h-32}" fill="#888899" font-size="12" font-family="monospace">ELTON BOEHNEN BEJSON ECOSYSTEM · RELEASE 300</text>
-  <text x="{w-64}" y="{h-32}" text-anchor="end" fill="#888899" font-size="12" font-family="monospace">CONFIDENTIAL // SPECIFICATION SLIDE</text>
+  <rect width="{w}" height="{h}" fill="#111113"/>
+  <!-- Red accent bar above title -->
+  <rect x="64" y="60" width="44" height="4" rx="2" fill="#DE2626"/>
+  <text x="64" y="115" fill="#FFFFFF" font-size="44" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
+  <!-- Flow Cards -->
+  {cards_markup}
+  <!-- Directional Arrows -->
+  <g transform="translate(405, 350)">
+    <line x1="0" y1="0" x2="86" y2="0" stroke="#DE2626" stroke-width="2.5"/>
+    <polygon points="84,-6 96,0 84,6" fill="#DE2626"/>
+  </g>
+  <g transform="translate(785, 350)">
+    <line x1="0" y1="0" x2="86" y2="0" stroke="#DE2626" stroke-width="2.5"/>
+    <polygon points="84,-6 96,0 84,6" fill="#DE2626"/>
+  </g>
+  <!-- Bottom divider -->
+  <line x1="64" y1="{h-65}" x2="{w-64}" y2="{h-65}" stroke="#1C1C22" stroke-width="1"/>
+  {logo}
 </svg>"""
 
 
-def render_branding_feature_slide_svg(
-    title: str = "DETERMINISTIC CONFORMANCE",
-    subtitle: str = "Strict Barrier of Entry validation and atomic delivery pipelines",
-    width_px: int = 1280,
-    height_px: int = 720
-) -> str:
-    """Renders 16:9 split-view slide with features and terminal code console card."""
-    w, h = width_px, height_px
-    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#000000"/>
-  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
-  <text x="64" y="64" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">02 // RUNTIME SPECIFICATION</text>
-  <text x="64" y="104" fill="#FFFFFF" font-size="32" font-family="monospace" font-weight="bold">{title}</text>
-  <text x="64" y="132" fill="#888899" font-size="16" font-family="monospace">{subtitle}</text>
-  <g transform="translate(64, 160)">
-    <rect width="480" height="130" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
-    <rect width="4" height="130" fill="#DE2626"/>
-    <text x="24" y="36" fill="#FFFFFF" font-size="18" font-family="monospace" font-weight="bold">1. TWO-TIER BARRIER OF ENTRY</text>
-    <text x="24" y="68" fill="#888899" font-size="13" font-family="monospace">Core Family + Graphics Domain double gate.</text>
-    <text x="24" y="92" fill="#888899" font-size="13" font-family="monospace">Zero unverified payloads pass into execution.</text>
-  </g>
-  <g transform="translate(64, 310)">
-    <rect width="480" height="130" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
-    <rect width="4" height="130" fill="#DE2626"/>
-    <text x="24" y="36" fill="#FFFFFF" font-size="18" font-family="monospace" font-weight="bold">2. ZERO-COLLISION TAXONOMY</text>
-    <text x="24" y="68" fill="#888899" font-size="13" font-family="monospace">Long self-describing variable identifiers.</text>
-    <text x="24" y="92" fill="#888899" font-size="13" font-family="monospace">Policy §6.1 hierarchy-group-purpose triad.</text>
-  </g>
-  <g transform="translate(64, 460)">
-    <rect width="480" height="130" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
-    <rect width="4" height="130" fill="#DE2626"/>
-    <text x="24" y="36" fill="#FFFFFF" font-size="18" font-family="monospace" font-weight="bold">3. ATOMIC SOURCE SCOOP</text>
-    <text x="24" y="68" fill="#888899" font-size="13" font-family="monospace">Remove_Frame_Source: true prunes artifacts.</text>
-    <text x="24" y="92" fill="#888899" font-size="13" font-family="monospace">Byte-for-byte reconciliation before cleanup.</text>
-  </g>
-  <g transform="translate(576, 160)">
-    <rect width="640" height="430" rx="4" fill="#050508" stroke="#2A2A38" stroke-width="1.5"/>
-    <rect width="640" height="36" fill="#0F0F16"/>
-    <circle cx="24" cy="18" r="5" fill="#DE2626"/>
-    <circle cx="42" cy="18" r="5" fill="#2A2A38"/>
-    <circle cx="60" cy="18" r="5" fill="#2A2A38"/>
-    <text x="80" y="22" fill="#888899" font-size="12" font-family="monospace">termux - validate_barrier.py</text>
-    <rect x="510" y="8" width="114" height="20" rx="10" fill="#000000" stroke="#DE2626" stroke-width="1"/>
-    <text x="567" y="22" text-anchor="middle" fill="#DE2626" font-size="10" font-family="monospace" font-weight="bold">STATUS: VALID</text>
-    <text x="24" y="72" fill="#DE2626" font-size="14" font-family="monospace">from</text>
-    <text x="68" y="72" fill="#FFFFFF" font-size="14" font-family="monospace">Graphics.validator import validate_graphics_barrier</text>
-    <text x="24" y="110" fill="#888899" font-size="14" font-family="monospace"># Verify two-tier barrier gate</text>
-    <text x="24" y="140" fill="#FFFFFF" font-size="14" font-family="monospace">res = validate_graphics_barrier(manifest, is_file=True)</text>
-    <text x="24" y="180" fill="#DE2626" font-size="14" font-family="monospace">assert</text>
-    <text x="84" y="180" fill="#FFFFFF" font-size="14" font-family="monospace">res.valid is True</text>
-    <text x="24" y="210" fill="#888899" font-size="14" font-family="monospace"># Output: Barrier passed 100% (Core + Graphics)</text>
-  </g>
-  <line x1="64" y1="{h-56}" x2="{w-64}" y2="{h-56}" stroke="#2A2A38" stroke-width="1"/>
-  <text x="64" y="{h-32}" fill="#888899" font-size="12" font-family="monospace">ELTON BOEHNEN BEJSON ECOSYSTEM · RELEASE 300</text>
-</svg>"""
-
-
-def render_branding_metrics_slide_svg(
-    title: str = "SYSTEM PERFORMANCE & TELEMETRY",
-    subtitle: str = "Quantitative audit across ARM64 Termux and POSIX runtimes",
-    width_px: int = 1280,
-    height_px: int = 720
-) -> str:
-    """Renders 16:9 metrics dashboard slide with 4 KPI cards and continuous telemetry strip."""
-    w, h = width_px, height_px
-    kpis = [
-        ("100%", "BARRIER PASS", "Core & Graphics Gate"),
-        ("O(1)", "FIELD CACHE", "Zero Index Churn"),
-        ("<0.16s", "PID BATCH SINK", "Standards Log Commit"),
-        ("500-519", "GRAPHICS CODES", "Deterministic Registry")
-    ]
-    kpi_cards = []
-    card_w = 264
-    gap = 28
-    for i, (val, lbl, desc) in enumerate(kpis):
-        cx = 64 + i * (card_w + gap)
-        cy = 160
-        card = f"""<g>
-    <rect x="{cx}" y="{cy}" width="{card_w}" height="200" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
-    <rect x="{cx}" y="{cy}" width="{card_w}" height="4" fill="#DE2626"/>
-    <text x="{cx+24}" y="{cy+60}" fill="#DE2626" font-size="42" font-family="monospace" font-weight="900">{val}</text>
-    <text x="{cx+24}" y="{cy+100}" fill="#FFFFFF" font-size="16" font-family="monospace" font-weight="bold">{lbl}</text>
-    <text x="{cx+24}" y="{cy+130}" fill="#888899" font-size="12" font-family="monospace">{desc}</text>
-  </g>"""
-        kpi_cards.append(card)
-    kpi_markup = '\n  '.join(kpi_cards)
-
-    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#000000"/>
-  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
-  <text x="64" y="64" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">03 // BENCHMARKS &amp; TELEMETRY</text>
-  <text x="64" y="104" fill="#FFFFFF" font-size="32" font-family="monospace" font-weight="bold">{title}</text>
-  <text x="64" y="132" fill="#888899" font-size="16" font-family="monospace">{subtitle}</text>
-  {kpi_markup}
-  <g transform="translate(64, 385)">
-    <rect width="1140" height="225" rx="4" fill="#050508" stroke="#2A2A38" stroke-width="1.5"/>
-    <text x="24" y="32" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold">CONTINUOUS SYSTEM TELEMETRY STRIP</text>
-    <circle cx="100" cy="125" r="60" fill="none" stroke="#2A2A38" stroke-width="1"/>
-    <circle cx="100" cy="125" r="40" fill="none" stroke="#1C1C28" stroke-width="1"/>
-    <circle cx="100" cy="125" r="20" fill="none" stroke="#1C1C28" stroke-width="1"/>
-    <line x1="40" y1="125" x2="160" y2="125" stroke="#2A2A38" stroke-width="1"/>
-    <line x1="100" y1="65" x2="100" y2="185" stroke="#2A2A38" stroke-width="1"/>
-    <line x1="100" y1="125" x2="145" y2="85" stroke="#DE2626" stroke-width="2"/>
-    <circle cx="145" cy="85" r="3" fill="#DE2626"/>
-    <path d="M220,125 Q280,60 340,125 T460,125 T580,125 T700,125 T820,125 T940,125 T1060,125" fill="none" stroke="#DE2626" stroke-width="2" opacity="0.8"/>
-    <line x1="200" y1="125" x2="1100" y2="125" stroke="#2A2A38" stroke-width="1" stroke-dasharray="4,4"/>
-  </g>
-  <line x1="64" y1="{h-56}" x2="{w-64}" y2="{h-56}" stroke="#2A2A38" stroke-width="1"/>
-  <text x="64" y="{h-32}" fill="#888899" font-size="12" font-family="monospace">ELTON BOEHNEN BEJSON ECOSYSTEM · RELEASE 300</text>
-</svg>"""
-
-
-def render_branding_summary_slide_svg(
-    title: str = "PRODUCTION DELIVERABLES & CONCLUSION",
-    subtitle: str = "Enterprise-grade offline-first tools built for Android Termux and Linux",
-    width_px: int = 1280,
-    height_px: int = 720
-) -> str:
-    """Renders 16:9 conclusion and deliverables slide with official ecosystem seal."""
-    w, h = width_px, height_px
-    takeaways = [
-        "Clean-Slate Architecture: Zero bloat, zero filler, zero unneeded dependencies.",
-        "Atomic Frame Pruning: Intermediate SVG frame sources removed on completion.",
-        "Multi-Format Exporters: Direct rendering to GIF, WebM, MP4, and APNG.",
-        "Full Polyglot Parity: Unified Python, JavaScript, TypeScript, and Bash libraries."
-    ]
-    t_lines = []
-    for i, t in enumerate(takeaways):
-        ty = 60 + i * 50
-        t_lines.append(f'<circle cx="24" cy="{ty-5}" r="8" fill="#000000" stroke="#DE2626" stroke-width="2"/>')
-        t_lines.append(f'<text x="21" y="{ty-1}" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold">✓</text>')
-        t_lines.append(f'<text x="48" y="{ty}" fill="#FFFFFF" font-size="14" font-family="monospace">{t}</text>')
-    t_markup = '\n    '.join(t_lines)
-
-    return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#000000"/>
-  <polygon points="32,24 {w-32},24 {w-24},32 {w-24},{h-32} {w-32},{h-24} 32,{h-24} 24,{h-32} 24,32" fill="#08080C" stroke="#2A2A38" stroke-width="1.5"/>
-  <text x="64" y="64" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">04 // PRODUCTION READINESS</text>
-  <text x="64" y="104" fill="#FFFFFF" font-size="32" font-family="monospace" font-weight="bold">{title}</text>
-  <text x="64" y="132" fill="#888899" font-size="16" font-family="monospace">{subtitle}</text>
-  <g transform="translate(64, 160)">
-    <rect width="600" height="350" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
-    <rect width="4" height="350" fill="#DE2626"/>
-    <text x="24" y="32" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold">CORE ARCHITECTURAL TAKEAWAYS</text>
-    {t_markup}
-  </g>
-  <g transform="translate(696, 160)">
-    <rect width="520" height="350" rx="4" fill="#0A0A10" stroke="#2A2A38" stroke-width="1.5"/>
-    <rect width="520" height="4" fill="#DE2626"/>
-    <text x="24" y="36" fill="#DE2626" font-size="12" font-family="monospace" font-weight="bold">ECOSYSTEM &amp; CONNECT</text>
-    <text x="24" y="80" fill="#888899" font-size="12" font-family="monospace">DOCUMENTATION PORTAL:</text>
-    <text x="24" y="104" fill="#FFFFFF" font-size="15" font-family="monospace">https://boehnenelton2024.pages.dev</text>
-    <text x="24" y="148" fill="#888899" font-size="12" font-family="monospace">SOURCE REPOSITORIES:</text>
-    <text x="24" y="172" fill="#FFFFFF" font-size="15" font-family="monospace">https://github.com/boehnenelton</text>
-    <text x="24" y="216" fill="#888899" font-size="12" font-family="monospace">AUTHOR CONTACT:</text>
-    <text x="24" y="240" fill="#FFFFFF" font-size="15" font-family="monospace">boehnenelton2024@gmail.com</text>
-    <rect x="24" y="280" width="472" height="42" rx="4" fill="#000000" stroke="#DE2626" stroke-width="1"/>
-    <text x="260" y="306" text-anchor="middle" fill="#FFFFFF" font-size="12" font-family="monospace" font-weight="bold" letter-spacing="1.5">ELTON BOEHNEN BEJSON ECOSYSTEM 2026</text>
-  </g>
-  <line x1="64" y1="{h-56}" x2="{w-64}" y2="{h-56}" stroke="#2A2A38" stroke-width="1"/>
-  <text x="64" y="{h-32}" fill="#888899" font-size="12" font-family="monospace">ELTON BOEHNEN BEJSON ECOSYSTEM · RELEASE 300</text>
-</svg>"""
+# Backwards-compatible aliases for legacy callers
+render_branding_title_slide_svg = render_slide_split_visual_svg
+render_branding_feature_slide_svg = render_slide_key_points_svg
+render_branding_metrics_slide_svg = render_slide_visual_focus_light_svg
+render_branding_summary_slide_svg = render_slide_visual_focus_dark_svg
+render_branding_architecture_slide_svg = render_slide_process_flow_svg
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Publication Title</title>
+<!--
+Name:           BEHTML Consolidated E-Book Publication Scaffold
+Description:    Single-file publication and e-book scaffold featuring cover section, table of contents with leader lines, sequential chapter articles, and print styling.
+Author:         Elton Boehnen
+Release_Version: 300
+Package_Version: 105
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-canvas: #060606;
+    --bg-surface: #101010;
+    --bg-surface-elevated: #161616;
+    --bg-code: #0a0a0a;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #CCCCCC;
+    --fg-muted: #888888;
+    --border-color: #262626;
+    --accent-red: #DE2626;
+    --radius-main: 6px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  code, pre, .becss-mono {
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Cover Header */
+  .becss-cover {
+    background: var(--bg-surface);
+    border-radius: var(--radius-main);
+    border-top: 4px solid var(--accent-red);
+    padding: 48px 36px;
+    margin-bottom: 40px;
+  }
+
+  .becss-cover-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .becss-cover-sub {
+    font-size: 1.15rem;
+    color: var(--fg-secondary);
+    margin-bottom: 16px;
+  }
+
+  .becss-cover-meta {
+    font-size: 13px;
+    color: var(--fg-muted);
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* Table of Contents */
+  .becss-toc-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 32px 28px;
+    margin-bottom: 48px;
+  }
+
+  .becss-toc-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+  }
+
+  .becss-toc-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .becss-toc-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: 14px;
+  }
+
+  .becss-toc-link {
+    color: var(--fg-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .becss-toc-link:hover {
+    color: var(--accent-red);
+  }
+
+  .becss-toc-leader {
+    flex: 1;
+    border-bottom: 1px dotted var(--border-color);
+    margin: 0 12px;
+  }
+
+  .becss-toc-page {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 12px;
+    color: var(--fg-muted);
+  }
+
+  /* Chapter Articles */
+  .becss-chapter-article {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 36px 32px;
+    margin-bottom: 40px;
+    page-break-after: always;
+  }
+
+  .becss-chapter-badge {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-red);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .becss-chapter-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .becss-chapter-body {
+    font-size: 14px;
+    color: var(--fg-secondary);
+    margin-bottom: 20px;
+  }
+
+  .becss-code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 16px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    color: var(--fg-primary);
+    margin-bottom: 16px;
+  }
+
+  @media print {
+    body {
+      background: #FFFFFF;
+      color: #000000;
+      padding: 0;
+    }
+    .becss-chapter-article {
+      border: none;
+      page-break-inside: avoid;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="becss-cover">
+      <h1 class="becss-cover-title">Publication Title</h1>
+      <p class="becss-cover-sub">Subtitle</p>
+      <div class="becss-cover-meta">Document Metadata</div>
+    </header>
+
+    <section class="becss-toc-card">
+      <h2 class="becss-toc-title">Table of Contents</h2>
+      <ul class="becss-toc-list">
+        <li class="becss-toc-item">
+          <a href="#ch1" class="becss-toc-link">Chapter 1 Title</a>
+          <span class="becss-toc-leader"></span>
+          <span class="becss-toc-page">01</span>
+        </li>
+        <li class="becss-toc-item">
+          <a href="#ch2" class="becss-toc-link">Chapter 2 Title</a>
+          <span class="becss-toc-leader"></span>
+          <span class="becss-toc-page">02</span>
+        </li>
+      </ul>
+    </section>
+
+    <main>
+      <article class="becss-chapter-article" id="ch1">
+        <div class="becss-chapter-badge">Chapter 01</div>
+        <h2 class="becss-chapter-title">Chapter 1 Title</h2>
+        <div class="becss-chapter-body">Body Paragraph text</div>
+        <pre class="becss-code-block"><code>Body Paragraph text</code></pre>
+      </article>
+
+      <article class="becss-chapter-article" id="ch2">
+        <div class="becss-chapter-badge">Chapter 02</div>
+        <h2 class="becss-chapter-title">Chapter 2 Title</h2>
+        <div class="becss-chapter-body">Body Paragraph text</div>
+        <pre class="becss-code-block"><code>Body Paragraph text</code></pre>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

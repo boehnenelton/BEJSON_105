@@ -1,0 +1,266 @@
+/* ==========================================================================
+   WEB FRAMEWORK CORE SPATIAL & OVERFLOW LAWS (BECSS TRI-COLOR COMPLIANT)
+   Palette: #060606 (Black), #101010 (Surface), #FFFFFF (White), #DE2626 (Red)
+   Quantization: Ry = 32px vertical rhythm
+   ========================================================================== */
+
+:root {
+  --fw-bg-black: #060606;
+  --fw-bg-surface: #101010;
+  --fw-bg-elevated: #161616;
+  --fw-text-white: #FFFFFF;
+  --fw-text-muted: #CCCCCC;
+  --fw-accent-red: #DE2626;
+  --fw-border-subtle: #262626;
+  --fw-ry-unit: 32px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden; /* Lock outer viewport against accidental horizontal bleed */
+  background-color: var(--fw-bg-black);
+  color: var(--fw-text-white);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+}
+
+.fw-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 1. DOCKED HORIZONTAL-SCROLL TOOLBAR CONTRACT */
+.fw-docked-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;              /* NEVER wrap toolbar items onto multiple lines */
+  align-items: center;
+  gap: 8px;
+  height: calc(var(--fw-ry-unit) * 1.5); /* 48px quantized height */
+  padding: 0 16px;
+  background-color: var(--fw-bg-surface);
+  border-bottom: 2px solid var(--fw-accent-red);
+  overflow-x: auto;               /* MANDATORY: Horizontally scroll on overflow */
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.fw-docked-toolbar > * {
+  flex: 0 0 auto;                 /* Prevent buttons/pills from shrinking or squishing */
+}
+
+.fw-brand {
+  color: var(--fw-text-white);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 15px;
+  margin-right: 8px;
+}
+
+.fw-tool-pill {
+  color: var(--fw-text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--fw-border-subtle);
+  background-color: var(--fw-bg-black);
+}
+
+.fw-tool-pill:hover {
+  border-color: var(--fw-accent-red);
+  color: var(--fw-text-white);
+}
+
+.fw-tool-btn {
+  background-color: transparent;
+  color: var(--fw-text-muted);
+  border: 1px solid var(--fw-border-subtle);
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.fw-tool-btn:hover {
+  border-color: var(--fw-accent-red);
+  color: var(--fw-text-white);
+}
+
+.fw-workspace {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+/* 2. COLLAPSIBLE SIDEBAR TAXONOMY TREE CONTRACT ("Classified to Fall") */
+.fw-sidebar-tree {
+  width: 280px;
+  min-width: 280px;
+  background-color: var(--fw-bg-surface);
+  border-right: 1px solid var(--fw-border-subtle);
+  padding: 16px 12px;
+  overflow-y: auto;
+  overflow-x: auto;               /* Allow deep nested tree labels to scroll horizontally */
+}
+
+.fw-tree-node {
+  margin: 0;
+  padding: 0;
+}
+
+.fw-tree-branch {
+  margin-left: 14px;
+  padding-left: 8px;
+  border-left: 1px solid var(--fw-border-subtle);
+}
+
+.fw-tree-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--fw-ry-unit);
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.fw-tree-link {
+  color: var(--fw-text-white);
+  text-decoration: none;
+  padding: 4px 6px;
+  flex: 1 1 auto;
+  font-size: 13px;
+}
+
+.fw-tree-link:hover {
+  color: var(--fw-accent-red);
+}
+
+.fw-tree-link.is-active {
+  color: var(--fw-accent-red);
+  font-weight: 700;
+}
+
+/* 3. HORIZONTAL-SCROLL BREADCRUMB RAIL CONTRACT */
+.fw-breadcrumb-rail {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  height: var(--fw-ry-unit);      /* 32px quantized height */
+  padding: 0 16px;
+  background-color: var(--fw-bg-black);
+  border-bottom: 1px solid var(--fw-border-subtle);
+  overflow-x: auto;               /* MANDATORY: Horizontally scroll deep trails */
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  font-size: 12px;
+  color: var(--fw-text-muted);
+}
+
+.fw-breadcrumb-rail a {
+  color: var(--fw-text-muted);
+  text-decoration: none;
+}
+
+.fw-breadcrumb-rail a:hover {
+  color: var(--fw-accent-red);
+}
+
+.fw-breadcrumb-rail span {
+  color: var(--fw-border-subtle);
+}
+
+/* 4. MAIN CANVAS & PAGE-STYLE PROSE */
+.fw-main-canvas {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fw-page-article {
+  padding: 32px 28px;
+  max-width: 960px;
+}
+
+.fw-page-article h1 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  color: var(--fw-text-white);
+}
+
+.fw-subtitle {
+  font-size: 1.1rem;
+  color: var(--fw-text-muted);
+  margin-bottom: 24px;
+}
+
+.fw-prose-section {
+  margin-bottom: 28px;
+}
+
+.fw-prose-section h2 {
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+  color: var(--fw-text-white);
+}
+
+.fw-prose-section p {
+  color: var(--fw-text-muted);
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+/* 5. HORIZONTAL-SCROLL BODY TABLE CONTRACT */
+.fw-table-scroll,
+.fw-overflow-x-box {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;               /* MANDATORY: Horizontally scroll wide body tables */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--fw-border-subtle);
+  margin: 16px 0;
+}
+
+.fw-table-scroll table {
+  width: 100%;
+  min-width: 640px;               /* Preserve readable column widths; trigger scroll below 640px */
+  border-collapse: collapse;
+}
+
+.fw-table-scroll th,
+.fw-table-scroll td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--fw-border-subtle);
+  white-space: nowrap;            /* Prevent awkward multi-line cell crushing */
+  font-size: 13px;
+}
+
+.fw-table-scroll th {
+  background-color: var(--fw-bg-elevated);
+  border-top: 2px solid var(--fw-accent-red);
+  color: var(--fw-text-white);
+  font-weight: 600;
+}
+
+.fw-table-scroll td {
+  color: var(--fw-text-muted);
+}

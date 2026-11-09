@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Title</title>
+<!--
+Name:           BEHTML Category Feed Scaffold
+Description:    Multi-level category feed scaffold with nested breadcrumbs, subcategory pills, card feed, and dedicated paging feet.
+Author:         Elton Boehnen
+Release_Version: 300
+Package_Version: 105
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-canvas: #060606;
+    --bg-surface: #101010;
+    --bg-surface-elevated: #161616;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #CCCCCC;
+    --fg-muted: #888888;
+    --border-color: #262626;
+    --border-light: #3a3a3a;
+    --accent-red: #DE2626;
+    --radius-main: 6px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 24px 20px 60px;
+  }
+
+  code, pre, .becss-mono {
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .becss-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--fg-muted);
+    margin-bottom: 20px;
+  }
+
+  .becss-breadcrumb-link {
+    color: var(--fg-muted);
+    text-decoration: none;
+  }
+
+  .becss-breadcrumb-link:hover {
+    color: var(--fg-primary);
+  }
+
+  .becss-breadcrumb-separator {
+    color: var(--border-light);
+  }
+
+  .becss-breadcrumb-current {
+    color: var(--accent-red);
+    font-weight: 600;
+  }
+
+  .becss-header-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-main);
+    border-top: 3px solid var(--accent-red);
+    padding: 28px 24px;
+    margin-bottom: 20px;
+  }
+
+  .becss-category-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .becss-category-sub {
+    font-size: 0.95rem;
+    color: var(--fg-secondary);
+    margin-bottom: 16px;
+  }
+
+  .becss-subcategories-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .becss-subcat-pill {
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  .becss-subcat-pill:hover {
+    border-color: var(--accent-red);
+    color: #FFFFFF;
+  }
+
+  .becss-subcat-pill.is-active {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+
+  .becss-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .becss-item-row {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .becss-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .becss-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg-primary);
+  }
+
+  .becss-item-desc {
+    font-size: 13px;
+    color: var(--fg-secondary);
+  }
+
+  .becss-btn-sm {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .becss-btn-sm:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+
+  .becss-paging-feet {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--fg-secondary);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <nav class="becss-breadcrumbs" aria-label="Breadcrumb">
+      <a href="#" class="becss-breadcrumb-link">topnav</a>
+      <span class="becss-breadcrumb-separator">/</span>
+      <a href="#" class="becss-breadcrumb-link">Category</a>
+      <span class="becss-breadcrumb-separator">/</span>
+      <span class="becss-breadcrumb-current">Subcategory</span>
+    </nav>
+
+    <header class="becss-header-card">
+      <h1 class="becss-category-title">Section Heading</h1>
+      <p class="becss-category-sub">Subtitle</p>
+      <div class="becss-subcategories-bar">
+        <a href="#" class="becss-subcat-pill is-active">All Items</a>
+        <a href="#" class="becss-subcat-pill">Subcategory 1</a>
+        <a href="#" class="becss-subcat-pill">Subcategory 2</a>
+      </div>
+    </header>
+
+    <main class="becss-items-list">
+      <div class="becss-item-row">
+        <div class="becss-item-info">
+          <span class="becss-mono" style="font-size: 11px; color: var(--accent-red);">ID: item_01</span>
+          <h2 class="becss-item-title">Card Title</h2>
+          <div class="becss-item-desc">Body Paragraph text</div>
+        </div>
+        <a href="#" class="becss-btn-sm">Action Button</a>
+      </div>
+
+      <div class="becss-item-row">
+        <div class="becss-item-info">
+          <span class="becss-mono" style="font-size: 11px; color: var(--accent-red);">ID: item_02</span>
+          <h2 class="becss-item-title">Card Title</h2>
+          <div class="becss-item-desc">Body Paragraph text</div>
+        </div>
+        <a href="#" class="becss-btn-sm">Action Button</a>
+      </div>
+    </main>
+
+    <nav class="becss-paging-feet" aria-label="Category Pagination">
+      <a href="#" class="becss-btn-sm">Prev</a>
+      <span class="becss-mono">Category • Module 1 of 5</span>
+      <a href="#" class="becss-btn-sm">Next</a>
+    </nav>
+  </div>
+</body>
+</html>

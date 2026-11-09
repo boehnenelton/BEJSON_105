@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Title</title>
+<!--
+Name:           BEHTML Project Showcase Scaffold
+Description:    Portfolio and project showcase layout featuring hero banner, primary media viewport, tech stack tags, structural feature grid, and action bar.
+Author:         Elton Boehnen
+Release_Version: 300
+Package_Version: 105
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-canvas: #060606;
+    --bg-surface: #101010;
+    --bg-surface-elevated: #161616;
+    --bg-media: #121212;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #CCCCCC;
+    --fg-muted: #888888;
+    --border-color: #262626;
+    --border-light: #3a3a3a;
+    --accent-red: #DE2626;
+    --radius-main: 6px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 24px 20px 80px;
+  }
+
+  code, pre, .becss-mono {
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .becss-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 32px;
+  }
+
+  .becss-brand {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fg-primary);
+    text-decoration: none;
+  }
+
+  .becss-badge {
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* Project Hero */
+  .becss-project-hero {
+    background: var(--bg-surface);
+    border-radius: var(--radius-main);
+    border-top: 3px solid var(--accent-red);
+    padding: 36px 32px;
+    margin-bottom: 32px;
+  }
+
+  .becss-project-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .becss-project-sub {
+    font-size: 1.05rem;
+    color: var(--fg-secondary);
+    margin-bottom: 16px;
+  }
+
+  .becss-tech-stack {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .becss-tech-pill {
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .becss-project-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  /* Media Stage Viewport */
+  .becss-media-stage {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--bg-media);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 36px;
+  }
+
+  /* Two-Column Overview & Specs */
+  .becss-project-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 800px) {
+    .becss-project-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .becss-overview-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .becss-overview-col h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .becss-specs-col {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: fit-content;
+  }
+
+  .becss-spec-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+  }
+
+  .becss-spec-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .becss-spec-val {
+    font-size: 13px;
+    color: var(--fg-secondary);
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .becss-btn-primary {
+    background: var(--accent-red);
+    color: #FFFFFF;
+    border: 1px solid var(--accent-red);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  .becss-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="becss-navbar">
+      <a href="#" class="becss-brand">
+        <span class="becss-badge">SHOWCASE</span>
+        <span>App Brand</span>
+      </a>
+      <a href="#" class="becss-btn-secondary">nav_link_1</a>
+    </header>
+
+    <header class="becss-project-hero">
+      <h1 class="becss-project-title">Page Title</h1>
+      <p class="becss-project-sub">Subtitle</p>
+      <div class="becss-tech-stack">
+        <span class="becss-tech-pill">Tech 1</span>
+        <span class="becss-tech-pill">Tech 2</span>
+      </div>
+      <div class="becss-project-actions">
+        <a href="#" class="becss-btn-primary">Action Button</a>
+        <a href="#" class="becss-btn-secondary">Cancel</a>
+      </div>
+    </header>
+
+    <div class="becss-media-stage">
+      <span class="becss-mono" style="font-size: 13px; color: var(--fg-muted);">16:9 Showcase Canvas</span>
+    </div>
+
+    <main class="becss-project-grid">
+      <section class="becss-overview-col">
+        <h2>Section Heading</h2>
+        <p>Body Paragraph text</p>
+      </section>
+
+      <aside class="becss-specs-col">
+        <div class="becss-spec-row">
+          <span class="becss-spec-label">Metadata 1</span>
+          <span class="becss-spec-val">Value 1</span>
+        </div>
+        <div class="becss-spec-row">
+          <span class="becss-spec-label">Metadata 2</span>
+          <span class="becss-spec-val">Value 2</span>
+        </div>
+      </aside>
+    </main>
+  </div>
+</body>
+</html>

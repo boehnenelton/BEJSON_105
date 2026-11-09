@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Title</title>
+<!--
+Name:           BEHTML Video Player Scaffold
+Description:    Dedicated video playback view featuring a 16:9 primary video stage, action bar, playlist queue sidebar, and video metadata table.
+Author:         Elton Boehnen
+Release_Version: 300
+Package_Version: 105
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-canvas: #060606;
+    --bg-surface: #101010;
+    --bg-surface-elevated: #161616;
+    --bg-player: #000000;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #CCCCCC;
+    --fg-muted: #888888;
+    --border-color: #262626;
+    --border-light: #3a3a3a;
+    --accent-red: #DE2626;
+    --radius-main: 6px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px 20px 60px;
+  }
+
+  code, pre, .becss-mono {
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .becss-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+  }
+
+  .becss-brand {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fg-primary);
+    text-decoration: none;
+  }
+
+  .becss-badge {
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* Two-Column Player Layout */
+  .becss-player-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 900px) {
+    .becss-player-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Main Video Column */
+  .becss-main-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .becss-player-stage {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--bg-player);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .becss-player-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+  }
+
+  .becss-control-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: #FFFFFF;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .becss-video-details {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .becss-video-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  .becss-video-meta {
+    font-size: 13px;
+    color: var(--fg-muted);
+  }
+
+  .becss-video-desc {
+    font-size: 14px;
+    color: var(--fg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+  }
+
+  /* Queue Sidebar */
+  .becss-queue-sidebar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: fit-content;
+  }
+
+  .becss-queue-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--fg-muted);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+  }
+
+  .becss-queue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .becss-queue-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    align-items: center;
+  }
+
+  .becss-queue-thumb {
+    width: 80px;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--fg-muted);
+  }
+
+  .becss-queue-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .becss-queue-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg-primary);
+  }
+
+  .becss-btn-sm {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  .becss-btn-sm:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="becss-navbar">
+      <a href="#" class="becss-brand">
+        <span class="becss-badge">PLAYER</span>
+        <span>App Brand</span>
+      </a>
+      <a href="#" class="becss-btn-sm">nav_link_1</a>
+    </header>
+
+    <main class="becss-player-layout">
+      <div class="becss-main-col">
+        <div class="becss-player-stage">
+          <span class="becss-mono" style="color: var(--fg-muted); font-size: 14px;">16:9 Video Player Canvas</span>
+          <div class="becss-player-controls">
+            <button type="button" class="becss-control-btn">Play</button>
+            <span class="becss-mono" style="font-size: 11px; color: var(--fg-muted);">00:00 / 00:00</span>
+            <button type="button" class="becss-control-btn">Fullscreen</button>
+          </div>
+        </div>
+
+        <section class="becss-video-details">
+          <h1 class="becss-video-title">Page Title</h1>
+          <div class="becss-video-meta">
+            <span>Author</span>
+            <span>&bull;</span>
+            <span class="becss-mono">Timestamp</span>
+          </div>
+          <div class="becss-video-desc">Body Paragraph text</div>
+        </section>
+      </div>
+
+      <aside class="becss-queue-sidebar">
+        <div class="becss-queue-title">Queue</div>
+        <div class="becss-queue-list">
+          <div class="becss-queue-item">
+            <div class="becss-queue-thumb">16:9</div>
+            <div class="becss-queue-info">
+              <span class="becss-queue-name">Card Title</span>
+              <span class="becss-mono" style="font-size: 10px; color: var(--fg-muted);">Timestamp</span>
+            </div>
+          </div>
+
+          <div class="becss-queue-item">
+            <div class="becss-queue-thumb">16:9</div>
+            <div class="becss-queue-info">
+              <span class="becss-queue-name">Card Title</span>
+              <span class="becss-mono" style="font-size: 10px; color: var(--fg-muted);">Timestamp</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+</body>
+</html>

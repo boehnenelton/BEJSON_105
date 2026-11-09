@@ -6,6 +6,7 @@ Description:    BEJSON Diagram View Loader & Multi-State Frame-by-Frame SVG Rend
                 at arbitrary camera viewports and state machine transitions frame-by-frame.
 BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
+                (Pronounced Bee-Jay-Son / Bay-nin Elton JSON)
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 Version:        1.0.0

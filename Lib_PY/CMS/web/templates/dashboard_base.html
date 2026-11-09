@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Taxonomy MTV Scaffolding Dashboard{% endblock %}</title>
+    <style>
+        :root {
+            --bg-primary: #060606;
+            --bg-secondary: #121212;
+            --bg-surface: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-muted: #888888;
+            --accent-red: #DE2626;
+            --accent-red-hover: #b91c1c;
+            --border-dim: #2a2a2a;
+            --border-bright: #444444;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.fw-navbar {
+            background-color: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent-red);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fw-brand-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .fw-brand-title span {
+            color: var(--accent-red);
+        }
+
+        nav.fw-navlinks a {
+            color: var(--text-primary);
+            text-decoration: none;
+            margin-left: 1.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        nav.fw-navlinks a:hover {
+            color: var(--accent-red);
+        }
+
+        main.fw-container {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .fw-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .fw-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-dim);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: border-color 0.2s;
+        }
+
+        .fw-card:hover {
+            border-color: var(--accent-red);
+        }
+
+        .fw-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .fw-card-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            flex: 1;
+        }
+
+        .fw-pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .fw-pill {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-bright);
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: #ddd;
+        }
+
+        .fw-btn {
+            background-color: var(--accent-red);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .fw-btn:hover {
+            background-color: var(--accent-red-hover);
+        }
+
+        .fw-btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-bright);
+            color: var(--text-primary);
+        }
+
+        .fw-btn-secondary:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+            background-color: transparent;
+        }
+
+        footer.fw-footer {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-dim);
+            padding: 1rem 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        footer.fw-footer a {
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header class="fw-navbar">
+        <div class="fw-brand-title"><span>MTV</span> Scaffolding Engine</div>
+        <nav class="fw-navlinks">
+            <a href="/">Catalog</a>
+            <a href="/custom">Custom Builder</a>
+        </nav>
+    </header>
+
+    <main class="fw-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="fw-footer">
+        Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+    </footer>
+</body>
+</html>

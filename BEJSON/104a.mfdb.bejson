@@ -68,7 +68,7 @@
       "Families",
       "data/families.bejson",
       "Registry of every family x language combo and whether it has an owned error registry file \u2014 feeds the Reports dropdown and future CLI tooling",
-      12,
+      13,
       "1.1",
       null
     ],

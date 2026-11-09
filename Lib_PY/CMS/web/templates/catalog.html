@@ -1,0 +1,129 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Blueprint Catalog — MTV Scaffolding Engine{% endblock %}
+
+{% block content %}
+<section>
+    <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem;">Pre-Built Taxonomy Archetypes</h1>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Select an authoritative taxonomy blueprint to atomically materialize Model (105 MFDB), Template (BEHTML 8-lane), and View (build pipeline).</p>
+
+    <div class="fw-card-grid">
+        {% for arch in archetypes %}
+        <div class="fw-card">
+            <div>
+                <div class="fw-card-title">{{ arch.archetype_name }}</div>
+                <div class="fw-card-desc">{{ arch.domain_purpose }}</div>
+                
+                <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem; text-transform: uppercase; color: var(--accent-red);">Generated Entities:</div>
+                <div class="fw-pill-list">
+                    {% for entity in arch.entity_names %}
+                    <span class="fw-pill">{{ entity }}</span>
+                    {% endfor %}
+                </div>
+
+                <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem; text-transform: uppercase; color: var(--accent-red);">Bound Templates:</div>
+                <div class="fw-pill-list">
+                    {% for tmpl in arch.bound_templates %}
+                    <span class="fw-pill">{{ tmpl }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.8rem; margin-top: 1rem;">
+                <a href="/archetype/{{ arch.archetype_id }}" class="fw-btn fw-btn-secondary" style="flex: 1;">Preview</a>
+                <button onclick="openInstantiateModal('{{ arch.archetype_id }}', '{{ arch.archetype_name }}')" class="fw-btn" style="flex: 1;">Instantiate</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Modal for instantiation -->
+<div id="instantiateModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: var(--bg-secondary); border: 1px solid var(--accent-red); padding: 2rem; max-width: 550px; width: 90%;">
+        <h2 id="modalTitle" style="font-size: 1.4rem; margin-bottom: 1rem;">Instantiate Scaffold Unit</h2>
+        
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Target Directory Path:</label>
+            <input type="text" id="targetPathInput" style="width: 100%; padding: 0.6rem; background: var(--bg-surface); border: 1px solid var(--border-bright); color: #fff; font-family: var(--font-mono);" placeholder="/path/to/project_scaffold" />
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem;">Project Display Title:</label>
+            <input type="text" id="projectTitleInput" style="width: 100%; padding: 0.6rem; background: var(--bg-surface); border: 1px solid var(--border-bright); color: #fff;" placeholder="My Engineering Hub" />
+        </div>
+
+        <div id="modalStatus" style="font-size: 0.9rem; margin-bottom: 1rem; color: #ff8888;"></div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.8rem;">
+            <button onclick="closeInstantiateModal()" class="fw-btn fw-btn-secondary">Cancel</button>
+            <button id="modalConfirmBtn" onclick="submitInstantiate()" class="fw-btn">Materialize Unit</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentArchetypeId = "";
+
+function openInstantiateModal(archId, archName) {
+    currentArchetypeId = archId;
+    document.getElementById("modalTitle").innerText = "Instantiate: " + archName;
+    document.getElementById("targetPathInput").value = "/data/data/com.termux/files/home/downloads/" + archId + "_scaffold";
+    document.getElementById("projectTitleInput").value = archName;
+    document.getElementById("modalStatus").innerText = "";
+    document.getElementById("instantiateModal").style.display = "flex";
+}
+
+function closeInstantiateModal() {
+    document.getElementById("instantiateModal").style.display = "none";
+}
+
+async function submitInstantiate() {
+    const targetPath = document.getElementById("targetPathInput").value.trim();
+    const projectTitle = document.getElementById("projectTitleInput").value.trim();
+    const statusDiv = document.getElementById("modalStatus");
+    const confirmBtn = document.getElementById("modalConfirmBtn");
+
+    if (!targetPath) {
+        statusDiv.innerText = "Target path cannot be empty.";
+        return;
+    }
+
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = "Materializing...";
+    statusDiv.style.color = "#88ff88";
+    statusDiv.innerText = "Synthesizing Model, Template, and View...";
+
+    try {
+        const response = await fetch("/api/instantiate", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                archetype_id: currentArchetypeId,
+                target_path: targetPath,
+                project_title: projectTitle
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            statusDiv.style.color = "#88ff88";
+            statusDiv.innerText = "Successfully instantiated in " + result.report.project_directory;
+            setTimeout(() => {
+                closeInstantiateModal();
+                alert("Scaffold created successfully at:\\n" + result.report.project_directory);
+            }, 800);
+        } else {
+            statusDiv.style.color = "#ff8888";
+            statusDiv.innerText = "Error: " + result.error;
+        }
+    } catch (e) {
+        statusDiv.style.color = "#ff8888";
+        statusDiv.innerText = "Network / execution error: " + e.message;
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = "Materialize Unit";
+    }
+}
+</script>
+{% endblock %}

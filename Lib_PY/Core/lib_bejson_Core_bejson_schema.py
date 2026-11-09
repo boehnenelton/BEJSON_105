@@ -2,8 +2,8 @@
 Library:        lib_bejson_Core_bejson_schema.py
 Family:         Core
 Description:    Unified registry for authoritative BEJSON schemas.
-Version:        2.3.0
-Date:           2026-10-03
+Version:        2.4.0
+Date:           2026-11-07
 Author:         Elton Boehnen
 Contact:        eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
 Format_Creator: Elton Boehnen
@@ -11,6 +11,12 @@ RELATIONAL_ID:  7a8d88a4-3346-41aa-90f0-8c5eed413570
 Release_Version: 300
 
 Changelog:
+  2.4.0 - 2026-11-07: Updated SCHEMA_MODEL_REGISTRY_GEMINI default model catalog
+          with November 2026 Gemini models (gemini-4-argon, gemini-3.8-flash,
+          gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash) and Flash-Lite
+          variants (gemini-3.5-flash-lite, gemini-3.1-flash-lite,
+          gemini-3.1-flash-lite-preview, gemini-flash-lite-latest,
+          gemini-2.5-flash-lite).
   2.3.0 - 2026-10-03: Schema API parity with JS/TS/SH. Added
           bejson_schema_validate_against_detailed (full {valid, errors}
           result against a schema DOCUMENT, mirrors JS validateAgainst),
@@ -99,7 +105,7 @@ SCHEMA_MFDB_MANIFEST_v5 = [
     {"name": "tags",           "type": "string"},
 ]
 
-# 4. AI Model Registry — Gemini v2.1.2 (Positional Integrity Fix)
+# 4. AI Model Registry — Gemini v2.2.0 (Positional Integrity Fix)
 # Renamed from SCHEMA_MODEL_REGISTRY to SCHEMA_MODEL_REGISTRY_GEMINI (v2.2.0)
 # to eliminate collision with SCHEMA_MODEL_REGISTRY_OPENROUTER in openrouter.py.
 SCHEMA_MODEL_REGISTRY_GEMINI = {
@@ -115,9 +121,17 @@ SCHEMA_MODEL_REGISTRY_GEMINI = {
         {"name": "google_search_enabled", "type": "boolean"}  # 4
     ],
     "Values": [
+        ["Gemini 4 Argon", "gemini-4-argon", False, True, True],
+        ["Gemini 3.8 Flash", "gemini-3.8-flash", False, True, True],
+        ["Gemini 3.7 Flash", "gemini-3.7-flash", False, True, True],
         ["Gemini 3.6 Flash", "gemini-3.6-flash", True, True, True],
+        ["Gemini 3.5 Flash", "gemini-3.5-flash", False, True, True],
+        ["Gemini 3.5 Flash Lite", "gemini-3.5-flash-lite", False, True, True],
+        ["Gemini 3.1 Flash Lite", "gemini-3.1-flash-lite", False, True, False],
+        ["Gemini 3.1 Flash Lite Preview", "gemini-3.1-flash-lite-preview", False, True, False],
+        ["Gemini Flash-Lite Latest", "gemini-flash-lite-latest", False, True, False],
         ["Gemini 3.1 Pro (Preview)", "gemini-3.1-pro-preview", False, True, True],
-        ["Gemini 3.1 Flash-Lite", "gemini-3.1-flash-lite", False, False, False],
+        ["Gemini 2.5 Flash-Lite", "gemini-2.5-flash-lite", False, False, False],
         ["Gemini 2.5 Flash", "gemini-2.5-flash", False, False, False]
     ]
 }

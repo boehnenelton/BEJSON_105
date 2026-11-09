@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Title</title>
+<!--
+Name:           BEHTML Video Feed Scaffold
+Description:    Video-centric taxonomy feed scaffold featuring 16:9 media cards, duration badges, channel/creator tags, filter tabs, and pagination.
+Author:         Elton Boehnen
+Release_Version: 300
+Package_Version: 105
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-canvas: #060606;
+    --bg-surface: #101010;
+    --bg-surface-elevated: #161616;
+    --bg-media: #121212;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #CCCCCC;
+    --fg-muted: #888888;
+    --border-color: #262626;
+    --border-light: #3a3a3a;
+    --accent-red: #DE2626;
+    --radius-main: 6px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 24px 20px 60px;
+  }
+
+  code, pre, .becss-mono {
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .becss-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 24px;
+  }
+
+  .becss-brand {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fg-primary);
+    text-decoration: none;
+  }
+
+  .becss-badge {
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .becss-header {
+    background: var(--bg-surface);
+    border-radius: var(--radius-main);
+    border-top: 3px solid var(--accent-red);
+    padding: 28px 24px;
+    margin-bottom: 24px;
+  }
+
+  .becss-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .becss-sub {
+    font-size: 0.95rem;
+    color: var(--fg-secondary);
+  }
+
+  .becss-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .becss-tabs {
+    display: flex;
+    gap: 8px;
+  }
+
+  .becss-tab {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .becss-tab.is-active {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+
+  .becss-video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .becss-video-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.15s ease;
+  }
+
+  .becss-video-card:hover {
+    border-color: var(--border-light);
+  }
+
+  .becss-video-thumb-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--bg-media);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .becss-duration-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-family: 'Source Code Pro', monospace;
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  .becss-video-card-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .becss-video-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg-primary);
+  }
+
+  .becss-video-meta {
+    font-size: 12px;
+    color: var(--fg-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .becss-paging-feet {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-main);
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+
+  .becss-btn-sm {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  .becss-btn-sm:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="becss-navbar">
+      <a href="#" class="becss-brand">
+        <span class="becss-badge">VIDEOS</span>
+        <span>App Brand</span>
+      </a>
+      <a href="#" class="becss-btn-sm">nav_link_1</a>
+    </header>
+
+    <section class="becss-header">
+      <h1 class="becss-title">Section Heading</h1>
+      <p class="becss-sub">Subtitle</p>
+    </section>
+
+    <div class="becss-filter-row">
+      <div class="becss-tabs">
+        <button type="button" class="becss-tab is-active">Category 1</button>
+        <button type="button" class="becss-tab">Category 2</button>
+      </div>
+      <div>
+        <button type="button" class="becss-btn-sm">Sort By</button>
+      </div>
+    </div>
+
+    <main class="becss-video-grid">
+      <article class="becss-video-card">
+        <div class="becss-video-thumb-frame">
+          <span class="becss-mono" style="font-size: 12px; color: var(--fg-muted);">16:9 Video Canvas</span>
+          <span class="becss-duration-badge">00:00</span>
+        </div>
+        <div class="becss-video-card-body">
+          <h2 class="becss-video-title">Video Title</h2>
+          <div class="becss-video-meta">
+            <span>Author</span>
+            <span>&bull;</span>
+            <span class="becss-mono">Timestamp</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="becss-video-card">
+        <div class="becss-video-thumb-frame">
+          <span class="becss-mono" style="font-size: 12px; color: var(--fg-muted);">16:9 Video Canvas</span>
+          <span class="becss-duration-badge">00:00</span>
+        </div>
+        <div class="becss-video-card-body">
+          <h2 class="becss-video-title">Video Title</h2>
+          <div class="becss-video-meta">
+            <span>Author</span>
+            <span>&bull;</span>
+            <span class="becss-mono">Timestamp</span>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <nav class="becss-paging-feet" aria-label="Pagination">
+      <a href="#" class="becss-btn-sm">Prev</a>
+      <span class="becss-mono" style="font-size: 12px; color: var(--fg-muted);">Page 1 of 5</span>
+      <a href="#" class="becss-btn-sm">Next</a>
+    </nav>
+  </div>
+</body>
+</html>

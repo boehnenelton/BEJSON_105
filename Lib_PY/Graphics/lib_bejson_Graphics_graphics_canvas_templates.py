@@ -6,6 +6,7 @@ Description:    Blank-Slate Canvas Stage Templates & Embedded BEJSON 105a Scaffo
                 parameterized aspect ratios, and dynamic row-per-frame SVG animations.
 BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
+                (Pronounced Bee-Jay-Son / Bay-nin Elton JSON)
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
 Version:        1.0.1
@@ -45,6 +46,11 @@ except ImportError:
 
 try:
     from lib_bejson_Graphics_graphics_core import (
+        render_slide_split_visual_svg,
+        render_slide_key_points_svg,
+        render_slide_visual_focus_light_svg,
+        render_slide_visual_focus_dark_svg,
+        render_slide_process_flow_svg,
         render_branding_title_slide_svg,
         render_branding_architecture_slide_svg,
         render_branding_feature_slide_svg,
@@ -52,6 +58,11 @@ try:
         render_branding_summary_slide_svg
     )
 except ImportError:
+    render_slide_split_visual_svg = None
+    render_slide_key_points_svg = None
+    render_slide_visual_focus_light_svg = None
+    render_slide_visual_focus_dark_svg = None
+    render_slide_process_flow_svg = None
     render_branding_title_slide_svg = None
     render_branding_architecture_slide_svg = None
     render_branding_feature_slide_svg = None
@@ -470,59 +481,64 @@ BLANK_SLATE_ARCHETYPES: List[Dict[str, Any]] = [
 
 BRANDING_SLIDE_ARCHETYPES: List[Dict[str, Any]] = [
     {
-        "template_id": "slide_branding_title_1280",
-        "template_name": "slide_branding_title_1280x720.html",
+        "template_id": "slide_split_visual_1280",
+        "template_name": "slide_split_visual_1280x720.html",
         "category": "branding_slide",
         "width_px": 1280,
         "height_px": 720,
         "aspect_ratio": "16:9",
         "stage_selector": "#capture-stage",
-        "description": "16:9 Hero Title / Cover presentation slide template with isometric cube branding, laser accents, and credentials.",
-        "svg_generator": lambda: render_branding_title_slide_svg() if render_branding_title_slide_svg else ""
+        "bg_theme": "#111113",
+        "description": "16:9 Sleek Split-Screen Visual presentation slide template with left image container and right title/tagline/content.",
+        "svg_generator": lambda: render_slide_split_visual_svg() if render_slide_split_visual_svg else ""
     },
     {
-        "template_id": "slide_branding_architecture_1280",
-        "template_name": "slide_branding_architecture_1280x720.html",
+        "template_id": "slide_key_points_1280",
+        "template_name": "slide_key_points_1280x720.html",
         "category": "branding_slide",
         "width_px": 1280,
         "height_px": 720,
         "aspect_ratio": "16:9",
         "stage_selector": "#capture-stage",
-        "description": "16:9 3-Pillar Architectural Blueprint presentation slide template with chamfered card surfaces and red accents.",
-        "svg_generator": lambda: render_branding_architecture_slide_svg() if render_branding_architecture_slide_svg else ""
+        "bg_theme": "#111113",
+        "description": "16:9 Minimal Key Points presentation slide template with section title and bulleted list.",
+        "svg_generator": lambda: render_slide_key_points_svg() if render_slide_key_points_svg else ""
     },
     {
-        "template_id": "slide_branding_feature_1280",
-        "template_name": "slide_branding_feature_1280x720.html",
+        "template_id": "slide_visual_focus_light_1280",
+        "template_name": "slide_visual_focus_light_1280x720.html",
         "category": "branding_slide",
         "width_px": 1280,
         "height_px": 720,
         "aspect_ratio": "16:9",
         "stage_selector": "#capture-stage",
-        "description": "16:9 Split-screen Feature & Code Console presentation slide template with syntax card and status indicators.",
-        "svg_generator": lambda: render_branding_feature_slide_svg() if render_branding_feature_slide_svg else ""
+        "bg_theme": "#F8F9FA",
+        "description": "16:9 Light Mode Visual Focus presentation slide template with upper open canvas and lower text banner.",
+        "svg_generator": lambda: render_slide_visual_focus_light_svg() if render_slide_visual_focus_light_svg else ""
     },
     {
-        "template_id": "slide_branding_metrics_1280",
-        "template_name": "slide_branding_metrics_1280x720.html",
+        "template_id": "slide_visual_focus_dark_1280",
+        "template_name": "slide_visual_focus_dark_1280x720.html",
         "category": "branding_slide",
         "width_px": 1280,
         "height_px": 720,
         "aspect_ratio": "16:9",
         "stage_selector": "#capture-stage",
-        "description": "16:9 System Telemetry & Benchmark KPI presentation slide template with 4 metrics cards and radar wave sweep.",
-        "svg_generator": lambda: render_branding_metrics_slide_svg() if render_branding_metrics_slide_svg else ""
+        "bg_theme": "#111113",
+        "description": "16:9 Dark Mode Visual Focus presentation slide template with upper open canvas and lower title/tagline banner.",
+        "svg_generator": lambda: render_slide_visual_focus_dark_svg() if render_slide_visual_focus_dark_svg else ""
     },
     {
-        "template_id": "slide_branding_summary_1280",
-        "template_name": "slide_branding_summary_1280x720.html",
+        "template_id": "slide_process_flow_1280",
+        "template_name": "slide_process_flow_1280x720.html",
         "category": "branding_slide",
         "width_px": 1280,
         "height_px": 720,
         "aspect_ratio": "16:9",
         "stage_selector": "#capture-stage",
-        "description": "16:9 Conclusion & Deliverables presentation slide template with takeaway checklist and official ecosystem brand seal.",
-        "svg_generator": lambda: render_branding_summary_slide_svg() if render_branding_summary_slide_svg else ""
+        "bg_theme": "#111113",
+        "description": "16:9 Minimal 3-Step Horizontal Process Flow presentation slide template with red directional arrows and red accent tag.",
+        "svg_generator": lambda: render_slide_process_flow_svg() if render_slide_process_flow_svg else ""
     }
 ]
 
@@ -576,6 +592,11 @@ def get_canvas_template_registry_105a(
     renderers = {}
     try:
         from lib_bejson_Graphics_graphics_core import (
+            render_slide_split_visual_svg,
+            render_slide_key_points_svg,
+            render_slide_visual_focus_light_svg,
+            render_slide_visual_focus_dark_svg,
+            render_slide_process_flow_svg,
             render_branding_title_slide_svg,
             render_branding_architecture_slide_svg,
             render_branding_feature_slide_svg,
@@ -583,6 +604,12 @@ def get_canvas_template_registry_105a(
             render_branding_summary_slide_svg
         )
         renderers = {
+            "slide_split_visual_1280": render_slide_split_visual_svg,
+            "slide_key_points_1280": render_slide_key_points_svg,
+            "slide_visual_focus_light_1280": render_slide_visual_focus_light_svg,
+            "slide_visual_focus_dark_1280": render_slide_visual_focus_dark_svg,
+            "slide_process_flow_1280": render_slide_process_flow_svg,
+            # Legacy aliases
             "slide_branding_title_1280": render_branding_title_slide_svg,
             "slide_branding_architecture_1280": render_branding_architecture_slide_svg,
             "slide_branding_feature_1280": render_branding_feature_slide_svg,
@@ -598,7 +625,7 @@ def get_canvas_template_registry_105a(
         html = generate_blank_slate_html(
             width_px=s_arc["width_px"],
             height_px=s_arc["height_px"],
-            bg_theme="#000000",
+            bg_theme=s_arc.get("bg_theme", "#111113"),
             title=s_arc["description"],
             initial_svg_markup=svg_content
         )
@@ -700,11 +727,19 @@ def get_template_html(
     Retrieves the HTML markup for a registered template, or dynamically generates
     a blank slate canvas of the specified dimensions.
     """
+    legacy_aliases = {
+        "slide_branding_title_1280": "slide_split_visual_1280",
+        "slide_branding_architecture_1280": "slide_visual_focus_light_1280",
+        "slide_branding_feature_1280": "slide_key_points_1280",
+        "slide_branding_metrics_1280": "slide_visual_focus_dark_1280",
+        "slide_branding_summary_1280": "slide_process_flow_1280",
+    }
+    resolved_name = legacy_aliases.get(template_name, template_name)
     reg = get_canvas_template_registry_105a()
     fmap = build_field_map_105(reg["Fields"])
 
     for row in reg["Values"]:
-        if row[fmap["template_name"]] == template_name or row[fmap["template_id"]] == template_name:
+        if row[fmap["template_name"]] == resolved_name or row[fmap["template_id"]] == resolved_name:
             html = row[fmap["html_template"]]
             if width_px is not None and height_px is not None:
                 # If custom dimensions are supplied on a blank slate, re-generate clean
@@ -760,10 +795,18 @@ def list_branding_slide_templates() -> List[Dict[str, Any]]:
 
 def get_branding_slide_template_html(template_id: str) -> Optional[str]:
     """Retrieves the full HTML stage markup for a specified branding slide template."""
+    legacy_aliases = {
+        "slide_branding_title_1280": "slide_split_visual_1280",
+        "slide_branding_architecture_1280": "slide_visual_focus_light_1280",
+        "slide_branding_feature_1280": "slide_key_points_1280",
+        "slide_branding_metrics_1280": "slide_visual_focus_dark_1280",
+        "slide_branding_summary_1280": "slide_process_flow_1280",
+    }
+    resolved_id = legacy_aliases.get(template_id, template_id)
     reg = get_canvas_template_registry_105a()
     fmap = build_field_map_105(reg["Fields"])
     for row in reg["Values"]:
-        if row[fmap["template_id"]] == template_id or row[fmap["template_name"]] == template_id:
+        if row[fmap["template_id"]] == resolved_id or row[fmap["template_name"]] == resolved_id:
             return row[fmap["html_template"]]
     return None
 

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Title</title>
+<!--
+Name:           BEHTML Technical Document Scaffold
+Description:    Documentation layout featuring split-pane sidebar navigation, document header, prose sections, callout boxes, and metadata footer.
+Author:         Elton Boehnen
+Release_Version: 300
+Package_Version: 105
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-canvas: #060606;
+    --bg-surface: #101010;
+    --bg-surface-elevated: #161616;
+    --bg-code: #0a0a0a;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #CCCCCC;
+    --fg-muted: #888888;
+    --border-color: #262626;
+    --border-light: #3a3a3a;
+    --accent-red: #DE2626;
+    --radius-main: 6px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--fg-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+    padding: 0 0 60px 0;
+  }
+
+  code, pre, .becss-mono {
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  .becss-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 24px;
+    background: var(--bg-surface);
+  }
+
+  .becss-brand {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fg-primary);
+    text-decoration: none;
+  }
+
+  .becss-badge {
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'Source Code Pro', monospace;
+  }
+
+  /* Two-Column Document Layout */
+  .becss-doc-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 40px;
+  }
+
+  @media (max-width: 840px) {
+    .becss-doc-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Sidebar Navigation */
+  .becss-doc-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: sticky;
+    top: 24px;
+    height: fit-content;
+  }
+
+  .becss-sidebar-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--fg-muted);
+    margin-bottom: 8px;
+  }
+
+  .becss-sidebar-link {
+    color: var(--fg-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+  }
+
+  .becss-sidebar-link:hover {
+    color: #FFFFFF;
+    background: var(--bg-surface);
+  }
+
+  .becss-sidebar-link.is-active {
+    color: #FFFFFF;
+    background: var(--bg-surface);
+    border-left-color: var(--accent-red);
+    font-weight: 600;
+  }
+
+  /* Document Body */
+  .becss-doc-content {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .becss-doc-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 24px;
+  }
+
+  .becss-doc-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .becss-doc-sub {
+    font-size: 1.05rem;
+    color: var(--fg-secondary);
+  }
+
+  .becss-doc-section h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--fg-primary);
+  }
+
+  .becss-doc-section p {
+    font-size: 14px;
+    color: var(--fg-secondary);
+    margin-bottom: 16px;
+  }
+
+  .becss-callout {
+    background: var(--bg-surface);
+    border-left: 3px solid var(--accent-red);
+    padding: 16px 20px;
+    border-radius: 0 var(--radius-main) var(--radius-main) 0;
+    margin-bottom: 16px;
+  }
+
+  .becss-btn-sm {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--fg-secondary);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  .becss-btn-sm:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+</style>
+</head>
+<body>
+  <header class="becss-navbar">
+    <a href="#" class="becss-brand">
+      <span class="becss-badge">DOCS</span>
+      <span>App Brand</span>
+    </a>
+    <a href="#" class="becss-btn-sm">nav_link_1</a>
+  </header>
+
+  <div class="becss-doc-layout">
+    <aside class="becss-doc-sidebar">
+      <div class="becss-sidebar-title">Sidebar</div>
+      <a href="#sec1" class="becss-sidebar-link is-active">Sidebar link1</a>
+      <a href="#sec2" class="becss-sidebar-link">Sidebar link2</a>
+    </aside>
+
+    <main class="becss-doc-content">
+      <header class="becss-doc-header">
+        <h1 class="becss-doc-title">Page Title</h1>
+        <p class="becss-doc-sub">Subtitle</p>
+      </header>
+
+      <section class="becss-doc-section" id="sec1">
+        <h2>Section Heading</h2>
+        <p>Body Paragraph text</p>
+        <div class="becss-callout">
+          <p>Body Paragraph text</p>
+        </div>
+      </section>
+
+      <section class="becss-doc-section" id="sec2">
+        <h2>Section Heading</h2>
+        <p>Body Paragraph text</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

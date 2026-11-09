@@ -1,0 +1,164 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Deck_Name": "BEJSON_105_Executive_Brief",
+  "Total_Slides": 5,
+  "Total_Duration_Sec": 20.0,
+  "Width_Px": 1280,
+  "Height_Px": 720,
+  "Aspect_Ratio": "16:9",
+  "Remove_Frame_Source": true,
+  "Records_Type": [
+    "GraphicSlideRecord"
+  ],
+  "Fields": [
+    {
+      "name": "slide_index",
+      "type": "integer",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000001"
+    },
+    {
+      "name": "slide_type",
+      "type": "string",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000002"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000003"
+    },
+    {
+      "name": "subtitle",
+      "type": "string",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000004"
+    },
+    {
+      "name": "duration_sec",
+      "type": "number",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000005"
+    },
+    {
+      "name": "timestamp_sec",
+      "type": "number",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000006"
+    },
+    {
+      "name": "width_px",
+      "type": "integer",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000007"
+    },
+    {
+      "name": "height_px",
+      "type": "integer",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000008"
+    },
+    {
+      "name": "svg_markup",
+      "type": "string",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000009"
+    },
+    {
+      "name": "slide_filename",
+      "type": "string",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000010"
+    },
+    {
+      "name": "is_rendered",
+      "type": "boolean",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000011"
+    },
+    {
+      "name": "checksum_sha256",
+      "type": "string",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000012"
+    },
+    {
+      "name": "remove_frame_source",
+      "type": "boolean",
+      "field_uuid": "9f6a7b8c-6666-4000-8000-000000000013"
+    }
+  ],
+  "Values": [
+    [
+      "8e69f81d-de98-41ed-9c59-382f2abb2b5b",
+      0,
+      "split_visual",
+      "BEJSON 105 Overview",
+      "Integrity Era Specification",
+      4.0,
+      0.0,
+      1280,
+      720,
+      "<svg width=\"1280\" height=\"720\" viewBox=\"0 0 1280 720\" xmlns=\"http://www.w3.org/2000/svg\">\n  <rect width=\"1280\" height=\"720\" fill=\"#111113\"/>\n  <rect x=\"64\" y=\"64\" width=\"540\" height=\"520\" rx=\"6\" fill=\"#0E0E10\" stroke=\"#24242A\" stroke-width=\"1.5\"/>\n  <path d=\"M 64 88 L 64 64 L 88 64\" fill=\"none\" stroke=\"#3A3A44\" stroke-width=\"1.5\"/>\n  <path d=\"M 580 64 L 604 64 L 604 88\" fill=\"none\" stroke=\"#3A3A44\" stroke-width=\"1.5\"/>\n  <path d=\"M 64 560 L 64 584 L 88 584\" fill=\"none\" stroke=\"#3A3A44\" stroke-width=\"1.5\"/>\n  <path d=\"M 580 584 L 604 584 L 604 560\" fill=\"none\" stroke=\"#3A3A44\" stroke-width=\"1.5\"/>\n  <g transform=\"translate(154, 144)\">\n    <svg viewBox=\"0 0 360 360\" xmlns=\"http://www.w3.org/2000/svg\" style=\"width:100%;height:100%;\">\n  <defs>\n    <filter id=\"cube-glow\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feGaussianBlur stdDeviation=\"6\" result=\"blur\" />\n      <feMerge>\n        <feMergeNode in=\"blur\" />\n        <feMergeNode in=\"SourceGraphic\" />\n      </feMerge>\n    </filter>\n  </defs>\n  <!-- Background coordinate crosshairs -->\n  <line x1=\"180.0\" y1=\"20\" x2=\"180.0\" y2=\"340\" stroke=\"#1c1c24\" stroke-width=\"1\" stroke-dasharray=\"4,4\" />\n  <line x1=\"20\" y1=\"180.0\" x2=\"340\" y2=\"180.0\" stroke=\"#1c1c24\" stroke-width=\"1\" stroke-dasharray=\"4,4\" />\n  <!-- Floating Cap (BEJSON 104a) -->\n  <polygon points=\"180.0,61.19999999999999 267.29536070147145,111.6 180.0,162.0 92.70463929852856,111.6\" fill=\"#DE2626\" fill-opacity=\"0.25\" stroke=\"#DE2626\" stroke-width=\"2.5\" filter=\"url(#cube-glow)\" />\n  <!-- Left Face -->\n  <polygon points=\"180.0,180.0 92.70463929852856,129.6 92.70463929852856,230.4 180.0,280.8\" fill=\"#0c0c10\" stroke=\"#FFFFFF\" stroke-width=\"2\" />\n  <!-- Right Face -->\n  <polygon points=\"180.0,180.0 267.29536070147145,129.6 267.29536070147145,230.4 180.0,280.8\" fill=\"#14141a\" stroke=\"#FFFFFF\" stroke-width=\"2\" />\n  <!-- Center Core Node -->\n  <circle cx=\"180.0\" cy=\"230.4\" r=\"4.0\" fill=\"#DE2626\" />\n</svg>\n  </g>\n  <text x=\"660\" y=\"130\" fill=\"#FFFFFF\" font-size=\"48\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"800\" letter-spacing=\"1\">BEJSON 105</text>\n  <text x=\"660\" y=\"175\" fill=\"#777782\" font-size=\"24\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"600\" letter-spacing=\"1\">INTEGRITY ERA SPECIFICATION</text>\n  <text x=\"660\" y=\"340\" fill=\"#888894\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"400\" letter-spacing=\"0.5\">Positional column-oriented data container with cryptographically verifiable identity.</text>\n  <line x1=\"64\" y1=\"655\" x2=\"1216\" y2=\"655\" stroke=\"#DE2626\" stroke-width=\"2\"/>\n  <g transform=\"translate(1050, 660)\">\n    <text x=\"0\" y=\"22\" fill=\"#FFFFFF\" font-size=\"24\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"900\" letter-spacing=\"1.5\">BEJSON</text>\n    <g transform=\"translate(112, 0)\">\n      <polygon points=\"14,2 26,8 14,14 2,8\" fill=\"#FFFFFF\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,5 22,9 14,13 6,9\" fill=\"#111113\" opacity=\"0.9\"/>\n      <polygon points=\"2,8 14,14 14,28 2,22\" fill=\"#1C1C22\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,14 26,8 26,22 14,28\" fill=\"#DE2626\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n    </g>\n  </g>\n</svg>",
+      "slide_00_split_visual.svg",
+      false,
+      "912392b066ffc57e7f0ffce42425bd682e2cefc13eb70575eb51fb0fabe97279",
+      true
+    ],
+    [
+      "1d627857-1f7c-469b-aaa1-5d4ccedf0b7e",
+      1,
+      "key_points",
+      "Core Invariants",
+      "Positional Rigor & Identity",
+      4.0,
+      4.0,
+      1280,
+      720,
+      "<svg width=\"1280\" height=\"720\" viewBox=\"0 0 1280 720\" xmlns=\"http://www.w3.org/2000/svg\">\n  <rect width=\"1280\" height=\"720\" fill=\"#111113\"/>\n  <!-- Subtle coordinate crosshairs -->\n  <path d=\"M 640 24 L 640 44 M 630 34 L 650 34\" stroke=\"#222228\" stroke-width=\"1.5\"/>\n  <path d=\"M 640 676 L 640 696 M 630 686 L 650 686\" stroke=\"#222228\" stroke-width=\"1.5\"/>\n  <path d=\"M 34 350 L 34 370 M 24 360 L 44 360\" stroke=\"#222228\" stroke-width=\"1.5\"/>\n  <path d=\"M 1246 350 L 1246 370 M 1236 360 L 1256 360\" stroke=\"#222228\" stroke-width=\"1.5\"/>\n  <!-- Left Column -->\n  <text x=\"64\" y=\"130\" fill=\"#FFFFFF\" font-size=\"48\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"800\" letter-spacing=\"1\">CORE INVARIANTS</text>\n  <text x=\"64\" y=\"175\" fill=\"#777782\" font-size=\"24\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"600\" letter-spacing=\"1\">POSITIONAL RIGOR & IDENTITY</text>\n  <text x=\"64\" y=\"280\" fill=\"#666672\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"400\" letter-spacing=\"0.5\">Deterministic schema declaration separated from raw positional row values.</text>\n  <!-- Right Column -->\n  <text x=\"680\" y=\"280\" fill=\"#FFFFFF\" font-size=\"26\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"700\" letter-spacing=\"1\">KEY POINTS</text>\n  <circle cx=\"695\" cy=\"330\" r=\"3.5\" fill=\"#777784\"/>\n  <text x=\"715\" y=\"335\" fill=\"#888894\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"400\" letter-spacing=\"0.5\">UUIDv4 column headers survive renames and reordering</text>\n  <circle cx=\"695\" cy=\"380\" r=\"3.5\" fill=\"#777784\"/>\n  <text x=\"715\" y=\"385\" fill=\"#888894\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"400\" letter-spacing=\"0.5\">Reserved column 0 for immutable row record_uuid</text>\n  <circle cx=\"695\" cy=\"430\" r=\"3.5\" fill=\"#777784\"/>\n  <text x=\"715\" y=\"435\" fill=\"#888894\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"400\" letter-spacing=\"0.5\">O(1) cached field-map positional lookup</text>\n  <line x1=\"64\" y1=\"655\" x2=\"1216\" y2=\"655\" stroke=\"#DE2626\" stroke-width=\"2\"/>\n  <g transform=\"translate(1050, 660)\">\n    <text x=\"0\" y=\"22\" fill=\"#FFFFFF\" font-size=\"24\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"900\" letter-spacing=\"1.5\">BEJSON</text>\n    <g transform=\"translate(112, 0)\">\n      <polygon points=\"14,2 26,8 14,14 2,8\" fill=\"#FFFFFF\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,5 22,9 14,13 6,9\" fill=\"#111113\" opacity=\"0.9\"/>\n      <polygon points=\"2,8 14,14 14,28 2,22\" fill=\"#1C1C22\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,14 26,8 26,22 14,28\" fill=\"#DE2626\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n    </g>\n  </g>\n</svg>",
+      "slide_01_key_points.svg",
+      false,
+      "dc5c27f4f963a2106a92720d44edec5be8e596331452ab80e337b37b744c3995",
+      true
+    ],
+    [
+      "4911db6e-b569-455e-aa59-68b1a4d8cc0f",
+      2,
+      "process_flow",
+      "Integrity Pipeline",
+      "Workflow Execution",
+      4.0,
+      8.0,
+      1280,
+      720,
+      "<svg width=\"1280\" height=\"720\" viewBox=\"0 0 1280 720\" xmlns=\"http://www.w3.org/2000/svg\">\n  <rect width=\"1280\" height=\"720\" fill=\"#111113\"/>\n  <!-- Red accent bar above title -->\n  <rect x=\"64\" y=\"60\" width=\"44\" height=\"4\" rx=\"2\" fill=\"#DE2626\"/>\n  <text x=\"64\" y=\"115\" fill=\"#FFFFFF\" font-size=\"44\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"800\" letter-spacing=\"1\">INTEGRITY PIPELINE</text>\n  <!-- Flow Cards -->\n  <rect x=\"125\" y=\"260\" width=\"270\" height=\"180\" rx=\"12\" fill=\"#16161A\" stroke=\"#26262E\" stroke-width=\"1.5\"/>\n  <text x=\"260.0\" y=\"356.0\" fill=\"#FFFFFF\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"600\" text-anchor=\"middle\">1. Schema Rigor</text>\n  <text x=\"260.0\" y=\"380.0\" fill=\"#777782\" font-size=\"13\" font-family=\"system-ui, -apple-system, sans-serif\" text-anchor=\"middle\">Fields & field_uuid</text>\n  <rect x=\"505\" y=\"260\" width=\"270\" height=\"180\" rx=\"12\" fill=\"#16161A\" stroke=\"#26262E\" stroke-width=\"1.5\"/>\n  <text x=\"640.0\" y=\"356.0\" fill=\"#FFFFFF\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"600\" text-anchor=\"middle\">2. Positional Rows</text>\n  <text x=\"640.0\" y=\"380.0\" fill=\"#777782\" font-size=\"13\" font-family=\"system-ui, -apple-system, sans-serif\" text-anchor=\"middle\">Column 0 Identity</text>\n  <rect x=\"885\" y=\"260\" width=\"270\" height=\"180\" rx=\"12\" fill=\"#16161A\" stroke=\"#26262E\" stroke-width=\"1.5\"/>\n  <text x=\"1020.0\" y=\"356.0\" fill=\"#FFFFFF\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"600\" text-anchor=\"middle\">3. Strict Validator</text>\n  <text x=\"1020.0\" y=\"380.0\" fill=\"#777782\" font-size=\"13\" font-family=\"system-ui, -apple-system, sans-serif\" text-anchor=\"middle\">Zero Hallucination</text>\n  <!-- Directional Arrows -->\n  <g transform=\"translate(405, 350)\">\n    <line x1=\"0\" y1=\"0\" x2=\"86\" y2=\"0\" stroke=\"#DE2626\" stroke-width=\"2.5\"/>\n    <polygon points=\"84,-6 96,0 84,6\" fill=\"#DE2626\"/>\n  </g>\n  <g transform=\"translate(785, 350)\">\n    <line x1=\"0\" y1=\"0\" x2=\"86\" y2=\"0\" stroke=\"#DE2626\" stroke-width=\"2.5\"/>\n    <polygon points=\"84,-6 96,0 84,6\" fill=\"#DE2626\"/>\n  </g>\n  <!-- Bottom divider -->\n  <line x1=\"64\" y1=\"655\" x2=\"1216\" y2=\"655\" stroke=\"#1C1C22\" stroke-width=\"1\"/>\n  <g transform=\"translate(1050, 660)\">\n    <text x=\"0\" y=\"22\" fill=\"#FFFFFF\" font-size=\"24\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"900\" letter-spacing=\"1.5\">BEJSON</text>\n    <g transform=\"translate(112, 0)\">\n      <polygon points=\"14,2 26,8 14,14 2,8\" fill=\"#FFFFFF\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,5 22,9 14,13 6,9\" fill=\"#111113\" opacity=\"0.9\"/>\n      <polygon points=\"2,8 14,14 14,28 2,22\" fill=\"#1C1C22\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,14 26,8 26,22 14,28\" fill=\"#DE2626\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n    </g>\n  </g>\n</svg>",
+      "slide_02_process_flow.svg",
+      false,
+      "c5dbc87676fda8a3059c6aa055279f116663f82958a27ce32912f47ee9451c97",
+      true
+    ],
+    [
+      "22a95953-54ed-41aa-95f9-0d4f45807ff6",
+      3,
+      "visual_focus_light",
+      "AI-Native Efficiency",
+      "Token Bandwidth Reduction",
+      4.0,
+      12.0,
+      1280,
+      720,
+      "<svg width=\"1280\" height=\"720\" viewBox=\"0 0 1280 720\" xmlns=\"http://www.w3.org/2000/svg\">\n  <rect width=\"1280\" height=\"720\" fill=\"#F8F9FA\"/>\n  <!-- Visual Area Registration Marks -->\n  <path d=\"M 640 24 L 640 44 M 630 34 L 650 34\" stroke=\"#D8D9E0\" stroke-width=\"1.5\"/>\n  <path d=\"M 100 240 L 100 260 M 90 250 L 110 250\" stroke=\"#D8D9E0\" stroke-width=\"1.5\"/>\n  <path d=\"M 1180 240 L 1180 260 M 1170 250 L 1190 250\" stroke=\"#D8D9E0\" stroke-width=\"1.5\"/>\n  <path d=\"M 640 450 L 640 470 M 630 460 L 650 460\" stroke=\"#D8D9E0\" stroke-width=\"1.5\"/>\n  <path d=\"M 120 100 L 120 80 L 140 80\" fill=\"none\" stroke=\"#C0C0CA\" stroke-width=\"1.5\"/>\n  <path d=\"M 1160 440 L 1160 460 L 1140 460\" fill=\"none\" stroke=\"#C0C0CA\" stroke-width=\"1.5\"/>\n  <text x=\"640\" y=\"255\" fill=\"#888892\" font-size=\"16\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"500\" letter-spacing=\"0.5\" text-anchor=\"middle\">[ TOKEN CONSUMPTION REDUCED BY 90% ]</text>\n  <!-- Divider -->\n  <line x1=\"64\" y1=\"510\" x2=\"1216\" y2=\"510\" stroke=\"#DE2626\" stroke-width=\"2.5\"/>\n  <!-- Lower Section -->\n  <text x=\"64\" y=\"575\" fill=\"#111111\" font-size=\"36\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"800\" letter-spacing=\"1\">AI-NATIVE EFFICIENCY</text>\n  <text x=\"64\" y=\"618\" fill=\"#44444A\" font-size=\"18\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"400\">Eliminates repetitive JSON object keys, saving up to 90% in token bandwidth while guaranteeing schema integrity.</text>\n  <g transform=\"translate(1050, 635)\">\n    <text x=\"0\" y=\"22\" fill=\"#111111\" font-size=\"24\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"900\" letter-spacing=\"1.5\">BEJSON</text>\n    <g transform=\"translate(112, 0)\">\n      <polygon points=\"14,2 26,8 14,14 2,8\" fill=\"#FFFFFF\" stroke=\"#111111\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,5 22,9 14,13 6,9\" fill=\"#F8F9FA\" opacity=\"0.9\"/>\n      <polygon points=\"2,8 14,14 14,28 2,22\" fill=\"#E5E7EB\" stroke=\"#111111\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,14 26,8 26,22 14,28\" fill=\"#DE2626\" stroke=\"#111111\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n    </g>\n  </g>\n</svg>",
+      "slide_03_visual_focus_light.svg",
+      false,
+      "950b24431ed7c2384767aacd355ff49228ab34e866f6fd0ad6131f6ecbb2111d",
+      true
+    ],
+    [
+      "14f5d4d1-8482-4033-993f-98629ce63fe8",
+      4,
+      "visual_focus_dark",
+      "Zero-SQL Relational MFDB",
+      "Serverless Relational Integrity",
+      4.0,
+      16.0,
+      1280,
+      720,
+      "<svg width=\"1280\" height=\"720\" viewBox=\"0 0 1280 720\" xmlns=\"http://www.w3.org/2000/svg\">\n  <rect width=\"1280\" height=\"720\" fill=\"#111113\"/>\n  <!-- Visual Area Registration Marks -->\n  <path d=\"M 640 24 L 640 44 M 630 34 L 650 34\" stroke=\"#222228\" stroke-width=\"1.5\"/>\n  <path d=\"M 100 250 L 100 270 M 90 260 L 110 260\" stroke=\"#222228\" stroke-width=\"1.5\"/>\n  <path d=\"M 1180 250 L 1180 270 M 1170 260 L 1190 260\" stroke=\"#222228\" stroke-width=\"1.5\"/>\n  <path d=\"M 640 460 L 640 480 M 630 470 L 650 470\" stroke=\"#222228\" stroke-width=\"1.5\"/>\n  <path d=\"M 120 100 L 120 80 L 140 80\" fill=\"none\" stroke=\"#2A2A32\" stroke-width=\"1.5\"/>\n  <path d=\"M 1160 450 L 1160 470 L 1140 470\" fill=\"none\" stroke=\"#2A2A32\" stroke-width=\"1.5\"/>\n  <text x=\"640\" y=\"260\" fill=\"#555562\" font-size=\"16\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"500\" letter-spacing=\"0.5\" text-anchor=\"middle\">[ MFDB SPEC 1.40 ENFORCEMENT ]</text>\n  <!-- Divider -->\n  <line x1=\"64\" y1=\"520\" x2=\"1216\" y2=\"520\" stroke=\"#DE2626\" stroke-width=\"2\"/>\n  <!-- Lower Section -->\n  <text x=\"64\" y=\"585\" fill=\"#FFFFFF\" font-size=\"44\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"800\" letter-spacing=\"1\">ZERO-SQL RELATIONAL MFDB</text>\n  <text x=\"64\" y=\"635\" fill=\"#777782\" font-size=\"24\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"600\" letter-spacing=\"1\">MULTI-FILE SERVERLESS DATA ARCHITECTURE</text>\n  <g transform=\"translate(1050, 635)\">\n    <text x=\"0\" y=\"22\" fill=\"#FFFFFF\" font-size=\"24\" font-family=\"system-ui, -apple-system, sans-serif\" font-weight=\"900\" letter-spacing=\"1.5\">BEJSON</text>\n    <g transform=\"translate(112, 0)\">\n      <polygon points=\"14,2 26,8 14,14 2,8\" fill=\"#FFFFFF\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,5 22,9 14,13 6,9\" fill=\"#111113\" opacity=\"0.9\"/>\n      <polygon points=\"2,8 14,14 14,28 2,22\" fill=\"#1C1C22\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n      <polygon points=\"14,14 26,8 26,22 14,28\" fill=\"#DE2626\" stroke=\"#FFFFFF\" stroke-width=\"1\" stroke-linejoin=\"round\"/>\n    </g>\n  </g>\n</svg>",
+      "slide_04_visual_focus_dark.svg",
+      false,
+      "3fe6520f51d81e6c00fe66fc87f09eb9969b0959a72b3824e1846fd0d485756f",
+      true
+    ]
+  ]
+}
