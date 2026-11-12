@@ -3,8 +3,8 @@
   "Format_Version": "104a",
   "Format_Creator": "Elton Boehnen",
   "Project_Name": "libraries_105",
-  "Project_Version": "5.9.4",
-  "Package_Version": "117",
+  "Project_Version": "5.9.5",
+  "Package_Version": "118",
   "Versioned_UUID": "9d821034-f67e-4b20-91a5-8201a47eb38f",
   "Project_GUID": "1952586a-42b4-44ce-9471-40831d0bf46b",
   "Type": "library",
@@ -19,6 +19,9 @@
     }
   ],
   "Values": [
+    [
+      "5.9.5 | 2026-11-12 | Expand comprehensive 16-section README.md, synchronize Automation and EBook subsystems, and configure GitHub Actions CI and Release pipelines."
+    ],
     [
       "5.9.4 | 2026-11-06 | Integrate CMS MTV Scaffolding Engine family (Lib_PY/CMS), pre-built taxonomy archetypes, 105 MFDB v1.40 models, 13 canonical BEHTML templates, and admin dashboard."
     ],

@@ -52,3 +52,5 @@ build/
 .pytest_cache/
 .coverage
 .bejson_project.json
+.nomedia
+.ttxfolder
