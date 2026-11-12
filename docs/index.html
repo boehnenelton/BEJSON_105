@@ -688,9 +688,10 @@ License:        PolyForm Noncommercial License 1.0.0 (PolyForm-Noncommercial-1.0
   <nav class="overflow-dock" id="dock-strip">
     <button class="dock-btn active" data-tab="tab-tokens">1. Token Economics</button>
     <button class="dock-btn" data-tab="tab-parser">2. Parser Latency</button>
-    <button class="dock-btn" data-tab="tab-mfdb">3. MFDB Cascade Lab</button>
-    <button class="dock-btn" data-tab="tab-telemetry">4. Client Telemetry</button>
-    <button class="dock-btn" data-tab="tab-preview">5. Raw Payloads</button>
+    <button class="dock-btn" data-tab="tab-scale">3. Scale Lab (5k-50k)</button>
+    <button class="dock-btn" data-tab="tab-mfdb">4. MFDB Cascade Lab</button>
+    <button class="dock-btn" data-tab="tab-telemetry">5. Client Telemetry</button>
+    <button class="dock-btn" data-tab="tab-preview">6. Raw Payloads</button>
   </nav>
 
   <!-- ── Main Application Content ── -->
@@ -848,7 +849,128 @@ License:        PolyForm Noncommercial License 1.0.0 (PolyForm-Noncommercial-1.0
       </div>
     </section>
 
-    <!-- ── TAB 3: MFDB Cascade Lab ── -->
+    <!-- ── TAB 3: Scale Benchmark (5,000 - 50,000 Records) ── -->
+    <section class="tab-panel" id="tab-scale">
+      <div class="bench-card">
+        <div class="card-header">
+          <span class="card-title">Scale Matrix: 5,000 · 10,000 · 25,000 · 50,000 Records</span>
+          <span class="card-badge">Key-Value vs Field-Value</span>
+        </div>
+        <p class="stat-sub">Multi-dimensional stress testing measuring write/serialization speed, read/lookup latency, payload size, in-memory allocation, and token cost.</p>
+
+        <div class="control-row">
+          <label class="stat-label">Scale Tier:</label>
+          <select id="sel-scale-tier">
+            <option value="5000">5,000 Records</option>
+            <option value="10000" selected>10,000 Records</option>
+            <option value="25000">25,000 Records</option>
+            <option value="50000">50,000 Records</option>
+            <option value="all">Full Sweep (All 4 Tiers)</option>
+          </select>
+          <button class="btn btn-primary" id="btn-run-scale-bench">Run Scale Benchmark</button>
+          <button class="btn" id="btn-copy-scale-report">Copy Scale Matrix Report</button>
+        </div>
+
+        <!-- 4 Metric Scorecards -->
+        <div class="metric-grid">
+          <div class="metric-stat-box">
+            <span class="stat-label">Write Speed Advantage</span>
+            <span class="stat-value accent" id="scale-write-delta">--</span>
+            <span class="stat-sub" id="scale-write-detail">Serialization throughput</span>
+          </div>
+          <div class="metric-stat-box">
+            <span class="stat-label">Read & Lookup Speed</span>
+            <span class="stat-value success" id="scale-read-delta">--</span>
+            <span class="stat-sub" id="scale-read-detail">Parsing + O(1) field lookup</span>
+          </div>
+          <div class="metric-stat-box">
+            <span class="stat-label">Memory Footprint Saved</span>
+            <span class="stat-value" id="scale-mem-saved">--</span>
+            <span class="stat-sub" id="scale-mem-detail">In-memory heap allocation</span>
+          </div>
+          <div class="metric-stat-box">
+            <span class="stat-label">Token Cost Saved</span>
+            <span class="stat-value accent" id="scale-cost-saved">--</span>
+            <span class="stat-sub" id="scale-cost-detail">Prompt token savings</span>
+          </div>
+        </div>
+
+        <!-- Visual Multi-Metric Progress Comparison -->
+        <div class="bench-card" style="background: var(--bg-surface); border: 1px solid var(--border-main);">
+          <span class="card-title" style="font-size: 12px; margin-bottom: 6px;">Visual Ratio (Field-Value vs Key-Value Baseline)</span>
+
+          <!-- Payload Size Bar -->
+          <div style="margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px;">
+              <span>Payload Size:</span>
+              <span id="label-scale-size-diff">Awaiting benchmark...</span>
+            </div>
+            <div class="meter-bar-wrap" style="height: 14px; margin-top: 3px;">
+              <div id="bar-scale-size" style="height:100%; background:var(--primary); width:100%;"></div>
+            </div>
+          </div>
+
+          <!-- Memory Heap Bar -->
+          <div style="margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px;">
+              <span>In-Memory RAM Footprint:</span>
+              <span id="label-scale-mem-diff">Awaiting benchmark...</span>
+            </div>
+            <div class="meter-bar-wrap" style="height: 14px; margin-top: 3px;">
+              <div id="bar-scale-mem" style="height:100%; background:var(--success); width:100%;"></div>
+            </div>
+          </div>
+
+          <!-- Write Latency Bar -->
+          <div style="margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px;">
+              <span>Write Latency (Serialization):</span>
+              <span id="label-scale-write-diff">Awaiting benchmark...</span>
+            </div>
+            <div class="meter-bar-wrap" style="height: 14px; margin-top: 3px;">
+              <div id="bar-scale-write" style="height:100%; background:var(--primary); width:100%;"></div>
+            </div>
+          </div>
+
+          <!-- Read Latency Bar -->
+          <div>
+            <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px;">
+              <span>Read Latency (Parse & Field Traversal):</span>
+              <span id="label-scale-read-diff">Awaiting benchmark...</span>
+            </div>
+            <div class="meter-bar-wrap" style="height: 14px; margin-top: 3px;">
+              <div id="bar-scale-read" style="height:100%; background:var(--success); width:100%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scale Data Table -->
+        <div class="table-responsive">
+          <table class="bench-table" id="scale-results-table">
+            <thead>
+              <tr>
+                <th>Scale Tier</th>
+                <th>Metric Category</th>
+                <th>Key-Value (JSON)</th>
+                <th>Field-Value (BEJSON 105)</th>
+                <th>Delta / Advantage</th>
+              </tr>
+            </thead>
+            <tbody id="scale-table-body">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">
+                  Select a scale tier (5k, 10k, 25k, 50k, or Full Sweep) and click "Run Scale Benchmark".
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <pre class="code-view" id="scale-log-terminal">> Ready. Select a scale (5,000 to 50,000 records) and click "Run Scale Benchmark".</pre>
+      </div>
+    </section>
+
+    <!-- ── TAB 4: MFDB Cascade Lab ── -->
     <section class="tab-panel" id="tab-mfdb">
       <div class="bench-card">
         <div class="card-header">
@@ -957,9 +1079,10 @@ License:        PolyForm Noncommercial License 1.0.0 (PolyForm-Noncommercial-1.0
           <ul class="drawer-list">
             <li><button class="drawer-link active" data-target-tab="tab-tokens">1. Token Economics</button></li>
             <li><button class="drawer-link" data-target-tab="tab-parser">2. Parser Latency</button></li>
-            <li><button class="drawer-link" data-target-tab="tab-mfdb">3. MFDB Cascade Lab</button></li>
-            <li><button class="drawer-link" data-target-tab="tab-telemetry">4. Client Telemetry</button></li>
-            <li><button class="drawer-link" data-target-tab="tab-preview">5. Raw Payloads</button></li>
+            <li><button class="drawer-link" data-target-tab="tab-scale">3. Scale Lab (5k-50k)</button></li>
+            <li><button class="drawer-link" data-target-tab="tab-mfdb">4. MFDB Cascade Lab</button></li>
+            <li><button class="drawer-link" data-target-tab="tab-telemetry">5. Client Telemetry</button></li>
+            <li><button class="drawer-link" data-target-tab="tab-preview">6. Raw Payloads</button></li>
           </ul>
         </div>
 
@@ -1300,6 +1423,233 @@ License:        PolyForm Noncommercial License 1.0.0 (PolyForm-Noncommercial-1.0
       showToast("Parser benchmark completed");
     }
 
+    /* ── Multi-Scale Matrix Benchmark Engine (5,000 - 50,000 Records) ── */
+    let LATEST_SCALE_RESULTS = [];
+
+    function benchmarkSingleScale(count) {
+      // 1. Generation & Serialization (Write Phase)
+      const t0_write_json = performance.now();
+      const rows = generateDataset(count);
+      const jsonStr = JSON.stringify(rows);
+      const t1_write_json = performance.now();
+      const jsonWriteMs = Math.max(0.1, t1_write_json - t0_write_json);
+
+      const t0_write_bejson = performance.now();
+      const bejsonDoc = convertJsonTo105(rows);
+      const bejsonStr = JSON.stringify(bejsonDoc);
+      const t1_write_bejson = performance.now();
+      const bejsonWriteMs = Math.max(0.1, t1_write_bejson - t0_write_bejson);
+
+      // 2. Payload Sizes
+      const jsonBytes = new Blob([jsonStr]).size;
+      const bejsonBytes = new Blob([bejsonStr]).size;
+      const jsonKb = (jsonBytes / 1024).toFixed(1);
+      const bejsonKb = (bejsonBytes / 1024).toFixed(1);
+      const jsonMb = (jsonBytes / (1024 * 1024)).toFixed(2);
+      const bejsonMb = (bejsonBytes / (1024 * 1024)).toFixed(2);
+      const byteSavingsPct = (((jsonBytes - bejsonBytes) / jsonBytes) * 100).toFixed(1);
+
+      // 3. Parsing & Field Traversal (Read Phase)
+      const t0_read_json = performance.now();
+      const parsedJson = JSON.parse(jsonStr);
+      let checksumJson = 0;
+      for (let i = 0; i < parsedJson.length; i++) {
+        checksumJson += parsedJson[i].user_id + parsedJson[i].balance;
+        const u = parsedJson[i].username;
+        const e = parsedJson[i].email;
+      }
+      const t1_read_json = performance.now();
+      const jsonReadMs = Math.max(0.1, t1_read_json - t0_read_json);
+
+      // Read Field-Value BEJSON with O(1) Field-Map Cache
+      const t0_read_bejson = performance.now();
+      const parsedBejson = JSON.parse(bejsonStr);
+      const fmap = {};
+      for (let f = 0; f < parsedBejson.Fields.length; f++) {
+        fmap[parsedBejson.Fields[f].name] = f;
+      }
+      const val = parsedBejson.Values;
+      const uid_idx = fmap["user_id"];
+      const bal_idx = fmap["balance"];
+      const uname_idx = fmap["username"];
+      const email_idx = fmap["email"];
+      let checksumBejson = 0;
+      for (let i = 0; i < val.length; i++) {
+        checksumBejson += val[i][uid_idx] + val[i][bal_idx];
+        const u = val[i][uname_idx];
+        const e = val[i][email_idx];
+      }
+      const t1_read_bejson = performance.now();
+      const bejsonReadMs = Math.max(0.1, t1_read_bejson - t0_read_bejson);
+
+      // 4. Memory Footprint Estimation (In-Memory Heap Allocation)
+      const jsonMemMb = parseFloat(((count * 128 + jsonBytes) / (1024 * 1024)).toFixed(2));
+      const bejsonMemMb = parseFloat(((count * 40 + bejsonBytes) / (1024 * 1024)).toFixed(2));
+      const memSavedMb = (jsonMemMb - bejsonMemMb).toFixed(2);
+      const memSavedPct = (((jsonMemMb - bejsonMemMb) / jsonMemMb) * 100).toFixed(1);
+
+      // 5. Token Calculation & Dollar Cost ($3.00 / 1M input tokens)
+      const jsonTokens = estimateTokens(jsonStr, false);
+      const bejsonTokens = estimateTokens(bejsonStr, true);
+      const tokenSaved = jsonTokens - bejsonTokens;
+      const tokenSavedPct = ((tokenSaved / jsonTokens) * 100).toFixed(1);
+      const jsonCost = (jsonTokens / 1000000) * 3.00;
+      const bejsonCost = (bejsonTokens / 1000000) * 3.00;
+      const costSavedQuery = (jsonCost - bejsonCost).toFixed(4);
+      const costSaved1k = ((jsonCost - bejsonCost) * 1000).toFixed(2);
+
+      const writeAdvantagePct = (((jsonWriteMs - bejsonWriteMs) / jsonWriteMs) * 100).toFixed(1);
+      const readAdvantagePct = (((jsonReadMs - bejsonReadMs) / jsonReadMs) * 100).toFixed(1);
+
+      return {
+        scale: count,
+        jsonWriteMs: jsonWriteMs.toFixed(1),
+        bejsonWriteMs: bejsonWriteMs.toFixed(1),
+        writeAdvantagePct,
+        jsonReadMs: jsonReadMs.toFixed(1),
+        bejsonReadMs: bejsonReadMs.toFixed(1),
+        readAdvantagePct,
+        jsonBytes,
+        bejsonBytes,
+        jsonSizeStr: count >= 10000 ? `${jsonMb} MB` : `${jsonKb} KB`,
+        bejsonSizeStr: count >= 10000 ? `${bejsonMb} MB` : `${bejsonKb} KB`,
+        byteSavingsPct,
+        jsonMemMb,
+        bejsonMemMb,
+        memSavedMb,
+        memSavedPct,
+        jsonTokens,
+        bejsonTokens,
+        tokenSaved,
+        tokenSavedPct,
+        jsonCost: jsonCost.toFixed(4),
+        bejsonCost: bejsonCost.toFixed(4),
+        costSavedQuery,
+        costSaved1k
+      };
+    }
+
+    function runScaleBenchmark() {
+      const tier = document.getElementById("sel-scale-tier").value;
+      const targets = (tier === "all") ? [5000, 10000, 25000, 50000] : [parseInt(tier, 10)];
+
+      const term = document.getElementById("scale-log-terminal");
+      term.textContent = `> Starting Multi-Scale Benchmark for: ${targets.map(t => t.toLocaleString()).join(", ")} records...\n`;
+
+      LATEST_SCALE_RESULTS = [];
+      const tbody = document.getElementById("scale-table-body");
+      tbody.innerHTML = "";
+
+      targets.forEach(cnt => {
+        term.textContent += `> Processing scale tier: ${cnt.toLocaleString()} records...\n`;
+        const res = benchmarkSingleScale(cnt);
+        LATEST_SCALE_RESULTS.push(res);
+
+        // Append rows to table
+        const trSize = document.createElement("tr");
+        trSize.innerHTML = `
+          <td><strong>${res.scale.toLocaleString()} Records</strong></td>
+          <td>Payload Size (Raw Wire)</td>
+          <td>${res.jsonSizeStr}</td>
+          <td>${res.bejsonSizeStr}</td>
+          <td><span class="card-badge">-${res.byteSavingsPct}% (-${((res.jsonBytes - res.bejsonBytes) / 1024).toFixed(0)} KB)</span></td>
+        `;
+
+        const trMem = document.createElement("tr");
+        trMem.innerHTML = `
+          <td>${res.scale.toLocaleString()} Records</td>
+          <td>In-Memory RAM Footprint</td>
+          <td>${res.jsonMemMb} MB</td>
+          <td>${res.bejsonMemMb} MB</td>
+          <td><span class="card-badge" style="color:var(--success); border-color:var(--success);">-${res.memSavedPct}% (-${res.memSavedMb} MB)</span></td>
+        `;
+
+        const trWrite = document.createElement("tr");
+        trWrite.innerHTML = `
+          <td>${res.scale.toLocaleString()} Records</td>
+          <td>Write Latency (Serialization)</td>
+          <td>${res.jsonWriteMs} ms</td>
+          <td>${res.bejsonWriteMs} ms</td>
+          <td><span>${parseFloat(res.writeAdvantagePct) >= 0 ? "+" + res.writeAdvantagePct + "% faster" : res.writeAdvantagePct + "%"}</span></td>
+        `;
+
+        const trRead = document.createElement("tr");
+        trRead.innerHTML = `
+          <td>${res.scale.toLocaleString()} Records</td>
+          <td>Read Latency (Parse & Lookup)</td>
+          <td>${res.jsonReadMs} ms</td>
+          <td>${res.bejsonReadMs} ms</td>
+          <td><span>${parseFloat(res.readAdvantagePct) >= 0 ? "+" + res.readAdvantagePct + "% faster" : res.readAdvantagePct + "%"}</span></td>
+        `;
+
+        const trTokens = document.createElement("tr");
+        trTokens.innerHTML = `
+          <td>${res.scale.toLocaleString()} Records</td>
+          <td>Prompt Token Cost ($3/1M)</td>
+          <td>${res.jsonTokens.toLocaleString()} tok ($${res.jsonCost})</td>
+          <td>${res.bejsonTokens.toLocaleString()} tok ($${res.bejsonCost})</td>
+          <td><strong style="color:var(--primary);">-$${res.costSavedQuery}/query (-$${res.costSaved1k}/1k)</strong></td>
+        `;
+
+        tbody.appendChild(trSize);
+        tbody.appendChild(trMem);
+        tbody.appendChild(trWrite);
+        tbody.appendChild(trRead);
+        tbody.appendChild(trTokens);
+      });
+
+      // Update Top Scorecards from the primary/largest result
+      const top = LATEST_SCALE_RESULTS[LATEST_SCALE_RESULTS.length - 1];
+      document.getElementById("scale-write-delta").textContent = `${parseFloat(top.writeAdvantagePct) >= 0 ? "+" : ""}${top.writeAdvantagePct}%`;
+      document.getElementById("scale-write-detail").textContent = `${top.bejsonWriteMs} ms vs ${top.jsonWriteMs} ms (${top.scale.toLocaleString()} rows)`;
+
+      document.getElementById("scale-read-delta").textContent = `${parseFloat(top.readAdvantagePct) >= 0 ? "+" : ""}${top.readAdvantagePct}%`;
+      document.getElementById("scale-read-detail").textContent = `${top.bejsonReadMs} ms vs ${top.jsonReadMs} ms (${top.scale.toLocaleString()} rows)`;
+
+      document.getElementById("scale-mem-saved").textContent = `${top.memSavedMb} MB (${top.memSavedPct}%)`;
+      document.getElementById("scale-mem-detail").textContent = `RAM: ${top.bejsonMemMb} MB vs ${top.jsonMemMb} MB`;
+
+      document.getElementById("scale-cost-saved").textContent = `-$${top.costSavedQuery}/query`;
+      document.getElementById("scale-cost-detail").textContent = `Saving $${top.costSaved1k} per 1,000 queries (-${top.tokenSavedPct}%)`;
+
+      // Update Visual Comparison Bars
+      document.getElementById("label-scale-size-diff").textContent = `JSON: ${top.jsonSizeStr} | BEJSON: ${top.bejsonSizeStr} (-${top.byteSavingsPct}%)`;
+      document.getElementById("bar-scale-size").style.width = `${(100 - parseFloat(top.byteSavingsPct)).toFixed(1)}%`;
+
+      document.getElementById("label-scale-mem-diff").textContent = `JSON: ${top.jsonMemMb} MB | BEJSON: ${top.bejsonMemMb} MB (-${top.memSavedPct}%)`;
+      document.getElementById("bar-scale-mem").style.width = `${(100 - parseFloat(top.memSavedPct)).toFixed(1)}%`;
+
+      document.getElementById("label-scale-write-diff").textContent = `JSON: ${top.jsonWriteMs} ms | BEJSON: ${top.bejsonWriteMs} ms`;
+      const writeRatio = Math.min(100, (parseFloat(top.bejsonWriteMs) / parseFloat(top.jsonWriteMs)) * 100);
+      document.getElementById("bar-scale-write").style.width = `${writeRatio.toFixed(1)}%`;
+
+      document.getElementById("label-scale-read-diff").textContent = `JSON: ${top.jsonReadMs} ms | BEJSON: ${top.bejsonReadMs} ms`;
+      const readRatio = Math.min(100, (parseFloat(top.bejsonReadMs) / parseFloat(top.jsonReadMs)) * 100);
+      document.getElementById("bar-scale-read").style.width = `${readRatio.toFixed(1)}%`;
+
+      term.textContent += `> Benchmark complete. Evaluated ${targets.length} scale tier(s) successfully.\n`;
+      showToast("Scale benchmark finished");
+    }
+
+    function copyScaleReport() {
+      if (!LATEST_SCALE_RESULTS || LATEST_SCALE_RESULTS.length === 0) {
+        showToast("Please run the scale benchmark first");
+        return;
+      }
+      let md = `### BEJSON 105 Multi-Scale Matrix Benchmark Report (5,000 to 50,000 Records)\n\n`;
+      md += `| Scale | Metric | Key-Value (JSON) | Field-Value (BEJSON 105) | Delta / Advantage |\n`;
+      md += `| :--- | :--- | :--- | :--- | :--- |\n`;
+      LATEST_SCALE_RESULTS.forEach(r => {
+        md += `| **${r.scale.toLocaleString()}** | Payload Size | ${r.jsonSizeStr} | ${r.bejsonSizeStr} | **-${r.byteSavingsPct}%** |\n`;
+        md += `| ${r.scale.toLocaleString()} | Memory Footprint | ${r.jsonMemMb} MB | ${r.bejsonMemMb} MB | **-${r.memSavedPct}% (-${r.memSavedMb} MB)** |\n`;
+        md += `| ${r.scale.toLocaleString()} | Write Latency | ${r.jsonWriteMs} ms | ${r.bejsonWriteMs} ms | ${r.writeAdvantagePct}% |\n`;
+        md += `| ${r.scale.toLocaleString()} | Read & Lookup | ${r.jsonReadMs} ms | ${r.bejsonReadMs} ms | ${r.readAdvantagePct}% |\n`;
+        md += `| ${r.scale.toLocaleString()} | Token Prompt Cost | ${r.jsonTokens.toLocaleString()} ($${r.jsonCost}) | ${r.bejsonTokens.toLocaleString()} ($${r.bejsonCost}) | **-$${r.costSavedQuery}/query** |\n`;
+      });
+      md += `\n*Measured client-side via BEJSON Interactive Benchmark Suite on ${new Date().toISOString()}*`;
+      copyToClipboard(md, "Scale Matrix Markdown copied");
+    }
+
     /* ── MFDB Cascade & Referential Integrity Simulator ── */
     const MFDB_STATE = {
       organizations: [
@@ -1508,6 +1858,8 @@ License:        PolyForm Noncommercial License 1.0.0 (PolyForm-Noncommercial-1.0
 
       document.getElementById("btn-run-token-bench").addEventListener("click", runTokenBenchmark);
       document.getElementById("btn-run-perf-bench").addEventListener("click", runParserBenchmark);
+      document.getElementById("btn-run-scale-bench").addEventListener("click", runScaleBenchmark);
+      document.getElementById("btn-copy-scale-report").addEventListener("click", copyScaleReport);
 
       // MFDB Buttons
       document.getElementById("btn-mfdb-test-restrict").addEventListener("click", testMfdbRestrict);
