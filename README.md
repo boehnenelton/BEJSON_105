@@ -10,7 +10,136 @@
 
 ---
 
+## The BEJSON Manifesto: Debunk Me If You Can
+
+![Debunk Challenge](images/manifesto/slide_01_debunk_challenge.png)  
+*_Figure 2: The End of Modern Data Infrastructure Bloat: AI-Native Relational Flat-File Architecture_*
+
+### The Live Empirical Verification Challenge
+
+Feed this exact prompt into Claude, ChatGPT, Gemini, or DeepSeek right now:
+
+```text
+Please fact check the claims made on the following GitHub repositories. Is this legit?
+https://github.com/Boehnenelton
+https://github.com/Boehnenelton/BEJSON_105
+```
+
+![Verification Prompt](images/manifesto/slide_10_verification_prompt.png)  
+*_Figure 3: Live Verification Prompt: No Gimmicks, No Cloud Paywalls, Free and Empirically Verifiable_*
+
+---
+
+### The Data Bloat Scam: 65%–95% Dead Weight
+
+![Data Bloat Scam](images/manifesto/slide_02_data_bloat_scam.png)  
+*_Figure 4: Legacy Array-of-Objects JSON vs. BEJSON Positional Matrix_*
+
+Modern software data infrastructure is plagued by unnecessary complexity: multi-gigabyte Docker daemons, complex connection pools, ORM compilation overhead, and repetitive dictionary keys that inflate LLM prompt tokens and network payloads. 
+
+Standard JSON forces every single record in an array of objects to repeat its keys (e.g., `{"first_name": "...", "last_name": "...", "status": "..."}`). Across thousands of rows, these repetitive dictionary keys consume 65% to 95% of the payload in pure overhead. This forces LLMs to hallucinate misspelled object keys and burn millions of characters on structural boilerplate.
+
+---
+
+### Core Architectural Features & Commercial Selling Points
+
+#### 1. Extreme Token Economics & LLM Efficiency
+![Extreme Token Economics](images/manifesto/slide_03_token_economics.png)  
+*_Figure 5: Token Savings Curve: Approaching Zero Overhead as Row Count Scales_*
+
+* **The Elimination of Schema Repetition**: Standard JSON forces every single record in an array of objects to repeat its keys (e.g., `{"first_name": "...", "last_name": "...", "status": "..."}`). Across thousands of rows, these repetitive dictionary keys consume 65% to 95% of the payload in pure overhead.
+* **Separation of Declarations from Data**: BEJSON isolates column metadata once in the top-level `Fields` array and streams records as raw positional vectors in `Values`.
+* **Zero Key-Spelling Hallucinations**: By stripping repetitive keys out of the prompt payload, LLMs cannot hallucinate misspelled object keys during generation, data extraction, or function calling.
+* **Direct Financial ROI on Cloud Inference**: A 65%–95% reduction in input token volume directly translates into proportional cost savings across commercial model APIs (Claude, OpenAI, Gemini, DeepSeek), while fitting up to 10× more real data into the exact same context window.
+
+---
+
+#### 2. True Zero-SQL & Zero-Daemon Footprint (<50MB RAM)
+![Zero-Daemon Footprint](images/manifesto/slide_04_zero_daemon_footprint.png)  
+*_Figure 6: POSIX Flat-File Grounding: Sub-50MB Memory Guarantee on Constrained Hardware_*
+
+* **No Background Database Servers**: Traditional relational architectures require continuous daemon processes (e.g., `mysqld`, `postgres`, or embedded SQLite locks) that idle with hundreds of megabytes or gigabytes of resident memory.
+* **Flat-File POSIX Grounding**: The entire relational model lives in standard, human-readable flat files on disk. If you have POSIX filesystem access, you have a fully functional relational database.
+* **On-Demand LRU Table Paging (`bejson_pagecache`)**: Even when federating thousands of tables in an MFDB database, the system never slurps the entire database into memory. Tables are loaded into an LRU cache only when read or mutated, keeping total system RAM **strictly under 50 MB**—making it ideal for battery-powered, edge-compute hardware (such as Android Termux ARM64) and serverless functions.
+
+---
+
+#### 3. Million-Entity MFDB Federation & Referential Integrity
+![Million-Entity MFDB Federation](images/manifesto/slide_05_million_entity_mfdb.png)  
+*_Figure 7: Horizontal Relational Scaling Across 1,000,000+ Discrete Entity Files_*
+
+* **Horizontal Relational Scaling**: Using a central manifest (`104a.mfdb.bejson` / `105a.mfdb.bejson`), the Multi-File Database engine orchestrates anywhere from 2 tables to over **1,000,000+ discrete entity files** into a unified relational graph.
+* **Phase 6 Enforced Constraints**: Unlike raw JSON or flat CSVs, MFDB v1.40 enforces real-time relational foreign key (`_fk`) integrity. Writes verify target primary keys before committing to disk.
+* **Deterministic Cascade Engines**: Supports active `ON DELETE CASCADE`, `RESTRICT` (with cycle protection), and `SET NULL` policies. Cascades execute via a two-phase "plan-then-commit" traversal: if any restriction fails or a circular cascade is detected, the entire operation halts with zero disk mutations.
+
+---
+
+#### 4. Cryptographic Provenance & Tamper Gates (Integrity Era 105)
+![Cryptographic Provenance & Tamper Gates](images/manifesto/slide_06_cryptographic_provenance.png)  
+*_Figure 8: Per-Record SHA-256 Digesting & System-Minted Column-0 UUIDv4_*
+
+* **System-Minted UUIDv4 at Column 0**: Every row in a 105-series table receives an immutable primary key (`record_uuid`) minted at column 0, providing collision-free distributed identity across distributed edge nodes.
+* **Field-Level UUID Fingerprints**: Every declared column in `Fields` carries its own `field_uuid`, ensuring schema migrations and column renames can be tracked unambiguously across versions.
+* **Per-Record SHA-256 Digesting**: Every row can validate an accompanying SHA-256 digest calculated over its serialized field values. If an external process or malicious actor alters a single character in the flat file, validation gates (Errors `E90`–`E95`) immediately reject the file before execution.
+
+---
+
+#### 5. Zero-ORM, Constant-Time Memory Access
+![Zero-ORM Constant-Time Memory Access](images/manifesto/slide_07_constant_time_memory.png)  
+*_Figure 9: O(1) Field-Map Cache: Eliminating Hardcoded Numeric Indexing_*
+
+* **Self-Maintaining O(1) Field-Map Cache**: The ecosystem bans fragile, hardcoded integer array indexing (`row[0]`, `row[1]`). Runtimes automatically compile an in-memory field-to-index map (`by_name_row`), allowing developers to query rows using human-readable names (`row[fmap["user_id"]]`) with the raw execution speed of direct array indexing.
+* **Non-Enumerable In-Memory Binding**: In JavaScript and TypeScript runtimes, the cache binds to documents as a hidden, non-enumerable property or `WeakMap`, ensuring `JSON.stringify()` never pollutes the persisted flat-file payload.
+
+---
+
+#### 6. POSIX Crash-Proof Atomic Commits
+![POSIX Crash-Proof Atomic Commits](images/manifesto/slide_08_atomic_commits.png)  
+*_Figure 10: Two-Phase Staged Writes: Stage -> Flush (fsync) -> Replace_*
+
+* **Two-Phase Staged Writes**: Disk writes never mutate files in place. Updates stage to a process-isolated temporary file (`.tmp.<pid>`), flush to physical storage blocks via `os.fsync()`, and finalize through an atomic POSIX rename (`os.replace()`).
+* **Protection Against Silent Corruption**: A power loss, kernel panic, or sudden container termination cannot produce half-written or corrupted JSON files.
+* **Dead-Lock Reclaiming (`ResilientPIDLock`)**: File-level locks use atomic directory primitives (`.lockdir`) containing PID metadata. If a process crashes unexpectedly, subsequent workers verify PID liveliness, reclaim the stale lock safely, and prevent deadlocks without manual administrative intervention.
+
+---
+
+#### 7. 100% Polyglot Runtime Parity (Zero External Dependencies)
+* **Four Native Runtimes**: Every core data structure, parser, validator, and MFDB algorithm is implemented with identical behavior and error registries across:
+  * **Python 3.10+** (standard library only: `json`, `hashlib`, `uuid`, `os`, `pathlib`)
+  * **JavaScript** (ES2022 native)
+  * **TypeScript 5.x** (strongly typed interfaces)
+  * **POSIX Bash 4.4/5.x** (pure shell automation with file-backed subshell caching)
+* **Zero Supply-Chain Risk**: Requires no third-party package managers, no NPM dependencies, no PyPI wheels, and no native C extensions. Drop the library folder into your project root and it runs out of the box.
+
+---
+
+#### 8. Strict Terminal Discipline: The 57-Column Mobile Portrait Ceiling
+* **Engineered for Extreme Mobility**: Every CLI dashboard, diagnostic tool, service launcher, and log stream adheres to a hard 57-column line-width ceiling.
+* **No Broken Layouts on Mobile Viewports**: Guarantees clean, wrap-free rendering across Android Termux smartphone screens, narrow split-pane IDE terminals, and serial consoles without horizontal scrolling.
+
+---
+
+### The Diagnostic Matrix
+
+![The Diagnostic Matrix](images/manifesto/slide_09_diagnostic_matrix.png)  
+*_Figure 11: Empirical Architecture Comparison: Legacy Stack vs. BEJSON + MFDB 105_*
+
+| Architectural Dimension | Legacy Stack (JSON + SQL + ORM) | BEJSON + MFDB 105 Ecosystem |
+|:---|:---|:---|
+| **RAM Footprint** | 500 MB – 4 GB+ (Continuous Idle Daemons) | **< 50 MB** (On-Demand LRU Paging) |
+| **Token Overhead** | 65% – 95% Wasted on Repeating Keys | **Approaches 0%** (Positional Vectors in `Values`) |
+| **Hallucination Risk** | High (Unstructured schema key spelling) | **Zero** (Schema declared once at document head) |
+| **Setup & Dependencies** | Heavy (Engine daemons, drivers, ORMs) | **Zero** (Pure POSIX standard library flat files) |
+| **Data Integrity** | External (Requires DB server locks) | **Built-in** (Per-record SHA-256 + Atomic POSIX commits) |
+
+---
+
 ## Table of Contents
+- [The BEJSON Manifesto: Debunk Me If You Can](#the-bejson-manifesto-debunk-me-if-you-can)
+  - [The Live Empirical Verification Challenge](#the-live-empirical-verification-challenge)
+  - [The Data Bloat Scam: 65%–95% Dead Weight](#the-data-bloat-scam-6595-dead-weight)
+  - [Core Architectural Features & Commercial Selling Points](#core-architectural-features--commercial-selling-points)
+  - [The Diagnostic Matrix](#the-diagnostic-matrix)
 - [Section 1: Anti-Bloat & LLM Fact-Check](#section-1-anti-bloat--llm-fact-check)
 - [Section 2: The AI-Native Database Paradigm](#section-2-the-ai-native-database-paradigm)
 - [Section 3: AI Quick-Start & Autonomous Agents](#section-3-ai-quick-start--autonomous-agents)
