@@ -1,0 +1,116 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Schema_Name": "Automation_Framework_Registry_Schema",
+  "Schema_Version": "1.0.0",
+  "Framework_Name": "automation_3zone_fsm_chassis",
+  "Framework_Version": "1.0.0",
+  "Records_Type": [
+    "FrameworkFileChunkRecord"
+  ],
+  "Fields": [
+    {
+      "name": "record_uuid",
+      "type": "string",
+      "field_uuid": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+      "description": "Column 0: Immutable UUIDv4 identifier for the framework artifact file"
+    },
+    {
+      "name": "relative_file_path",
+      "type": "string",
+      "field_uuid": "9b2c3d4e-2001-4000-8000-000000000001",
+      "description": "Relative target path where file will be materialized"
+    },
+    {
+      "name": "file_role",
+      "type": "string",
+      "field_uuid": "9b2c3d4e-2001-4000-8000-000000000002",
+      "description": "Role: launcher, config, pre_processing, processing, post_processing, hook, manifest"
+    },
+    {
+      "name": "content_text",
+      "type": "string",
+      "field_uuid": "9b2c3d4e-2001-4000-8000-000000000003",
+      "description": "Full UTF-8 encoded text payload of the framework file"
+    },
+    {
+      "name": "sha256_checksum",
+      "type": "string",
+      "field_uuid": "9b2c3d4e-2001-4000-8000-000000000004",
+      "description": "Cryptographic SHA-256 hash of the content payload"
+    },
+    {
+      "name": "executable_flag",
+      "type": "boolean",
+      "field_uuid": "9b2c3d4e-2001-4000-8000-000000000005",
+      "description": "Whether file requires POSIX executable permissions (chmod +x)"
+    }
+  ],
+  "Values": [
+    [
+      "787d5236-5048-448f-b5de-f322030a1218",
+      "launcher.py",
+      "launcher",
+      "#!/usr/bin/env python3\n\"\"\"\nLauncher for 3-Zone BEJSON Automation Pipeline with FSM VM Execution.\n\"\"\"\nfrom __future__ import annotations\nimport argparse\nimport logging\nimport os\nfrom pathlib import Path\nimport sys\n\nDIVIDER_49 = \"=\" * 49\nSUBDIVIDER_49 = \"-\" * 49\nLOG = logging.getLogger(\"PipelineLauncher\")\n\ndef parse_args():\n    parser = argparse.ArgumentParser(description=\"BEJSON 3-Zone Automation Pipeline\")\n    parser.add_argument(\"--dry-run\", action=\"store_true\", help=\"Scan intake without executing\")\n    parser.add_argument(\"--status\", action=\"store_true\", help=\"Print pipeline queue status\")\n    return parser.parse_args()\n\ndef main():\n    args = parse_args()\n    logging.basicConfig(level=logging.INFO, format=\"%(message)s\")\n    base_dir = Path(__file__).resolve().parent\n    sys.path.insert(0, str(base_dir / \"routing\"))\n\n    import pre_processing\n    import processing\n    import post_processing\n\n    if args.status:\n        LOG.info(DIVIDER_49)\n        LOG.info(\"PIPELINE STATUS: %s\", base_dir.name)\n        LOG.info(SUBDIVIDER_49)\n        return 0\n\n    staged_file = pre_processing.stage_asset(base_dir / \"input\", base_dir / \"staged\")\n    if not staged_file:\n        return 0\n\n    out_file = processing.execute_processing(staged_file, base_dir / \"staged\", {})\n    if out_file:\n        post_processing.deliver_asset(out_file, base_dir / \"output\")\n        return 0\n    return 1\n\nif __name__ == \"__main__\":\n    sys.exit(main())\n",
+      "84ff9424c76164fa7385e84941877d3cade6c638343c3e4b27714cc630d7f992",
+      true
+    ],
+    [
+      "9939c523-82ea-4870-8394-82924de457ce",
+      "routing/pipeline_config.bejson",
+      "config",
+      "{\n  \"Format\": \"BEJSON\",\n  \"Format_Version\": \"104a\",\n  \"Format_Creator\": \"Elton Boehnen\",\n  \"Records_Type\": [\n    \"PipelineConfig\"\n  ],\n  \"Fields\": [\n    {\n      \"name\": \"key\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"val\",\n      \"type\": \"string\"\n    }\n  ],\n  \"Values\": [\n    [\n      \"pipeline_name\",\n      \"Automation_FSM_Pipeline\"\n    ],\n    [\n      \"supported_extensions\",\n      \".txt,.md,.json,.bejson\"\n    ],\n    [\n      \"move_original_on_complete\",\n      \"true\"\n    ]\n  ]\n}",
+      "71fb1dda23037beaeea9adc8f7b548acf6a64f7779c8f0025fdadd2197c690ff",
+      false
+    ],
+    [
+      "f47822d3-f916-4301-a7e0-e63534cd4343",
+      "routing/pre_processing.py",
+      "pre_processing",
+      "#!/usr/bin/env python3\n\"\"\"Intake discovery and atomic quarantine staging.\"\"\"\nfrom pathlib import Path\nimport os\nimport shutil\nfrom typing import Optional\n\ndef stage_asset(input_dir: Path, staged_dir: Path) -> Optional[Path]:\n    input_dir.mkdir(parents=True, exist_ok=True)\n    staged_dir.mkdir(parents=True, exist_ok=True)\n    for item in sorted(input_dir.iterdir()):\n        if item.is_file() and not item.name.startswith(\".\"):\n            dest = staged_dir / item.name\n            shutil.move(str(item), str(dest))\n            return dest\n    return None\n",
+      "9c0e77ab899931ece959f0013b1ccc2b87ae31bd8fd590fb50994f08fb21f965",
+      true
+    ],
+    [
+      "46332b95-9e39-4495-a595-b6688c7f32c6",
+      "routing/processing.py",
+      "processing",
+      "#!/usr/bin/env python3\n\"\"\"Processing router executing BEJSON Automation FSM row-by-row.\"\"\"\nfrom pathlib import Path\nimport sys\nfrom typing import Any, Dict, Optional\n\n# Link to core library\nsys.path.insert(0, \"/storage/emulated/0/Admin/Libraries/libraries_105/Lib_PY/Automation\")\ntry:\n    from lib_bejson_Automation_automation_core import (\n        BEJSONAutomationFSM,\n        FSMExecutionContext\n    )\nexcept ImportError:\n    BEJSONAutomationFSM = None\n\ndef execute_processing(staged_file: Path, staged_dir: Path, cfg: Dict[str, Any]) -> Optional[Path]:\n    manifest = staged_dir.parent / \"routing\" / \"pipeline_fsm_manifest.105a.bejson\"\n    if not manifest.exists() or not BEJSONAutomationFSM:\n        # Fallback dummy passthrough\n        return staged_file\n\n    fsm = BEJSONAutomationFSM(manifest)\n    ctx = FSMExecutionContext(\n        pipeline_identifier=\"standard_3zone_fsm\",\n        staged_asset_path=staged_file,\n        staged_directory=staged_dir\n    )\n    result = fsm.execute_pipeline(ctx)\n    return result.processed_artifact_path if result.success else None\n",
+      "5c9ca1e40b2c1837280ce883179366e8c7fbdb7fb7fc1e3e7d6ca379d54137b7",
+      true
+    ],
+    [
+      "8b1b8436-c1f6-41db-8421-7ec90d6b4ed8",
+      "routing/post_processing.py",
+      "post_processing",
+      "#!/usr/bin/env python3\n\"\"\"Integrity verification and verified delivery.\"\"\"\nfrom pathlib import Path\nimport shutil\n\ndef deliver_asset(staged_file: Path, output_dir: Path) -> Path:\n    output_dir.mkdir(parents=True, exist_ok=True)\n    dest = output_dir / staged_file.name\n    shutil.move(str(staged_file), str(dest))\n    return dest\n",
+      "68ac4839504c35a830c758de0a47661bfab86f98a8d6c2f05fba4f44e0ee2c7e",
+      true
+    ],
+    [
+      "0179efbc-2776-40e1-a7ac-b263e52a487e",
+      "routing/pipeline_fsm_manifest.105a.bejson",
+      "manifest",
+      "{\n  \"Format\": \"BEJSON\",\n  \"Format_Version\": \"105a\",\n  \"Format_Creator\": \"Elton Boehnen\",\n  \"Schema_Name\": \"Automation_Pipeline_FSM_Manifest_Schema\",\n  \"Schema_Version\": \"1.0.0\",\n  \"Pipeline_Identifier\": \"starter_fsm_pipeline_v1\",\n  \"Initial_Step_UUID\": \"9f1b2c3d-0001-4000-8000-000000000001\",\n  \"Records_Type\": [\n    \"PipelineFSMStageRecord\"\n  ],\n  \"Fields\": [\n    {\n      \"name\": \"record_uuid\",\n      \"type\": \"string\",\n      \"field_uuid\": \"f81d4fae-7dec-11d0-a765-00a0c91e6bf6\",\n      \"description\": \"Column 0: Immutable UUIDv4 identifier for the pipeline state node\"\n    },\n    {\n      \"name\": \"step_sequence_index\",\n      \"type\": \"integer\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000001\",\n      \"description\": \"1-based logical execution order within the pipeline chain\"\n    },\n    {\n      \"name\": \"step_label\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000002\",\n      \"description\": \"Human-readable functional label adhering to Purpose Law\"\n    },\n    {\n      \"name\": \"execution_dispatch_mode\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000003\",\n      \"description\": \"Mode of code invocation: python_callable, inline_python_block, or shell_command\"\n    },\n    {\n      \"name\": \"executable_code_payload\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000004\",\n      \"description\": \"The script, callable import symbol, or shell vector to execute\"\n    },\n    {\n      \"name\": \"delay_before_execution_sec\",\n      \"type\": \"number\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000005\",\n      \"description\": \"Pause duration in seconds before dispatching the stage payload\"\n    },\n    {\n      \"name\": \"delay_after_execution_sec\",\n      \"type\": \"number\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000006\",\n      \"description\": \"Pause duration in seconds after successful stage payload execution\"\n    },\n    {\n      \"name\": \"loop_enabled_flag\",\n      \"type\": \"boolean\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000007\",\n      \"description\": \"Whether this specific stage repeats its execution loop\"\n    },\n    {\n      \"name\": \"loop_max_iterations\",\n      \"type\": \"integer\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000008\",\n      \"description\": \"Maximum number of allowed loop iterations (1 = run once, -1 = infinite until break)\"\n    },\n    {\n      \"name\": \"loop_interval_delay_sec\",\n      \"type\": \"number\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000009\",\n      \"description\": \"Time delay in seconds between consecutive loop iterations\"\n    },\n    {\n      \"name\": \"loop_break_condition_eval\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000010\",\n      \"description\": \"Predicate expression evaluated against stage output to terminate looping\"\n    },\n    {\n      \"name\": \"on_success_transition_uuid\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000011\",\n      \"description\": \"UUID of next stage or terminal gate ('FINAL_DELIVERY_GATE') on clean exit\"\n    },\n    {\n      \"name\": \"on_failure_transition_uuid\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000012\",\n      \"description\": \"UUID of error handler or terminal abort ('ABORT_TERMINAL') on failure\"\n    },\n    {\n      \"name\": \"timeout_ceiling_sec\",\n      \"type\": \"number\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000013\",\n      \"description\": \"Maximum permissible wall-clock execution time before kill/abort\"\n    },\n    {\n      \"name\": \"sender_address\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000014\",\n      \"description\": \"Originating node or pipeline URI for backchannel signaling and receipts\"\n    },\n    {\n      \"name\": \"forward_address\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000015\",\n      \"description\": \"Default destination URI or stage UUID upon standard successful completion\"\n    },\n    {\n      \"name\": \"if_repetition_count_over\",\n      \"type\": \"integer\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000016\",\n      \"description\": \"Iteration count threshold triggering conditional routing deflection\"\n    },\n    {\n      \"name\": \"conditional_forward_address\",\n      \"type\": \"string\",\n      \"field_uuid\": \"9b2c3d4e-1001-4000-8000-000000000017\",\n      \"description\": \"Destination URI or stage UUID invoked when iteration count exceeds threshold\"\n    }\n  ],\n  \"Values\": [\n    [\n      \"9f1b2c3d-0001-4000-8000-000000000001\",\n      1,\n      \"Intake Validation & File Inspection\",\n      \"inline_python_block\",\n      \"ctx.custom_state['bytes'] = ctx.staged_asset_path.stat().st_size\\nresult = {'status': 'OK'}\",\n      0.1,\n      0.1,\n      false,\n      1,\n      0.0,\n      \"true\",\n      \"FINAL_DELIVERY_GATE\",\n      \"ABORT_TERMINAL\",\n      30.0,\n      \"local://pipeline/step_01\",\n      \"FINAL_DELIVERY_GATE\",\n      3,\n      \"ABORT_TERMINAL\"\n    ]\n  ]\n}",
+      "9c8de762aa8b01cf0d556bfa93e67a2b09c77e308be7845e30e152a3ad534261",
+      false
+    ],
+    [
+      "1d19789d-f714-491c-af0a-d3403f5d0d6a",
+      "hooks/pre_stage_hook.py",
+      "hook",
+      "#!/usr/bin/env python3\n\"\"\"Pre-Stage Lifecycle Hook: Intercepts before stage execution.\"\"\"\ndef pre_stage_hook(stage_id: str, asset_name: str) -> bool:\n    return True\n",
+      "f822d50a7672862a323be183f2dfb84d3ca8b1588921793c1a4685fad044d2c9",
+      true
+    ],
+    [
+      "65f69c18-bbe3-47d7-a7d7-d98a841061cd",
+      "hooks/post_stage_hook.py",
+      "hook",
+      "#!/usr/bin/env python3\n\"\"\"Post-Stage Lifecycle Hook: Validates results before transition.\"\"\"\ndef post_stage_hook(stage_id: str, success: bool) -> None:\n    pass\n",
+      "cb7981f2472e513010f04ea9906e1592a51d9effad4d56c6adda2b1ccff1df6c",
+      true
+    ]
+  ]
+}

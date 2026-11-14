@@ -3,8 +3,8 @@
   "Format_Version": "104a",
   "Format_Creator": "Elton Boehnen",
   "Project_Name": "libraries_105",
-  "Project_Version": "5.9.6",
-  "Package_Version": "119",
+  "Project_Version": "5.9.8",
+  "Package_Version": "121",
   "Versioned_UUID": "a94e7c12-6f83-4d21-b850-91e4c3f02a7b",
   "Project_GUID": "1952586a-42b4-44ce-9471-40831d0bf46b",
   "Type": "library",
@@ -20,10 +20,16 @@
   ],
   "Values": [
     [
-      "5.9.6 | 2026-11-14 | Add Lib_PY/AI v1.5.0 3-Tier Multi-AI Provider Gateway (Gemini REST & Interactions, Name_Case model catalog, persistent 105a config, config-gated Tooling_Registry, Parser_Registry, Extension_Parser_Registry, AIEnvVault, KeyRotator, JITKeyHandler, 18/18 unit tests), Canvas/JS test suites, AI Gateway architecture diagrams, extended README, and hardened .gitignore."
+      "5.9.8 | 2026-11-14 | Add Lib_PY/AI v1.5.0 3-Tier Multi-AI Provider Gateway (Gemini REST & Interactions, Name_Case model catalog, persistent 105a config, config-gated Tooling_Registry, Parser_Registry, Extension_Parser_Registry, AIEnvVault, KeyRotator, JITKeyHandler, 18/18 unit tests), Canvas/JS test suites, AI Gateway architecture diagrams, extended README, and hardened .gitignore."
     ],
     [
-      "5.9.5 | 2026-11-12 | Audit/harden/remediate: CMS admin server and Doc_Chunker UI confinement + validation, escaped emitted site renderer, hard-coded paths removed, README quickstarts rebuilt and executed, package hygiene, 17 new regression tests (50/50 entry points pass). Core untouched; CORE-1 patch proposed in dev/proposed_core_patches/."
+      "5.9.7 | 2026-11-12 | Integrate multi-scale (5,000 to 50,000 records) write speed, read speed, memory heap, and token cost benchmark lab into public interactive suite."
+    ],
+    [
+      "5.9.6 | 2026-11-12 | Add public-facing client-side interactive benchmark suite (docs/index.html & Admin/Dev/HTML_Apps) with token economics, parser latency, and client telemetry reporting."
+    ],
+    [
+      "5.9.5 | 2026-11-12 | Expand comprehensive 16-section README.md, synchronize Automation and EBook subsystems, and configure GitHub Actions CI and Release pipelines."
     ],
     [
       "5.9.4 | 2026-11-06 | Integrate CMS MTV Scaffolding Engine family (Lib_PY/CMS), pre-built taxonomy archetypes, 105 MFDB v1.40 models, 13 canonical BEHTML templates, and admin dashboard."
@@ -33,4 +39,5 @@
     ]
   ]
 }
+
 

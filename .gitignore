@@ -3,14 +3,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+.coverage
 node_modules/
+dist/
+build/
 *.tmp
 *.bak
+*.swp
+*~
 *.lock
 *.lockdir/
 data/temp/
 .DS_Store
+.nomedia
 .ttxfolder
+.bejson_project.json
+AGENTS.md
 
 # Logs & runtime telemetry (NEVER commit logs)
 logs/
