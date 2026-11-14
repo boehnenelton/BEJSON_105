@@ -73,3 +73,25 @@ Because the rest of `libraries_105` separates data schemas from presentation, a 
 - **Failure behavior**: `ParserRegistry` and `ExtensionParserRegistry` catch plugin exceptions and log a warning so a broken hook does not abort the call. Decide whether a renderer error should fall back to raw `text` or raise an `AIException` in the `200–235` error range.
 - **BEJSON 105 preservation**: If `return_bejson_105=True`, ensure `AITranslator.to_bejson_105_response()` either runs on the pre-render envelope or cleanly carries rendered output without breaking the `AI_Response` schema.
 
+---
+
+## Architectural Scorecard (`v1.5.0` Baseline: `8.5 / 10`) & Roadmap to `9.5+`
+
+`Lib_PY/AI` (`v1.5.0`) provides clean 3-tier boundaries, strong credential isolation, and zero-dependency portability, with targeted operational milestones identified to elevate the architecture to `9.5+`:
+
+| Dimension | Score | Assessment |
+| :--- | :--- | :--- |
+| **Separation of Concerns (3-Tier)** | **9.5 / 10** | Strict isolation between Tier 1 routing/translation, Tier 2 gates/registries, and Tier 3 vault/rotation/HTTP clients; adding `GeminiInteractionsClient` required zero changes to key handling or pre/post gates. |
+| **Security & Key Rotation** | **9.0 / 10** | Keys stay out of URLs (`x-goog-api-key`), `AIEnvVault` parses `definitions.py` safely via `ast.literal_eval` (no `exec()`), and `KeyRotator` tracks 429 cooldowns and 401/403 quarantine using masked-only BEJSON 105a state. |
+| **Extensibility & Config Gating** | **9.0 / 10** | `AIGlobalConfigManager` auto-exports `config/ai_global_config.105a.bejson` on first use and gates `ToolingRegistry`, `ParserRegistry`, and `ExtensionParserRegistry` cleanly without touching `AIDispatcher`. |
+| **Portability (Termux / Pydroid 3)** | **9.0 / 10** | Pure Python stdlib (`urllib.request`, `json`, `ast`, `asyncio.to_thread`) avoids heavy third-party SDK breakage on Android. |
+| **Testability & Observability** | **8.0 / 10** | Transport injection lets all 18 unit/integration tests run offline in ~20ms; however, `Lib_PY/AI` is not yet wired into `Lib_PY/Standards` structured logging, so plugin warnings/errors are not persisted to the global log sink. |
+| **Concurrency & Provider Breadth** | **7.5 / 10** | `dispatch_async` uses `asyncio.to_thread` over blocking `urllib` (suitable for CLI/light use, less ideal under heavy concurrency), and `AITranslator` is currently Gemini-focused until OpenRouter/Ollama drivers are added. |
+
+### Milestones to Reach `9.5+` (`v1.6.0` – `v1.7.0`)
+1. **Wire `Lib_PY/Standards` (`bejson_standards_log`) into `Lib_PY/AI`**:
+   - Connect `AIDispatcher`, `KeyRotator`, and Tier 2 registries (`ToolingRegistry`, `ParserRegistry`, `ExtensionParserRegistry`, `RendererRegistry`) to `bejson_standards_log` so 429/401 key rotation events and suppressed plugin errors are auditable in the global BEJSON telemetry sink.
+2. **Implement `RendererRegistry` / `BaseRenderer` after `AIPostprocessor.process()`**:
+   - Enable `Lib_PY/CMS`, `Lib_PY/Graphics`, `Lib_PY/Canvas`, and `Lib_PY/Standards` to consume validated `structured_data` and `xml_blocks` directly through config-gated post-processing renderers.
+3. **Add a Second Non-Gemini Provider (`openrouter` or `ollama`)**:
+   - Implement `lib_bejson_ai_client_openrouter.py` or `lib_bejson_ai_client_ollama.py` (and corresponding `AITranslator` wire adapters) to verify multi-provider translation across heterogeneous wire schemas.
