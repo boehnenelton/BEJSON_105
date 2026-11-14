@@ -10,7 +10,7 @@
 
 - See [ARCHITECTURE.md](./ARCHITECTURE.md) for the complete 3-tier architecture and pipeline flow.
 - See [ARCHITECTURE_MAP.md](./ARCHITECTURE_MAP.md) for the art specialist node-and-edge specification.
-- See [NEXT_STEP_PLAN.md](./NEXT_STEP_PLAN.md) for architectural roadmap and specifications.
+- See [NEXT_STEP_PLAN.md](./NEXT_STEP_PLAN.md) for architectural roadmap and specifications, including the **Planned `v1.6.0` Modular Renderer Post-Processing Abstraction Layer** (`Renderer_Registry` / `Base_Renderer`, placed immediately after `AIPostprocessor.process()` for custom rendering of parsed content into HTML/CMS, SVG/Canvas, or ANSI/Standards outputs).
 
 ## Implemented Module Map (`v1.5.0`)
 
