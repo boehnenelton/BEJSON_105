@@ -5,7 +5,9 @@ Description:    Elton Boehnen's BEJSON 105a Graphics Library Family.
                 FPS and timeline pacing declarations, row-per-frame animation ledgers,
                 slideshow generation, and multi-format GIF/WebM/APNG/MP4 export engines.
 Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-Version:        1.1.0
+Version:        1.1.1
+Changelog:      1.1.1 (2026-11-12) header: RELATIONAL_ID recency fingerprint added (code unchanged)
+RELATIONAL_ID:  6d9bb3ee-7b50-4203-9737-87f67cf70dff
 Date:           2026-10-30
 Changelog:
   1.0.1 - 2026-10-30: Import of the diagram loader uses the cased module name.

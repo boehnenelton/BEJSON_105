@@ -1,54 +1,43 @@
-# Development tracking notes and reports
-dev/
-notes/
-*.notes.md
-*notes*.md
-auditreport*.md
-*auditreport*.md
-*checklist*.md
-*checklist*.bejson
-TODO.md
+# Generated / runtime artifacts (libraries_105)
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+node_modules/
+*.tmp
+*.bak
+*.lock
+*.lockdir/
+data/temp/
+.DS_Store
+.ttxfolder
 
-# Secrets and credentials
+# Logs & runtime telemetry (NEVER commit logs)
+logs/
+log/
+*.log
+*Log-*.bejson
+*Log-*.md
+*Log-*.html
+
+# Secrets, API credentials & runtime key rotation state (NEVER commit)
 .env
 .env.*
-*.secret
-*.secrets
+secureenv_file.json
+*secret*
 *credentials*
 *.pem
+*.key
 *.pfx
 *.p12
+*key_rotation_state*.bejson
+Lib_PY/AI/config/*key_rotation*.bejson
 
-# Nested archives and chunks
+# Nested snapshots & archives (regenerate with packaging tool, never commit)
 *.zip
 *.tar
 *.tar.gz
-*.tgz
-*.bak
-*.chunk
-*.chunk.*
-*.chunks.*
-*.bejson.txt
-*.104a.bejson.txt
-*.mfdb132.bejson
-backups/
-chunk/
-chunks/
+/libraries_105.zip
+/exports/
+scaffold_output/
 
-# Logs, caches, and runtime junk
-logs/
-log/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.tmp
-*.swp
-*~
-.DS_Store
-AGENTS.md
-dist/
-build/
-.pytest_cache/
-.coverage
-.bejson_project.json

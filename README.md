@@ -12,6 +12,7 @@
 - [Installation & Quick Start](#installation--quick-start)
 - [Core Features & Integrity Era Innovations](#core-features--integrity-era-innovations)
 - [Multi-Language Quickstart Examples](#multi-language-quickstart-examples)
+- [Multi-AI Provider Gateway (`Lib_PY/AI` v1.5.0)](#multi-ai-provider-gateway-lib_pyai-v150)
 - [Visual Interface & Architecture Tour](#visual-interface--architecture-tour)
 - [System Architecture & Repository Topology](#system-architecture--repository-topology)
 - [BEJSON 105 Format Specifications & UUID Fingerprinting](#bejson-105-format-specifications--uuid-fingerprinting)
@@ -38,14 +39,11 @@
 To consume `libraries_105` without hardcoded filesystem paths in application logic, set the following environment variables in your active shell or configuration manager:
 
 ```bash
-# Path to your local libraries_105 root checkout
+# Path to your local libraries_105 root checkout (the only variable the examples below need)
 export ADMIN_LIBRARIES_105="/path/to/your/libraries_105"
-
-# Add libraries to runtime module resolution paths
-export PYTHONPATH="${ADMIN_LIBRARIES_105}/Lib_PY:${PYTHONPATH}"
-export NODE_PATH="${ADMIN_LIBRARIES_105}/Lib_JS:${ADMIN_LIBRARIES_105}/Lib_TS:${NODE_PATH}"
-export PATH="${ADMIN_LIBRARIES_105}/Lib_SH/Core:${PATH}"
 ```
+
+Python modules are flat files inside family folders, so add each family folder you use to `sys.path` (`PYTHONPATH=Lib_PY` alone is **not** enough); JavaScript uses `require(`${ADMIN_LIBRARIES_105}/Lib_JS/Core/...`)`; Bash uses `source "$ADMIN_LIBRARIES_105/Lib_SH/Core/...sh"` and needs `jq`. See the runnable examples below.
 
 ---
 
@@ -64,14 +62,18 @@ Execute the test suites to verify four-language engine readiness:
 # Verify Python Core & MFDB v1.40
 python3 Lib_PY/Core/tests/test_mfdb_spec_levels_suite.py
 
+# Verify Python Multi-AI Gateway (v1.5.0) & Canvas Suites
+python3 -m unittest discover -s Lib_PY/AI/tests -v
+python3 -m unittest discover -s Lib_PY/Canvas/tests -v
+
 # Verify JavaScript Core & Referential Integrity
 node Lib_JS/Core/tests/test_mfdb_spec_levels_suite.js
 node Lib_JS/Core/tests/test_phase6_ref_integrity.js
 
-# Verify TypeScript Core & Referential Integrity
+# Verify TypeScript Core (needs `npm i -D typescript @types/node`; the tests live in Lib_TS/Core/tests/ and are compiled, not just type-checked)
 npx tsc -p Lib_TS/tsconfig.json --noEmit
 
-# Verify Bash Core
+# Verify Bash Core (needs jq)
 bash Lib_SH/Core/tests/test_mfdb_spec_levels.sh
 ```
 
@@ -84,93 +86,150 @@ The 105 specification advances tabular data architectures by introducing determi
 1. **Deterministic UUID Fingerprinting**: Every schema field (`field_uuid`) and data row (`record_uuid`) is assigned an immutable UUIDv4, enabling collision-free distributed syncing.
 2. **MFDB v1.40 Referential Integrity**: Real-time foreign key (`_fk`) validation with configurable `on_delete` policies (`restrict`, `cascade`, `null`) preventing orphaned records.
 3. **Foundational Era Parity**: Full backward compatibility with 104, 104a, 104db, and Nested 104 documents inside the 105 engine.
-4. **Atomic In-Place Upgrades**: Upgrade 104 documents to 105 with automated pre-upgrade backups, atomic file replacement, and structural verification (`E90-E95`).
-5. **Universal 4-Language Core**: Exact functional and error code parity across Python, JavaScript, TypeScript, and Bash.
+4. **Atomic In-Place Upgrades**: Upgrade 104 documents to 105 with an automated pre-upgrade backup, atomic file replacement, and post-upgrade verification. The upgrade tool exists in **Python only** (`bejson_core_upgrade_to_105`, `Lib_PY/Core/cli/bejson_upgrade_cli.py`); TypeScript has an in-memory `upgradeTo105`.
+5. **Four-Language Core**: Python is the reference implementation. JavaScript, TypeScript and Bash cover the validators, field map and most MFDB operations, with documented gaps: JS/TS have no PID file lock, JS lacks `define_field`, TS has no MFDB entity-record CRUD, and the 104→105 upgrade tool is Python-only. See `Libraries_105_Agent_Directive-V10100-PKG100.md` §3 for the capability matrix.
+6. **Hardened Multi-AI Provider Gateway (`Lib_PY/AI` v1.5.0)**: Zero-SDK 3-tier AI gateway supporting Gemini REST (`geminirest`) and Gemini Interactions (`geminiinteractions`), `Name_Case` model constants (`Gemini_3_1_Flash_Lite`, `Gemini_3_5_Flash_Lite`, `Gemini_3_8_Flash`, `Gemini_4_Argon`, `Gemini_4_Hydrogen`), persistent Format 105a configuration (`ai_global_config.105a.bejson`), config-gated `Tooling_Registry`, `Parser_Registry`, `Extension_Parser_Registry`, and silent `x-goog-api-key` rotation with 429 cooldown and 401 quarantine.
 
 ---
 
 ## Multi-Language Quickstart Examples
 
+Each example below was executed against this tree. It builds a two-entity MFDB (`Customer` ← `Order` with a cascading foreign key) and audits it.
+
 ### 1. Python (`Lib_PY/Core`)
 ```python
-from lib_bejson_Core_bejson_core_105 import (
-    bejson_core_105_parse_document,
-    bejson_core_105_insert_record,
-    bejson_core_105_get_field_map
+import os, sys
+from pathlib import Path
+
+LIBRARIES_105_ROOT = Path(os.environ["ADMIN_LIBRARIES_105"])
+sys.path.insert(0, str(LIBRARIES_105_ROOT / "Lib_PY" / "Core"))
+
+from lib_bejson_Core_mfdb_core import (
+    mfdb_core_create_database, mfdb_core_add_entity_record_105,
+    mfdb_core_enable_ref_integrity, mfdb_core_load_entity,
 )
-from lib_bejson_Core_mfdb_validator import (
-    mfdb_validator_check_referential_integrity
-)
+from lib_bejson_Core_mfdb_validator import mfdb_validator_check_referential_integrity
 
-# Load and validate an Integrity Era document
-doc = bejson_core_105_parse_document("data/orders.105.bejson")
-field_map = bejson_core_105_get_field_map(doc)
+manifest_path = mfdb_core_create_database(
+    "db", "OrdersDB",
+    [{"name": "Customer", "file_path": "data/customer.bejson", "primary_key": "record_uuid",
+      "format_version": "105", "fields": [{"name": "cust_name", "type": "string"}]},
+     {"name": "Order", "file_path": "data/order.bejson", "primary_key": "record_uuid",
+      "format_version": "105",
+      "fields": [{"name": "order_customer_fk", "type": "string",
+                  "fk_target_entity": "Customer", "fk_on_delete": "cascade"},
+                 {"name": "order_total", "type": "integer"}]}],
+    mfdb_version="1.40")                                   # writes db/104a.mfdb.bejson
 
-for row in doc["Values"]:
-    order_id = row[field_map["order_id"]]
-    customer_id = row[field_map["customer_fk"]]
-    print(f"Order: {order_id} -> Customer: {customer_id}")
+customer_doc = mfdb_core_add_entity_record_105(manifest_path, "Customer", ["Ann"])
+customer_uuid = customer_doc["Values"][-1][0]              # returns the ENTITY DOC; the new uuid is the last row's cell 0
+mfdb_core_enable_ref_integrity(manifest_path)
+mfdb_core_add_entity_record_105(manifest_path, "Order", [customer_uuid, 5])
 
-# Run active referential integrity audit on database manifest
-ref_report = mfdb_validator_check_referential_integrity("105a.mfdb.bejson")
-assert ref_report["is_valid"]
+for order in mfdb_core_load_entity(manifest_path, "Order"):   # list of dicts, includes "record_uuid"
+    print(order["record_uuid"], order["order_customer_fk"], order["order_total"])
+
+findings = mfdb_validator_check_referential_integrity(manifest_path)   # a LIST; [] means clean
+assert findings == [], findings
 ```
 
 ### 2. JavaScript (`Lib_JS/Core`)
 ```javascript
-const {
-  bejson_core_parse_bejson,
-  bejson_core_get_field_map
-} = require("./Lib_JS/Core/lib_bejson_Core_bejson_core");
-const {
-  mfdb_validator_check_referential_integrity
-} = require("./Lib_JS/Core/lib_bejson_Core_mfdb_validator");
+"use strict";
+const root = process.env.ADMIN_LIBRARIES_105;
+const mfdb = require(`${root}/Lib_JS/Core/lib_bejson_Core_mfdb_core.js`);
+const validator = require(`${root}/Lib_JS/Core/lib_bejson_Core_mfdb_validator.js`);
 
-const doc = bejson_core_parse_bejson("data/orders.105.bejson");
-const fieldMap = bejson_core_get_field_map(doc);
+const manifestPath = mfdb.mfdb_core_create_database("jsdb", "OrdersDB", [
+  { name: "Customer", file_path: "data/customer.bejson", primary_key: "record_uuid", format_version: "105",
+    fields: [{ name: "cust_name", type: "string" }] },
+  { name: "Order", file_path: "data/order.bejson", primary_key: "record_uuid", format_version: "105",
+    fields: [{ name: "order_customer_fk", type: "string", fk_target_entity: "Customer", fk_on_delete: "cascade" },
+             { name: "order_total", type: "integer" }] },
+], { mfdb_version: "1.40" });                               // writes jsdb/104a.mfdb.bejson
 
-doc.Values.forEach(row => {
-  console.log(`Order: ${row[fieldMap.order_id]}`);
-});
+const { record_uuid: customerUuid } = mfdb.mfdb_core_add_entity_record_105(manifestPath, "Customer", ["Ann"]);   // JS returns { record_uuid, doc } (Python returns the doc)
+mfdb.mfdb_core_enable_ref_integrity(manifestPath);
+mfdb.mfdb_core_add_entity_record_105(manifestPath, "Order", [customerUuid, 5]);
 
-const integrityReport = mfdb_validator_check_referential_integrity("105a.mfdb.bejson");
-if (!integrityReport.is_valid) {
-  console.error("Referential integrity defects detected:", integrityReport.errors);
+for (const order of mfdb.mfdb_core_load_entity(manifestPath, "Order")) {
+  console.log(order.record_uuid, order.order_customer_fk, order.order_total);
 }
+const findings = validator.mfdb_validator_check_referential_integrity(manifestPath);   // an array; [] means clean
+if (findings.length) { console.error(findings); process.exit(1); }
 ```
 
 ### 3. TypeScript (`Lib_TS/Core`)
+Run from `Lib_TS/Core`, pointing at a database directory such as the one the Python example creates. Compile with `tsc --target es2020 --module commonjs --moduleResolution node10 --strict --types node`.
 ```typescript
-import {
-  parseBejson,
-  getFieldMap
-} from "./Lib_TS/Core/lib_bejson_Core_bejson_core";
-import {
-  checkReferentialIntegrity
-} from "./Lib_TS/Core/lib_bejson_Core_mfdb_validators";
-import { BEJSONDocument } from "./Lib_TS/Core/lib_bejson_Core_bejson_types";
+import * as fs from "fs";
+import * as path from "path";
+import { parse, bejson_core_get_field_map, verify105Integrity } from "./index";
 
-const doc: BEJSONDocument = parseBejson("data/orders.105.bejson");
-const fieldMap = getFieldMap(doc);
+const manifestDir = process.argv[2];                       // e.g. a database created by the Python example
+const orderDoc = parse(fs.readFileSync(path.join(manifestDir, "data", "order.bejson"), "utf8"));
+const fieldMap = bejson_core_get_field_map(orderDoc);      // record_uuid is implicit: row[0]; declared fields are offset by one
 
-for (const row of doc.Values) {
-  console.log(`Order ID: ${row[fieldMap["order_id"]]}`);
+for (const row of orderDoc.Values) {
+  console.log(`Order ${String(row[0])} -> customer ${String(row[fieldMap["order_customer_fk"]])}`);
 }
-
-const audit = checkReferentialIntegrity("105a.mfdb.bejson");
-console.log(`Integrity status: ${audit.isValid ? "Clean" : "Violations found"}`);
+const report = verify105Integrity(orderDoc);
+console.log(report.ok ? "105 integrity: ok" : `105 integrity: ${report.errors.join("; ")}`);
 ```
 
 ### 4. Bash (`Lib_SH/Core`)
 ```bash
-source Lib_SH/Core/lib_bejson_Core_bejson_core.sh
-source Lib_SH/Core/lib_bejson_Core_mfdb_validator.sh
+source "$ADMIN_LIBRARIES_105/Lib_SH/Core/lib_bejson_Core_bejson_core.sh"
+source "$ADMIN_LIBRARIES_105/Lib_SH/Core/lib_bejson_Core_mfdb_validator.sh"
 
-# Run comprehensive Level 1, 2, and 3 MFDB audit
-mfdb_validator_validate_database "105a.mfdb.bejson"
-if [ $? -eq 0 ]; then
-  echo "MFDB v1.40 database is fully valid."
+# Levels 1-3 MFDB audit; exit status 0 means valid
+if mfdb_validator_validate_database "db/104a.mfdb.bejson"; then
+  echo "MFDB database is valid."
 fi
+```
+
+---
+
+## Multi-AI Provider Gateway (`Lib_PY/AI` v1.5.0)
+
+`Lib_PY/AI` provides a hardened 3-tier AI gateway with zero external SDK dependencies, supporting both **Gemini REST (`generateContent`)** and **Gemini Interactions (`v1beta/interactions`)** with stateful `previous_interaction_id` chaining, `Name_Case` class/method exports, and persistent Format 105a configuration (`Lib_PY/AI/config/ai_global_config.105a.bejson`).
+
+![BEJSON 105 AI Gateway — Part 1: Abstraction, Tooling & Parser Layers (Tiers 1 & 2)](images/ai_gateway/ai_gateway_part1_tiers_1_2.jpg)
+*_Figure 2: BEJSON 105 AI Gateway — Part 1: Abstraction, Tooling & Parser Layers (Tiers 1 & 2)_*
+
+![BEJSON 105 AI Gateway — Part 2: Service Callers, Vault & Key Rotation (Tier 3)](images/ai_gateway/ai_gateway_part2_tier_3.jpg)
+*_Figure 3: BEJSON 105 AI Gateway — Part 2: Service Callers, Vault & Key Rotation (Tier 3)_*
+
+### Python AI Gateway Quickstart (`Lib_PY/AI`)
+```python
+import os, sys
+from pathlib import Path
+
+LIBRARIES_105_ROOT = Path(os.environ["ADMIN_LIBRARIES_105"])
+sys.path.insert(0, str(LIBRARIES_105_ROOT / "Lib_PY" / "AI"))
+
+from lib_bejson_ai_dispatcher import (
+    AI_Dispatcher, AI_Dispatch, AI_Dispatch_Async,
+    Get_Response_Text, Get_Interaction_ID, Get_Turn_Continuation_Command,
+)
+from lib_bejson_ai_models import Gemini_3_1_Flash_Lite, Resolve_Model_Identifier
+from lib_bejson_ai_tooling_registry import Tooling_Registry
+from lib_bejson_ai_parser_registry import Parser_Registry
+from lib_bejson_ai_extension_parser import Extension_Parser_Registry
+
+# Resolve active modern model identifier
+resolved_model_id = Resolve_Model_Identifier(Gemini_3_1_Flash_Lite)
+
+# Configure persistent 105a gates (tooling, modular pre/post parsers, Python module extensions)
+tooling_registry = Tooling_Registry()
+parser_registry = Parser_Registry(config_manager=tooling_registry.config_manager)
+extension_registry = Extension_Parser_Registry(config_manager=tooling_registry.config_manager)
+
+dispatcher = AI_Dispatcher(
+    tooling_registry=tooling_registry,
+    parser_registry=parser_registry,
+    extension_parser_registry=extension_registry,
+)
 ```
 
 ---
@@ -180,7 +239,7 @@ fi
 `libraries_105` acts as the authoritative multi-entity relational backbone:
 
 ```
-[MFDB v1.40 Database Manifest: 105a.mfdb.bejson]
+[MFDB v1.40 Database Manifest: 104a.mfdb.bejson]
   ├── Network_Role: "Master"
   ├── Ref_Integrity: true
   ├── Entities:
@@ -188,10 +247,10 @@ fi
   │     └── Books (data/books.105.bejson) ────── [FK: author_fk -> Authors.author_uuid]
   │                                               [on_delete: "cascade" | "restrict" | "null"]
   └── Subordinate Slaves:
-        └── Worker Node (node_worker/105a.mfdb.bejson)
+        └── Worker Node (node_worker/104a.mfdb.bejson)
 ```
 
-The core libraries interface seamlessly with canvas rendering modules (`Lib_PY/Canvas`, `Lib_JS/Canvas`) and graphics subsystems (`Lib_PY/Graphics`).
+The core libraries interface seamlessly with the 3-tier AI Gateway (`Lib_PY/AI`), canvas rendering modules (`Lib_PY/Canvas`, `Lib_JS/Canvas`), and graphics subsystems (`Lib_PY/Graphics`, `Lib_JS/Graphics`).
 
 ---
 
@@ -203,20 +262,25 @@ The `libraries_105` repository isolates the core runtime engines and taxonomy de
 libraries_105/
 ├── Lib_PY/                    # Python 3.10+ Implementation
 │   ├── Core/                  # 105/105a/105db core engine, validators, and upgrade tooling
-│   ├── Canvas/                # SVG canvas generators and visual renderers
-│   ├── Graphics/              # Geometric layouts and graphics pipelines
-│   ├── Standards/             # Canonical BEJSON Format 105 specification models
-│   ├── Taxonomies/            # Domain entity definitions and write-owner models
-│   └── Tax_Scaffolds/         # Automated schema registry generators
+│   ├── AI/                    # 3-Tier Multi-AI Gateway (Gemini REST/Interactions, Tooling/Parser/Extension Registries, Vault/JIT Key Rotator)
+│   ├── CMS/                   # MTV scaffolding engine + Flask admin server (loopback by default)
+│   ├── Canvas/                # SVG canvas generators, stage templates, and visual renderers
+│   ├── Graphics/              # Geometric layouts, branding slides, and video compilation pipelines
+│   ├── Standards/             # Structured logging sink (BEJSONLogHandler), export, archiving
+│   ├── Taxonomies/            # "lattice" taxonomy and field-set registry
+│   └── Tax_Scaffolds/         # Scaffold/graft field sets onto entities
 ├── Lib_JS/                    # JavaScript CommonJS / ES2022 Implementation
 │   ├── Core/                  # 105 engine, validators, and referential integrity suite
-│   ├── Canvas/                # Dynamic in-browser canvas renderer
-│   └── Graphics/              # Vector calculation and styling engine
+│   ├── Canvas/                # Dynamic in-browser canvas renderer and test suite
+│   ├── Graphics/              # Vector calculation, schema validation, and styling engine
+│   └── External/              # External format bridges and test suite
 ├── Lib_TS/                    # TypeScript 5.x Typed Implementation
 │   └── Core/                  # Strongly typed 105 engine, MFDB validators, and schemas
 ├── Lib_SH/                    # Bash 5.x POSIX Implementation
 │   └── Core/                  # jq-backed 105 core engine and MFDB validator
-└── images/banners/            # Project banners and visual release documentation
+└── images/                    # Project banners and architecture diagrams
+    ├── banners/               # Ecosystem release banners
+    └── ai_gateway/            # Tier 1, 2 & 3 AI Gateway architecture diagrams
 ```
 
 ---
@@ -230,8 +294,8 @@ Format 105 enforces structural identity across schemas and row vectors:
 2. `"Format_Version"`: `"105"` (Table), `"105a"` (Metadata/Config), or `"105db"` (Multi-Table Store).
 3. `"Format_Creator"`: Maintainer signature (`"Elton Boehnen"`).
 4. `"Records_Type"`: Non-empty array of record names.
-5. `"Fields"`: Array of schema objects including `"name"`, `"type"`, and `"field_uuid"`.
-6. `"Values"`: Two-dimensional array of row vectors where index 0 is `"record_uuid"`.
+5. `"Fields"`: Array of schema objects including `"name"`, `"type"`, and `"field_uuid"`. `record_uuid` is **implicit** and must not be declared here.
+6. `"Values"`: Two-dimensional array of row vectors where index 0 is the implicit `record_uuid`.
 
 ### Example: Format 105 Document
 ```json
@@ -241,12 +305,11 @@ Format 105 enforces structural identity across schemas and row vectors:
   "Format_Creator": "Elton Boehnen",
   "Records_Type": ["Author"],
   "Fields": [
-    {"name": "record_uuid", "type": "string", "field_uuid": "00000000-0000-4000-8000-000000000001"},
     {"name": "author_id", "type": "string", "field_uuid": "e3b0c442-98fc-1c14-9afb-4c72e04f0001"},
     {"name": "author_name", "type": "string", "field_uuid": "e3b0c442-98fc-1c14-9afb-4c72e04f0002"}
   ],
   "Values": [
-    ["11111111-1111-4111-8111-111111111111", "auth_01", "Ada Lovelace"]
+    ["6f1d2c4a-3b5e-4f70-9a81-2c3d4e5f6071", "auth_01", "Ada Lovelace"]
   ]
 }
 ```
@@ -272,12 +335,12 @@ MFDB v1.40 introduces true relational constraint handling:
 Existing Foundational Era 104 files can be upgraded seamlessly:
 
 ```bash
-# Upgrade a single 104 document to 105
-python3 Lib_PY/Core/cli/bejson_upgrade_cli.py --input "data/legacy.bejson" --atomic
-
-# Coordinator whole-database upgrade
-python3 Lib_PY/Core/cli/upgrade_mfdb_to_105.py --manifest "104a.mfdb.bejson"
+# Preview (writes nothing), then upgrade a single 104-series file to 105-series
+python3 Lib_PY/Core/cli/bejson_upgrade_cli.py --dry-run data/legacy.bejson
+python3 Lib_PY/Core/cli/bejson_upgrade_cli.py data/legacy.bejson
 ```
+
+Whole-database upgrades are done per entity with the same tool (there is no `upgrade_mfdb_to_105.py` in this repository).
 
 - **Verbatim Backup**: Copies the original file to `Backups/<filename>.104.bak` prior to modification.
 - **UUID Generation**: Generates deterministic UUIDv4 identifiers for all fields and records.
@@ -291,7 +354,9 @@ python3 Lib_PY/Core/cli/upgrade_mfdb_to_105.py --manifest "104a.mfdb.bejson"
 Positional hardcoding is strictly avoided. Column positions resolve through the constant-time Field-Map Cache:
 
 ```python
-field_map = bejson_core_105_get_field_map(doc)
+from lib_bejson_Core_bejson_core import bejson_core_get_field_map
+
+field_map = bejson_core_get_field_map(doc)     # 105 maps already include the record_uuid offset
 author_id = row[field_map["author_id"]]
 ```
 
@@ -307,10 +372,10 @@ Input dictionaries and raw rows undergo sanitization at serialization boundaries
 
 | Language | Script / Tool | Primary Capabilities |
 | :--- | :--- | :--- |
-| **Python** | `Lib_PY/Core/cli/bejson_105_cli.py` | Format 105 schema validation, record generation, table inspection |
-| **Python** | `Lib_PY/Core/cli/bejson_upgrade_cli.py` | Atomic 104-to-105 file upgrade engine with backup preservation |
-| **Python** | `Lib_PY/Core/cli/upgrade_mfdb_to_105.py` | Full MFDB v1.31 to v1.40 database migration coordinator |
-| **Python** | `Lib_PY/Core/lib_bejson_Core_mfdb_validator.py` | Referential integrity audit and cascade resolver engine |
+| **Python** | `Lib_PY/Core/cli/bejson_upgrade_cli.py` | 104→105 file upgrade with `--dry-run`, backup and atomic swap |
+| **Python** | `Lib_PY/Core/cli/bejson_server.py` | Local BEJSON data server |
+| **Python** | `Lib_PY/CMS/web/Scaffold_Admin_Entry.py` | MTV scaffold admin server (binds 127.0.0.1; set `MTV_SCAFFOLD_OUTPUT_ROOT`) |
+| **Python** | `Lib_PY/Core/lib_bejson_Core_mfdb_validator.py` | `validate_mfdb_database`, `mfdb_validator_check_referential_integrity` |
 | **Bash** | `Lib_SH/Core/lib_bejson_Core_mfdb_validator.sh` | Shell-based automated Level 1, 2, and 3 MFDB integrity checks |
 
 ---
@@ -321,12 +386,19 @@ Run the comprehensive test suites across runtimes:
 
 ```bash
 # Python Core & MFDB v1.40 Suite
-python3 Lib_PY/Core/tests/test_bejson_core_105.py
+python3 Lib_PY/Core/tests/test_format105_suite.py
 python3 Lib_PY/Core/tests/test_mfdb_spec_levels_suite.py
 
-# JavaScript Core & Referential Integrity Suite
+# Python AI Gateway (v1.5.0) & Canvas Suites
+python3 -m unittest discover -s Lib_PY/AI/tests -v
+python3 -m unittest discover -s Lib_PY/Canvas/tests -v
+
+# JavaScript Core, Referential Integrity, Canvas, Graphics & External Suites
 node Lib_JS/Core/tests/test_mfdb_spec_levels_suite.js
 node Lib_JS/Core/tests/test_phase6_ref_integrity.js
+node Lib_JS/Canvas/tests/test_canvas_schemas.js
+node Lib_JS/Graphics/tests/test_graphics_validator.js
+node Lib_JS/External/tests/test_external_core.js
 
 # TypeScript Core & Referential Integrity Suite
 npx tsc -p Lib_TS/tsconfig.json --noEmit
@@ -343,6 +415,7 @@ bash Lib_SH/Core/tests/test_mfdb_spec_levels.sh
 - `[39]`: Unresolved foreign key reference.
 - `[43-47]`: Referential integrity constraint violations.
 - `[90-95]`: Format 105 migration and UUID integrity errors.
+- `[200-235]`: Multi-AI Provider Gateway (`Lib_PY/AI`) transport, key rotation, quarantine, and translation errors.
 
 ---
 

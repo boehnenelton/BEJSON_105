@@ -1,0 +1,13 @@
+{
+  "VmPeak": "2239168 kB",
+  "VmSize": "2237120 kB",
+  "VmRSS": "16824 kB",
+  "VmData": "46124 kB",
+  "VmStk": "144 kB",
+  "Threads": "1",
+  "ru_utime_sec": 11.47312,
+  "ru_stime_sec": 1.130304,
+  "ru_minflt": 13565,
+  "ru_majflt": 451,
+  "ru_maxrss_kb": 256956
+}

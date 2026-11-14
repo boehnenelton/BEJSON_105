@@ -1,0 +1,64 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104a",
+  "Format_Creator": "Elton Boehnen",
+  "Schema_Name": "UserPaths",
+  "Records_Type": [
+    "EnvironmentVariable"
+  ],
+  "Fields": [
+    {
+      "name": "var_name",
+      "type": "string",
+      "description": "The name of the environment variable"
+    },
+    {
+      "name": "var_value",
+      "type": "string",
+      "description": "The literal value of the variable"
+    },
+    {
+      "name": "var_type",
+      "type": "string",
+      "description": "The data type: string, int, boolean, or secret"
+    },
+    {
+      "name": "Type",
+      "type": "string"
+    },
+    {
+      "name": "Flag",
+      "type": "string"
+    },
+    {
+      "name": "Description",
+      "type": "string"
+    }
+  ],
+  "Values": [
+    [
+      "DEFINITIONS_FILE",
+      "/storage/emulated/0/.env/user/definitions.json",
+      "string",
+      "Path",
+      "",
+      "Canonical user non-sensitive paths and definitions store"
+    ],
+    [
+      "SECUREENV_FILE",
+      "/storage/emulated/0/.env/secure/secureenv_file.json",
+      "string",
+      "Path",
+      "",
+      "Canonical secure credentials environment store"
+    ],
+    [
+      "ADMIN_LIBRARIES_105",
+      "/storage/emulated/0/Admin/Libraries/libraries_105",
+      "string",
+      "Path",
+      "",
+      "Path to libraries_105 root"
+    ]
+  ]
+}

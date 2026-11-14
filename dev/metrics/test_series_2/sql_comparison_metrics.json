@@ -1,0 +1,17 @@
+{
+  "sql_batch_insert_ms": 39.75,
+  "bejson_atomic_write_ms": 94.33,
+  "sql_point_query_ops_sec": 42504,
+  "sql_point_query_avg_us": 23.53,
+  "bejson_point_query_ops_sec": 3417769,
+  "bejson_point_query_avg_us": 0.29,
+  "query_speedup_factor": 80.41,
+  "sql_scan_latency_ms": 1.174,
+  "bejson_scan_latency_ms": 0.483,
+  "sql_size_bytes": 1130496,
+  "bejson_size_bytes": 1376671,
+  "bejson_minified_bytes": 873484,
+  "sql_gz_bytes": 365363,
+  "bejson_gz_bytes": 178322,
+  "storage_reduction_pct": 22.73
+}

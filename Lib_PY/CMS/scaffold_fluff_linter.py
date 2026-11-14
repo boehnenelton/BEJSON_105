@@ -3,6 +3,10 @@
 Scaffold Fluff & Zero-Filler Linter
 Audits template code files (HTML, BEHTML, JSON) for compliance with Zero Filler Content,
 Strictly Functional Placeholders, and Invisible Architecture rules.
+
+Version:        1.0.0
+RELATIONAL_ID:  96d65353-f1b5-427d-95db-14c2fe0502c4
+Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 """
 
 import sys

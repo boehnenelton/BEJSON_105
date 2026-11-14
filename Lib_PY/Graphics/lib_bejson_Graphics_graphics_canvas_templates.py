@@ -9,12 +9,13 @@ BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 (Pronounced Bee-Jay-Son / Bay-nin Elton JSON)
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
-Version:        1.0.1
+Version:        1.0.2
+Changelog:      1.0.2 (2026-11-12) legacy exemplar directory resolved from ADMIN_DEV instead of a hard-coded /storage path
 Date:           2026-10-30
 Changelog:
   1.0.1 - 2026-10-30: Imports standardized to the cased module names; Records_Type fix.
 Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID:  b17ad1ac-6d59-49f9-bc13-fde2b3a785ad
+RELATIONAL_ID:  c2b8a79c-cc62-41b1-b11b-3368d308b25e
 Release_Version: 300
 """
 
@@ -550,7 +551,7 @@ BRANDING_SLIDE_ARCHETYPES: List[Dict[str, Any]] = [
 _REGISTRY_CACHE: Optional[Dict[str, Any]] = None
 
 def get_canvas_template_registry_105a(
-    include_legacy_source_dir: Optional[str] = "/storage/emulated/0/Admin/Dev/Templates/Canvas_SVG_Capture_Templates"
+    include_legacy_source_dir: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Returns the canonical BEJSON 105a Scaffold & Template Registry.
@@ -560,6 +561,10 @@ def get_canvas_template_registry_105a(
     global _REGISTRY_CACHE
     if _REGISTRY_CACHE is not None:
         return _REGISTRY_CACHE
+
+    # Legacy exemplar directory: explicit argument wins, otherwise $ADMIN_DEV/Templates/Canvas_SVG_Capture_Templates (never hard-coded).
+    if include_legacy_source_dir is None and os.environ.get("ADMIN_DEV", "").strip():
+        include_legacy_source_dir = os.path.join(os.environ["ADMIN_DEV"].strip(), "Templates", "Canvas_SVG_Capture_Templates")
 
     values_rows: List[List[Any]] = []
 

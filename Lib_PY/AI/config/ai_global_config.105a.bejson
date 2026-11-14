@@ -1,0 +1,81 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Records_Type": [
+    "AIGlobalConfig"
+  ],
+  "Fields": [
+    {
+      "name": "setting_key",
+      "type": "string",
+      "field_uuid": "ad0fe3a9-178d-461b-bc24-521891e479ab"
+    },
+    {
+      "name": "setting_value_json",
+      "type": "string",
+      "field_uuid": "0c53aed1-e1f8-4445-8731-e154c813212a"
+    },
+    {
+      "name": "setting_type_label",
+      "type": "string",
+      "field_uuid": "44384b2e-954b-471b-896d-ddc53cd34b82"
+    }
+  ],
+  "Values": [
+    [
+      "19c3f33b-c5fd-4797-889f-680b873a64a8",
+      "tooling_enabled",
+      "false",
+      "bool"
+    ],
+    [
+      "eee955ae-3aad-48c3-9b26-8e821da271fc",
+      "active_tooling_system",
+      "\"interactions_tools\"",
+      "str"
+    ],
+    [
+      "0e8c5b96-08ff-4186-abcf-480e23849af5",
+      "default_provider",
+      "\"geminirest\"",
+      "str"
+    ],
+    [
+      "8a89ddb8-4455-499e-b0e8-38f72f26aba4",
+      "default_model",
+      "\"gemini-3.1-flash-lite\"",
+      "str"
+    ],
+    [
+      "9fbf51c6-8189-49e7-bf6c-ef47141c2c5a",
+      "max_tool_roundtrips",
+      "5",
+      "int"
+    ],
+    [
+      "633cd34d-b7cb-429e-8178-2b86c8372cc5",
+      "stdout_routing",
+      "false",
+      "bool"
+    ],
+    [
+      "6f1109e1-efe9-4b78-a41a-bb7a099a5b83",
+      "global_pre_parser_enabled",
+      "false",
+      "bool"
+    ],
+    [
+      "71319306-ee79-4efd-bf65-03355ba5329f",
+      "global_post_parser_enabled",
+      "false",
+      "bool"
+    ],
+    [
+      "94ece484-b1b3-4174-9a3c-f56f71f5f77a",
+      "extension_parser_enabled",
+      "false",
+      "bool"
+    ]
+  ]
+}

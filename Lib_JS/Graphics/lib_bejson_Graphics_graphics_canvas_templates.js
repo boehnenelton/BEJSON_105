@@ -3,7 +3,9 @@
  * Family:         Graphics
  * Description:    Blank-Slate Canvas Stage Templates in JavaScript for BEJSON 105a.
  * Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
- * Version:        1.0.0
+ * Version:        1.0.1
+ * Changelog:      1.0.1 (2026-11-12) header: RELATIONAL_ID recency fingerprint added (code unchanged)
+ * RELATIONAL_ID:  7d531a14-97b4-4a60-a119-0dea64be150c
  * Release_Version: 300
  */
 

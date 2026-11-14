@@ -2,7 +2,9 @@
 Package:        Lib_PY/Canvas
 Family:         Canvas
 Description:    BEJSON 105 Canvas Templates and SVG Animation Studio Library Family.
-Version:        1.0.0
+Version:        1.0.1
+Changelog:      1.0.1 (2026-11-12) header: RELATIONAL_ID recency fingerprint added (code unchanged)
+RELATIONAL_ID:  951e0953-46af-469b-a4d2-a65a7be11333
 Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 """
 

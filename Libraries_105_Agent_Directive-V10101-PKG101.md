@@ -1,10 +1,10 @@
 # Libraries_105 Agent Directive — What To Use, Exactly
 **Name:** Libraries_105 Agent Directive  
 **Description:** Mandatory instructions for any AI agent that writes code against Elton Boehnen's `libraries_105` (BEJSON 105 / MFDB v1.40 ecosystem). Tells the agent which library feature to call for every common job, per language, and which documented examples are wrong.  
-**Version:** `VERSION = 10100` (v1.0.0)  
+**Version:** `VERSION = 10101` (v1.0.1)  
 **Date Created:** 2026-11-08  
 **Author Credit:** Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton  
-**RELATIONAL_ID:** `b1d4c0a6-6f0e-4c5b-9d0e-7a3f2c9e5d14`  
+**RELATIONAL_ID:** `e03e4ea7-414e-4180-88ed-79ebc832d0f2`  
 **Scope:** Python (`Lib_PY`), JavaScript (`Lib_JS`), TypeScript (`Lib_TS`), Bash (`Lib_SH`)  
 **Verification:** Every Python recipe below was executed against the shipped library. JS and Bash recipes were spot-checked as noted. Anything marked **(unverified)** was read from source, not run.
 
@@ -29,7 +29,7 @@ These are in the shipped docs and are false. Agents that trust them produce code
 
 | Where | Claim | Reality |
 |---|---|---|
-| `README.md` Python quickstart | `from lib_bejson_Core_bejson_core_105 import bejson_core_105_parse_document, bejson_core_105_insert_record, bejson_core_105_get_field_map` | **No such module or functions in Python.** (`...core_105` exists only in TypeScript.) Use `bejson_core_load_file`, `bejson_core_add_record_105`, `bejson_core_get_field_map` from `lib_bejson_Core_bejson_core` |
+| `README.md` (fixed in V5.9.5-PKG118; rows below describe the pre-fix text) Python quickstart | `from lib_bejson_Core_bejson_core_105 import bejson_core_105_parse_document, bejson_core_105_insert_record, bejson_core_105_get_field_map` | **No such module or functions in Python.** (`...core_105` exists only in TypeScript.) Use `bejson_core_load_file`, `bejson_core_add_record_105`, `bejson_core_get_field_map` from `lib_bejson_Core_bejson_core` |
 | `README.md` JS quickstart | `bejson_core_parse_bejson(path)` | **Does not exist.** Read the file with `fs.readFileSync` + `JSON.parse`, then use `bejson_core_get_field_map` |
 | `README.md` | `mfdb_validator_check_referential_integrity(...)` returns `{is_valid, errors}` | Python returns a **list** of findings; empty list = clean |
 | `README.md` | Manifest named `105a.mfdb.bejson`; structural errors "E90–E95" | The manifest is always **`104a.mfdb.bejson`**. Codes 90–114 were **removed** (Core errors v2.9.0). There is no E90–E95 |
@@ -352,7 +352,7 @@ Process exit codes (owner policy): `0` ok · `10` path-picker failure · `20` en
 
 ## 10. Gotchas That Cause Real Bugs
 
-1. **`mfdb_core_add_entity_record_105` returns the entity doc**, not the new uuid. Take `doc["Values"][-1][0]`.
+1. **`mfdb_core_add_entity_record_105` returns the entity doc in Python** (take `doc["Values"][-1][0]`) **but `{ record_uuid, doc }` in JavaScript**. Neither returns the bare uuid. (Verified by running both, 2026-11-12.)
 2. **`bejson_core_get_field_map` indexes include the implicit `record_uuid` offset** in 105 docs (first declared field is index 1 in the row). Never mix with a manual `Fields` index.
 3. **`mfdb_core_load_entity` returns dicts** (keyed by field name, plus `record_uuid`); the document functions return lists. Do not index one like the other.
 4. **Validators differ in return type:** `validate_*` return result objects; `*_check_referential_integrity`, `*_deep_verify`, `*_check_105_*` return lists; drift returns a dict. Check `== []`/`{}` or `.valid` accordingly.

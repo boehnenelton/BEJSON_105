@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-11-09 22:41:51 UTC",
+  "test_series": "test_series_3",
+  "description": "High-Scale Ingestion & Stress Benchmark Suite: 25k (5 entities) vs 60k (3 entities)",
+  "author": "Elton Boehnen",
+  "scaling_analysis": {
+    "scaling_ratio": 2.4,
+    "ingestion_throughput_scaling": 0.89,
+    "memory_growth_ratio": 1.38
+  },
+  "workload_1_25k": {
+    "workload_name": "25k_in_5_entities",
+    "entity_count": 5,
+    "total_records": 25000,
+    "total_size_mb": 4.0,
+    "total_atomic_write_ms": 264.58,
+    "overall_ingestion_sec": 0.469,
+    "ingestion_records_per_sec": 53267,
+    "avg_point_lookup_ops_sec": 8297478,
+    "peak_rss_mb": 26.07,
+    "entities": {
+      "tenant_organizations": {
+        "records": 5000,
+        "size_kb": 836.3,
+        "atomic_write_ms": 77.08,
+        "point_lookup_ops_sec": 8105747,
+        "scan_latency_ms": 0.378
+      },
+      "infrastructure_nodes": {
+        "records": 5000,
+        "size_kb": 836.3,
+        "atomic_write_ms": 45.16,
+        "point_lookup_ops_sec": 8468641,
+        "scan_latency_ms": 0.368
+      },
+      "container_pods": {
+        "records": 5000,
+        "size_kb": 807.0,
+        "atomic_write_ms": 48.88,
+        "point_lookup_ops_sec": 8477202,
+        "scan_latency_ms": 0.365
+      },
+      "audit_events": {
+        "records": 5000,
+        "size_kb": 797.2,
+        "atomic_write_ms": 48.21,
+        "point_lookup_ops_sec": 8220175,
+        "scan_latency_ms": 0.382
+      },
+      "billing_metering": {
+        "records": 5000,
+        "size_kb": 816.8,
+        "atomic_write_ms": 45.25,
+        "point_lookup_ops_sec": 8215627,
+        "scan_latency_ms": 0.362
+      }
+    }
+  },
+  "workload_2_60k": {
+    "workload_name": "60k_in_3_entities",
+    "entity_count": 3,
+    "total_records": 60000,
+    "total_size_mb": 13.1,
+    "total_atomic_write_ms": 633.05,
+    "overall_ingestion_sec": 1.259,
+    "ingestion_records_per_sec": 47654,
+    "avg_point_lookup_ops_sec": 7671864,
+    "peak_rss_mb": 35.85,
+    "entities": {
+      "telemetry_traces": {
+        "records": 20000,
+        "size_mb": 4.37,
+        "atomic_write_ms": 223.13,
+        "point_lookup_ops_sec": 7476334,
+        "scan_latency_ms": 1.627
+      },
+      "security_access_logs": {
+        "records": 20000,
+        "size_mb": 4.37,
+        "atomic_write_ms": 204.89,
+        "point_lookup_ops_sec": 7940386,
+        "scan_latency_ms": 1.496
+      },
+      "system_metrics_stream": {
+        "records": 20000,
+        "size_mb": 4.37,
+        "atomic_write_ms": 205.03,
+        "point_lookup_ops_sec": 7598873,
+        "scan_latency_ms": 1.578
+      }
+    }
+  }
+}

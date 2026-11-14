@@ -3,11 +3,12 @@ Name:           lib_bejson_CMS_mtv_core.py
 Family:         CMS
 Module Purpose: Foundational data contracts, Format 105 entity schemas, and pre-built
                 taxonomy archetypes for the Taxonomy-Driven MTV Scaffolding Engine.
-Version:        100
+Version:        101
 Release_Version: 300
 Date Created:   2026-11-06
+Changelog:      101 (2026-11-12) added bejson_cms_resolve_confined_path / bejson_cms_validate_identifier (admin-server path confinement)
 Author Credit:  Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID:  9a3c7e14-2b5d-4f80-8c29-3d1f05e94b81
+RELATIONAL_ID:  96f13b87-27e1-4bec-8d01-5b558b04d6b7
 """
 
 from __future__ import annotations
@@ -340,6 +341,40 @@ CANONICAL_MTV_ARCHETYPES_CATALOG: Dict[str, Dict[str, Any]] = {
         ]
     }
 }
+
+
+def bejson_cms_resolve_confined_path(user_supplied_path: str, confinement_root: "Path") -> "Path":
+    """Resolves user_supplied_path strictly inside confinement_root (symlinks resolved).
+
+    Relative inputs are joined under the root; absolute inputs must already be inside it.
+    Raises ValueError on empty input, NUL bytes, or any escape from the root.
+    """
+    from pathlib import Path as _Path
+    if not isinstance(user_supplied_path, str) or not user_supplied_path.strip():
+        raise ValueError("path is required")
+    if "\x00" in user_supplied_path:
+        raise ValueError("invalid path")
+    root_resolved = _Path(confinement_root).resolve()
+    candidate = _Path(user_supplied_path.strip())
+    resolved = (candidate if candidate.is_absolute() else root_resolved / candidate).resolve()
+    if resolved != root_resolved and root_resolved not in resolved.parents:
+        raise ValueError("path must be inside the configured output root")
+    return resolved
+
+
+_IDENTIFIER_PATTERNS = {
+    "archetype_id": re.compile(r"^[a-z][a-z0-9_]{0,63}\Z"),
+    "entity_name": re.compile(r"^[A-Z][A-Za-z0-9]{0,47}\Z"),
+    "entity_prefix": re.compile(r"^[a-z][a-z0-9]{0,15}_\Z"),
+}
+
+
+def bejson_cms_validate_identifier(kind: str, value: Any) -> str:
+    """Validates an archetype id / entity name / entity prefix; returns it or raises ValueError."""
+    pattern = _IDENTIFIER_PATTERNS[kind]
+    if not isinstance(value, str) or not pattern.match(value):
+        raise ValueError(f"invalid {kind}: {value!r}")
+    return value
 
 
 def bejson_cms_get_archetype(archetype_identifier_key: str) -> Dict[str, Any]:

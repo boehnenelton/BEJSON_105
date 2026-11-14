@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>BEHTML Metric Dashboard</title>
+  <style>
+    /* ==========================================================================
+       BEHTML CORE DESIGN TOKENS & TRI-COLOR CONSTITUTION
+       ========================================================================== */
+    :root {
+      --app-height: 100vh;
+      --lane-width: 12.5%;
+      --row-height: 32px;
+      
+      /* Policy §8.1 Strict Tri-Color Tokens */
+      --bg-void: #000000;
+      --bg-surface: #000000;
+      --bg-surface-elevated: #000000;
+      --primary: #DE2626;
+      --primary-hover: #DE2626;
+      --text-main: #ffffff;
+      --text-muted: #ffffff;
+      --border-main: #ffffff;
+      --border-accent: #DE2626;
+
+      /* Typography */
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.4;
+    }
+
+    /* Policy §3 Header Design Law: [Hamburger] [App Title <= 3 words] [Settings] */
+    header.behtml-header {
+      height: 48px;
+      background-color: var(--bg-void);
+      border-bottom: 1px solid var(--border-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 128;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-btn {
+      background: transparent;
+      border: 1px solid var(--border-main);
+      color: var(--text-main);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .header-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .header-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cube-anchor {
+      width: 12px;
+      height: 12px;
+      background-color: var(--primary);
+      display: inline-block;
+    }
+
+    /* Horizontal Overflow Dock Strip */
+    nav.behtml-dock-strip {
+      background-color: var(--bg-void);
+      border-bottom: 1px solid var(--border-main);
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      position: sticky;
+      top: 48px;
+      z-index: 128;
+    }
+
+    nav.behtml-dock-strip::-webkit-scrollbar {
+      height: 4px;
+    }
+    nav.behtml-dock-strip::-webkit-scrollbar-thumb {
+      background: var(--border-main);
+    }
+
+    .dock-tab-btn {
+      background: transparent;
+      border: 1px solid var(--border-main);
+      color: var(--text-main);
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .dock-tab-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .dock-tab-btn.active {
+      border-color: var(--primary);
+      box-shadow: inset 0 -2px 0 var(--primary);
+    }
+
+    /* Main BEHTML Spatial Stage */
+    main.behtml-stage {
+      flex: 1;
+      padding: 24px 16px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .series-viewport {
+      display: none;
+    }
+
+    .series-viewport.active {
+      display: block;
+    }
+
+    .panel-view {
+      display: none;
+    }
+
+    .panel-view.active {
+      display: block;
+    }
+
+    /* BEHTML Spatially Quantized 8-Lane Layout Grid */
+    .behtml-spatial-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    /* Quantized Metric Cards */
+    .behtml-cell-card {
+      grid-column: span 2;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-main);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 128px;
+    }
+
+    @media (max-width: 860px) {
+      .behtml-cell-card {
+        grid-column: span 4;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .behtml-cell-card {
+        grid-column: span 8;
+      }
+    }
+
+    .behtml-card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    .behtml-card-val {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .behtml-card-val .unit {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .behtml-card-status {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    /* Spatial Canvas Container */
+    .behtml-canvas-card {
+      grid-column: span 8;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-main);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .canvas-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 10px;
+    }
+
+    .canvas-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .canvas-meta {
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    .svg-scroll-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    svg.behtml-chart {
+      width: 100%;
+      height: auto;
+      min-width: 600px;
+      display: block;
+    }
+
+    /* BEHTML Data Table */
+    .behtml-table-container {
+      grid-column: span 8;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-main);
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+
+    table.behtml-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    table.behtml-table th {
+      background: #000000;
+      color: var(--text-main);
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-main);
+    }
+
+    table.behtml-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-main);
+      font-family: var(--font-mono);
+    }
+
+    table.behtml-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tag-accent {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .tag-white {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      border: 1px solid var(--border-main);
+      color: var(--text-main);
+    }
+
+    /* Series Banner Header */
+    .series-banner-bar {
+      border: 1px solid var(--border-main);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #000000;
+    }
+
+    .series-banner-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Slide-out Sidebar Drawer Navigation */
+    .behtml-drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      opacity: 0.85;
+      z-index: 96;
+    }
+
+    .behtml-drawer-backdrop.active {
+      display: block;
+    }
+
+    .behtml-drawer-drawer {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 320px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-main);
+      z-index: 96;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transform: translateX(-100%);
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .behtml-drawer-drawer.active {
+      transform: translateX(0);
+    }
+
+    .drawer-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .drawer-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 32px;
+    }
+
+    .drawer-item-btn {
+      width: 100%;
+      text-align: left;
+      padding: 12px 14px;
+      background: #000000;
+      border: 1px solid var(--border-main);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-sans);
+    }
+
+    .drawer-item-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .drawer-item-btn.active {
+      border-color: var(--primary);
+      box-shadow: inset 3px 0 0 var(--primary);
+    }
+
+    .drawer-item-heading {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .drawer-item-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Settings / Inspector Modal */
+    .behtml-modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      opacity: 0.9;
+      z-index: 160;
+    }
+
+    .behtml-modal-backdrop.active {
+      display: block;
+    }
+
+    .behtml-modal-dialog {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 500px;
+      background: var(--bg-surface);
+      border: 1px solid var(--primary);
+      z-index: 160;
+      padding: 24px;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .behtml-modal-dialog.active {
+      display: flex;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .modal-body-content {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer.behtml-footer {
+      border-top: 1px solid var(--border-main);
+      padding: 20px 16px;
+      background: var(--bg-void);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-main);
+      margin-top: auto;
+    }
+
+    footer.behtml-footer a {
+      color: var(--text-main);
+      text-decoration: underline;
+    }
+
+    /* ============================================================== */
+    /* 3D VERTICAL AXIS SPATIAL VIEWPORT & OPTICAL SLIDER CSS         */
+    /* Architecture: 6 Layers · Z-Index = Layer * 32 · Ry = 32px     */
+    /* ============================================================== */
+    .viewport-3d-wrapper {
+      grid-column: span 8;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-main);
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .viewport-3d-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #000000;
+    }
+
+    .viewport-3d-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      padding: 16px;
+      background: #000000;
+      border-bottom: 1px solid var(--border-main);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-main);
+    }
+
+    .control-label span.val-display {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .behtml-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #000000;
+      border: 1px solid var(--border-main);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .behtml-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--primary);
+      border: 1px solid #ffffff;
+      cursor: pointer;
+    }
+
+    .behtml-slider::-webkit-slider-thumb:hover,
+    .behtml-slider:active::-webkit-slider-thumb {
+      background: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .viewport-3d-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-main);
+      background: #000000;
+    }
+
+    .preset-btn {
+      background: #000000;
+      border: 1px solid var(--border-main);
+      color: var(--text-main);
+      padding: 6px 12px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .preset-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* 3D Perspective Stage Container */
+    .perspective-canvas-container {
+      height: 480px;
+      perspective: 1100px;
+      perspective-origin: 50% 50%;
+      position: relative;
+      overflow: hidden;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .perspective-axis-hud {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid var(--border-main);
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1.5;
+      z-index: 20;
+      color: #ffffff;
+    }
+
+    .behtml-3d-stage {
+      width: 380px;
+      height: 240px;
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateX(var(--pitch-deg, 48deg)) rotateY(var(--yaw-deg, -25deg)) rotateZ(0deg);
+      transition: transform 0.05s ease-out;
+    }
+
+    @media (max-width: 600px) {
+      .behtml-3d-stage {
+        width: 270px;
+        height: 170px;
+      }
+    }
+
+    .layer-3d-plane {
+      position: absolute;
+      inset: 0;
+      border: 1px solid #ffffff;
+      background: rgba(0, 0, 0, var(--layer-opacity, 0.85));
+      transform-style: preserve-3d;
+      box-shadow: 0 0 14px rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      transition: border-color 0.15s ease-out;
+    }
+
+    .layer-3d-plane.active-inspect {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 20px rgba(222, 38, 38, 0.4);
+    }
+
+    .plane-badge-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      background: #000000;
+      border: 1px solid #ffffff;
+      align-self: flex-start;
+      margin-bottom: 6px;
+      color: #ffffff;
+    }
+
+    .plane-badge-tag.accent {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .plane-preview-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: #ffffff;
+    }
+
+    /* Mathematical Telemetry Table */
+    .z-math-telemetry-box {
+      padding: 16px;
+      border-top: 1px solid var(--border-main);
+      background: #000000;
+    }
+
+    .z-math-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .z-math-table th,
+    .z-math-table td {
+      border: 1px solid var(--border-main);
+      padding: 6px 10px;
+      text-align: left;
+    }
+
+    .z-math-table th {
+      background: #000000;
+      color: var(--primary);
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- Policy Header: [Hamburger] [App Title] [Settings] -->
+  <header class="behtml-header">
+    <div class="header-left">
+      <button class="header-btn" id="btn-hamburger" title="Navigation Drawer" aria-label="Toggle Navigation">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#ffffff">
+          <rect y="2" width="16" height="2"/>
+          <rect y="7" width="16" height="2"/>
+          <rect y="12" width="16" height="2"/>
+        </svg>
+      </button>
+      <div class="header-title">
+        <span class="cube-anchor"></span>
+        BEHTML Metric Dashboard
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="header-btn" id="btn-settings" title="Inspector Overlay" aria-label="Inspector Overlay">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#ffffff">
+          <circle cx="8" cy="8" r="3" stroke="#ffffff" stroke-width="1.5" fill="none"/>
+          <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" stroke="#ffffff" stroke-width="1.5"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Horizontal Overflow Dock Strip (Sub-navigation) -->
+  <nav class="behtml-dock-strip" id="dock-strip" aria-label="Views">
+    <!-- Injected dynamically per active test series -->
+  </nav>
+
+  <!-- Main Spatial Stage -->
+  <main class="behtml-stage">
+
+    <!-- ============================================================== -->
+    <!-- TEST SERIES 1: MFDB Federation & Scaling                       -->
+    <!-- ============================================================== -->
+    <div id="series-1" class="series-viewport active">
+      <div class="series-banner-bar">
+        <span class="series-banner-title">Test Series 1: MFDB Federation & Scaling</span>
+        <span class="tag-accent">254 Federated Entities</span>
+      </div>
+
+      <!-- S1 TAB 1: OVERVIEW -->
+      <section id="s1-overview" class="panel-view active">
+        <div class="behtml-spatial-grid">
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Federated Entities</span>
+            <div class="behtml-card-val">254 <span class="unit">Tables</span></div>
+            <span class="behtml-card-status">1 Master Manifest (105a)</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">O(1) Lookup Speed</span>
+            <div class="behtml-card-val">15.7M <span class="unit">ops/s</span></div>
+            <span class="behtml-card-status">7.72x vs Linear Scan</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Token Savings</span>
+            <div class="behtml-card-val">70.1% <span class="unit">Saved</span></div>
+            <span class="behtml-card-status">395k Tokens / 4k Rows</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Peak Process RSS</span>
+            <div class="behtml-card-val">16.4 <span class="unit">MB</span></div>
+            <span class="behtml-card-status">&lt; 50 MB Target Ceiling</span>
+          </div>
+        </div>
+
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">Core Architecture Comparison</span>
+            <span class="canvas-meta">Standard JSON vs BEJSON 105 Architecture</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 240">
+              <line x1="180" y1="20" x2="180" y2="200" stroke="#ffffff"/>
+              <text x="160" y="55" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">Payload (4k rows)</text>
+              <rect x="180" y="38" width="600" height="14" fill="#ffffff"/>
+              <text x="790" y="50" fill="#ffffff" font-size="11" font-family="monospace">Standard: 2.17 MB</text>
+              <rect x="180" y="56" width="180" height="14" fill="#DE2626"/>
+              <text x="370" y="68" fill="#ffffff" font-size="11" font-family="monospace" font-weight="bold">BEJSON 105: 0.65 MB (-70.1%)</text>
+
+              <text x="160" y="115" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">Field Resolution</text>
+              <rect x="180" y="98" width="85" height="14" fill="#ffffff"/>
+              <text x="275" y="110" fill="#ffffff" font-size="11" font-family="monospace">Linear: 2.03M ops/s</text>
+              <rect x="180" y="116" width="655" height="14" fill="#DE2626"/>
+              <text x="845" y="128" fill="#ffffff" font-size="11" font-family="monospace" font-weight="bold">O(1) Map: 15.7M ops/s (7.7x)</text>
+
+              <text x="160" y="175" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">RAM Footprint</text>
+              <rect x="180" y="158" width="550" height="14" fill="transparent" stroke="#ffffff"/>
+              <text x="740" y="170" fill="#ffffff" font-size="11" font-family="monospace">Target: 50.0 MB</text>
+              <rect x="180" y="176" width="180" height="14" fill="#DE2626"/>
+              <text x="370" y="188" fill="#ffffff" font-size="11" font-family="monospace" font-weight="bold">Actual VmRSS: 16.4 MB</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- S1 TAB 2: SPEED -->
+      <section id="s1-speed" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">Field Access Throughput (ops/sec)</span>
+            <span class="canvas-meta">Microbenchmarks on Termux ARM64</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 240">
+              <g transform="translate(40, 20)">
+                <text x="200" y="35" fill="#ffffff" font-size="13" font-family="monospace" text-anchor="end">O(1) Field-Map Cached</text>
+                <rect x="220" y="18" width="580" height="26" fill="#DE2626"/>
+                <text x="810" y="36" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold">15,736,023 ops/s</text>
+
+                <text x="200" y="95" fill="#ffffff" font-size="13" font-family="monospace" text-anchor="end">105db Single Bundle</text>
+                <rect x="220" y="78" width="95" height="26" fill="#ffffff"/>
+                <text x="325" y="96" fill="#ffffff" font-size="12" font-family="monospace">2,581,670 ops/s</text>
+
+                <text x="200" y="155" fill="#ffffff" font-size="13" font-family="monospace" text-anchor="end">Linear Positional Scan</text>
+                <rect x="220" y="138" width="75" height="26" fill="#ffffff"/>
+                <text x="305" y="156" fill="#ffffff" font-size="12" font-family="monospace">2,038,157 ops/s</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- S1 TAB 3: TOKENS -->
+      <section id="s1-tokens" class="panel-view">
+        <div class="behtml-spatial-grid">
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">10,000 Rows Saved</span>
+            <div class="behtml-card-val">989k <span class="unit">Tokens</span></div>
+            <span class="behtml-card-status">Prevents 1M Context Breach</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">25,000 Rows Saved</span>
+            <div class="behtml-card-val">2.47M <span class="unit">Tokens</span></div>
+            <span class="behtml-card-status">1.05M Tokens (Fits in 2M)</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">50,000 Rows Saved</span>
+            <div class="behtml-card-val">4.95M <span class="unit">Tokens</span></div>
+            <span class="behtml-card-status">Saves $12.37 / inference call</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">100,000 Rows Saved</span>
+            <div class="behtml-card-val">9.90M <span class="unit">Tokens</span></div>
+            <span class="behtml-card-status">-70.16% Net Reduction</span>
+          </div>
+        </div>
+
+        <!-- Exponential Slide Chart -->
+        <div class="behtml-canvas-card" style="margin-top:20px;">
+          <div class="canvas-card-header">
+            <span class="canvas-title">The Exponential Slide: Extending Scales & LLM Context Ceilings</span>
+            <span class="canvas-meta">500 to 100,000 Records &bull; Cumulative Tokens Saved</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 950 320">
+              <!-- Grid and Axes -->
+              <line x1="120" y1="260" x2="900" y2="260" stroke="#ffffff" stroke-width="1.5"/>
+              <line x1="120" y1="30" x2="120" y2="260" stroke="#ffffff" stroke-width="1.5"/>
+
+              <!-- Context Ceiling Thresholds -->
+              <line x1="120" y1="230" x2="900" y2="230" stroke="#ffffff" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+              <text x="895" y="225" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="end" opacity="0.6">128k Limit (GPT-4o / Llama 3)</text>
+
+              <line x1="120" y1="200" x2="900" y2="200" stroke="#ffffff" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+              <text x="895" y="195" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="end" opacity="0.6">200k Limit (Claude 3.5 Sonnet)</text>
+
+              <line x1="120" y1="140" x2="900" y2="140" stroke="#ffffff" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+              <text x="895" y="135" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="end" opacity="0.6">1M Limit (Gemini 1.5 Flash)</text>
+
+              <line x1="120" y1="80" x2="900" y2="80" stroke="#ffffff" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+              <text x="895" y="75" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="end" opacity="0.6">2M Limit (Gemini 1.5/2.0 Pro)</text>
+
+              <!-- Legend -->
+              <g transform="translate(130, 20)">
+                <rect x="0" y="0" width="14" height="10" fill="#ffffff"/>
+                <text x="20" y="9" fill="#ffffff" font-size="11" font-family="monospace">Standard JSON Tokens</text>
+                <rect x="220" y="0" width="14" height="10" fill="#DE2626"/>
+                <text x="240" y="9" fill="#ffffff" font-size="11" font-family="monospace">BEJSON 105 Matrix Tokens</text>
+                <line x1="460" y1="5" x2="480" y2="5" stroke="#DE2626" stroke-width="2"/>
+                <text x="490" y="9" fill="#DE2626" font-size="11" font-family="monospace">Cumulative Tokens Saved (Slide)</text>
+              </g>
+
+              <!-- Bars & Exponential Curve for Scales: 500, 1k, 2.5k, 5k, 10k, 25k, 50k, 100k -->
+              <g transform="translate(160, 0)">
+                <rect x="-16" y="248" width="14" height="12" fill="#ffffff"/>
+                <rect x="2" y="256" width="14" height="4" fill="#DE2626"/>
+                <text x="0" y="278" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">500</text>
+                <text x="0" y="292" fill="#DE2626" font-size="9" font-family="monospace" text-anchor="middle">-49k</text>
+              </g>
+
+              <g transform="translate(255, 0)">
+                <rect x="-16" y="238" width="14" height="22" fill="#ffffff"/>
+                <rect x="2" y="253" width="14" height="7" fill="#DE2626"/>
+                <text x="0" y="278" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">1k</text>
+                <text x="0" y="292" fill="#DE2626" font-size="9" font-family="monospace" text-anchor="middle">-99k</text>
+              </g>
+
+              <g transform="translate(350, 0)">
+                <rect x="-16" y="205" width="14" height="55" fill="#ffffff"/>
+                <rect x="2" y="243" width="14" height="17" fill="#DE2626"/>
+                <text x="0" y="278" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">2.5k</text>
+                <text x="0" y="292" fill="#DE2626" font-size="9" font-family="monospace" text-anchor="middle">-247k</text>
+              </g>
+
+              <g transform="translate(445, 0)">
+                <rect x="-16" y="150" width="14" height="110" fill="#ffffff"/>
+                <rect x="2" y="227" width="14" height="33" fill="#DE2626"/>
+                <text x="0" y="278" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">5k</text>
+                <text x="0" y="292" fill="#DE2626" font-size="9" font-family="monospace" text-anchor="middle">-495k</text>
+              </g>
+
+              <g transform="translate(540, 0)">
+                <rect x="-16" y="95" width="14" height="165" fill="#ffffff"/>
+                <rect x="2" y="194" width="14" height="66" fill="#DE2626"/>
+                <text x="0" y="278" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">10k</text>
+                <text x="0" y="292" fill="#DE2626" font-size="9" font-family="monospace" text-anchor="middle">-989k</text>
+              </g>
+
+              <g transform="translate(635, 0)">
+                <rect x="-16" y="55" width="14" height="205" fill="#ffffff"/>
+                <rect x="2" y="130" width="14" height="130" fill="#DE2626"/>
+                <text x="0" y="278" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">25k</text>
+                <text x="0" y="292" fill="#DE2626" font-size="9" font-family="monospace" text-anchor="middle">-2.47M</text>
+              </g>
+
+              <g transform="translate(730, 0)">
+                <rect x="-16" y="30" width="14" height="230" fill="#ffffff"/>
+                <rect x="2" y="70" width="14" height="190" fill="#DE2626"/>
+                <text x="0" y="278" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">50k</text>
+                <text x="0" y="292" fill="#DE2626" font-size="9" font-family="monospace" text-anchor="middle">-4.95M</text>
+              </g>
+
+              <g transform="translate(825, 0)">
+                <rect x="-16" y="15" width="14" height="245" fill="#ffffff"/>
+                <rect x="2" y="40" width="14" height="220" fill="#DE2626"/>
+                <text x="0" y="278" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">100k</text>
+                <text x="0" y="292" fill="#DE2626" font-size="9" font-family="monospace" text-anchor="middle">-9.90M</text>
+              </g>
+
+              <path d="M 160 252 Q 350 240 540 180 T 825 40" fill="none" stroke="#DE2626" stroke-width="2.5"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Extending Scales Data Table -->
+        <div class="behtml-table-container" style="margin-top:20px;">
+          <table class="behtml-data-table">
+            <thead>
+              <tr>
+                <th>Scale (Rows)</th>
+                <th>Standard JSON</th>
+                <th>BEJSON 105 Matrix</th>
+                <th>Standard Tokens</th>
+                <th>BEJSON Tokens</th>
+                <th>Net Tokens Saved</th>
+                <th>Token Reduction</th>
+                <th>LLM Context Survival</th>
+                <th>Cost Saved ($2.50/M)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>500</strong></td>
+                <td>271.5 KB</td>
+                <td>81.8 KB</td>
+                <td>70,519</td>
+                <td>21,255</td>
+                <td><strong style="color:var(--primary);">+49,264</strong></td>
+                <td>-69.86%</td>
+                <td>Fits in 128k</td>
+                <td>$0.12</td>
+              </tr>
+              <tr>
+                <td><strong>1,000</strong></td>
+                <td>543.0 KB</td>
+                <td>162.8 KB</td>
+                <td>141,039</td>
+                <td>42,294</td>
+                <td><strong style="color:var(--primary);">+98,745</strong></td>
+                <td>-70.01%</td>
+                <td>Fits in 200k</td>
+                <td>$0.25</td>
+              </tr>
+              <tr>
+                <td><strong>2,500</strong></td>
+                <td>1.36 MB</td>
+                <td>405.8 KB</td>
+                <td>352,597</td>
+                <td>105,410</td>
+                <td><strong style="color:var(--primary);">+247,187</strong></td>
+                <td>-70.10%</td>
+                <td>Std bursts 200k / BEJ fits 128k</td>
+                <td>$0.62</td>
+              </tr>
+              <tr>
+                <td><strong>5,000</strong></td>
+                <td>2.71 MB</td>
+                <td>810.8 KB</td>
+                <td>705,195</td>
+                <td>210,605</td>
+                <td><strong style="color:var(--primary);">+494,590</strong></td>
+                <td>-70.14%</td>
+                <td>Std bursts 200k / BEJ fits 1M</td>
+                <td>$1.24</td>
+              </tr>
+              <tr>
+                <td><strong>10,000</strong></td>
+                <td>5.43 MB</td>
+                <td>1.62 MB</td>
+                <td>1,410,389</td>
+                <td>420,995</td>
+                <td><strong style="color:var(--primary);">+989,394</strong></td>
+                <td>-70.15%</td>
+                <td>Std bursts 1M / BEJ fits 1M</td>
+                <td>$2.47</td>
+              </tr>
+              <tr>
+                <td><strong>25,000</strong></td>
+                <td>13.58 MB</td>
+                <td>4.05 MB</td>
+                <td>3,525,974</td>
+                <td>1,052,164</td>
+                <td><strong style="color:var(--primary);">+2,473,810</strong></td>
+                <td>-70.16%</td>
+                <td>Std bursts 2M / BEJ fits 2M</td>
+                <td>$6.18</td>
+              </tr>
+              <tr>
+                <td><strong>50,000</strong></td>
+                <td>27.15 MB</td>
+                <td>8.10 MB</td>
+                <td>7,051,948</td>
+                <td>2,104,112</td>
+                <td><strong style="color:var(--primary);">+4,947,836</strong></td>
+                <td>-70.16%</td>
+                <td>Std Impossible (7.0M) / BEJ Promptable</td>
+                <td>$12.37</td>
+              </tr>
+              <tr>
+                <td><strong>100,000</strong></td>
+                <td>54.30 MB</td>
+                <td>16.20 MB</td>
+                <td>14,103,896</td>
+                <td>4,208,008</td>
+                <td><strong style="color:var(--primary);">+9,895,888</strong></td>
+                <td>-70.16%</td>
+                <td>10 Million Tokens Saved</td>
+                <td>$24.74</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- S1 TAB 4: WRITES -->
+      <section id="s1-writes" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">Two-Phase Atomic Write Latency by Tier</span>
+            <span class="canvas-meta">.tmp.&lt;pid&gt; &rarr; fsync &rarr; os.replace</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 240">
+              <line x1="80" y1="200" x2="840" y2="200" stroke="#ffffff"/>
+              <rect x="130" y="185" width="80" height="15" fill="#DE2626"/>
+              <text x="170" y="175" fill="#ffffff" font-size="11" font-family="monospace" text-anchor="middle">1.01 ms</text>
+              <text x="170" y="220" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="middle">1 KB</text>
+
+              <rect x="320" y="178" width="80" height="22" fill="#DE2626"/>
+              <text x="360" y="168" fill="#ffffff" font-size="11" font-family="monospace" text-anchor="middle">1.36 ms</text>
+              <text x="360" y="220" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="middle">10 KB</text>
+
+              <rect x="510" y="125" width="80" height="75" fill="#DE2626"/>
+              <text x="550" y="115" fill="#ffffff" font-size="11" font-family="monospace" text-anchor="middle">5.30 ms</text>
+              <text x="550" y="220" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="middle">100 KB</text>
+
+              <rect x="700" y="35" width="80" height="165" fill="#DE2626"/>
+              <text x="740" y="25" fill="#ffffff" font-size="11" font-family="monospace" text-anchor="middle">20.67 ms</text>
+              <text x="740" y="220" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="middle">500 KB</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- S1 TAB 5: CASCADES -->
+      <section id="s1-cascades" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">MFDB v1.40 Master Manifest & Cascade Hierarchy</span>
+            <span class="canvas-meta">Bidirectional Referential Integrity Tree</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 200">
+              <rect x="40" y="70" width="160" height="50" fill="#000000" stroke="#DE2626" stroke-width="2"/>
+              <text x="120" y="95" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold" text-anchor="middle">Master Manifest</text>
+              <text x="120" y="110" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">105a.mfdb.bejson</text>
+
+              <line x1="200" y1="95" x2="250" y2="95" stroke="#DE2626" stroke-width="2"/>
+              <rect x="250" y="70" width="140" height="50" fill="#000000" stroke="#ffffff"/>
+              <text x="320" y="95" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold" text-anchor="middle">organizations</text>
+              <text x="320" y="110" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">PK: record_uuid</text>
+
+              <line x1="390" y1="95" x2="440" y2="95" stroke="#ffffff" stroke-width="2"/>
+              <rect x="440" y="70" width="130" height="50" fill="#000000" stroke="#ffffff"/>
+              <text x="505" y="95" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold" text-anchor="middle">clusters</text>
+              <text x="505" y="110" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">FK: org_fk</text>
+
+              <line x1="570" y1="95" x2="620" y2="95" stroke="#ffffff" stroke-width="2"/>
+              <rect x="620" y="70" width="130" height="50" fill="#000000" stroke="#ffffff"/>
+              <text x="685" y="95" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold" text-anchor="middle">services</text>
+              <text x="685" y="110" fill="#ffffff" font-size="10" font-family="monospace" text-anchor="middle">FK: cluster_fk</text>
+
+              <line x1="750" y1="95" x2="800" y2="95" stroke="#ffffff" stroke-width="2"/>
+              <rect x="800" y="70" width="140" height="50" fill="#000000" stroke="#DE2626"/>
+              <text x="870" y="95" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold" text-anchor="middle">deployments</text>
+              <text x="870" y="110" fill="#DE2626" font-size="10" font-family="monospace" text-anchor="middle">Error [44] Block</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TEST SERIES 2: BEJSON 105 vs SQL (SQLite3) Comparison           -->
+    <!-- ============================================================== -->
+    <div id="series-2" class="series-viewport">
+      <div class="series-banner-bar">
+        <span class="series-banner-title">Test Series 2: BEJSON 105 vs SQL (SQLite3) Benchmark</span>
+        <span class="tag-accent">80.4x Query Speedup</span>
+      </div>
+
+      <!-- S2 TAB 1: OVERVIEW -->
+      <section id="s2-overview" class="panel-view active">
+        <div class="behtml-spatial-grid">
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Point Query Speedup</span>
+            <div class="behtml-card-val">80.4x <span class="unit">Faster</span></div>
+            <span class="behtml-card-status">0.29 µs vs 23.53 µs</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Query Throughput</span>
+            <div class="behtml-card-val">3.42M <span class="unit">ops/s</span></div>
+            <span class="behtml-card-status">SQLite: 42,504 ops/s</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Token Savings (5k)</span>
+            <div class="behtml-card-val">68.5% <span class="unit">Saved</span></div>
+            <span class="behtml-card-status">493,848 Tokens Saved</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Storage Reduction</span>
+            <div class="behtml-card-val">22.7% <span class="unit">Smaller</span></div>
+            <span class="behtml-card-status">873 KB vs 1.13 MB</span>
+          </div>
+        </div>
+
+        <div class="behtml-table-container">
+          <table class="behtml-table">
+            <thead>
+              <tr>
+                <th>Benchmark Factor</th>
+                <th>SQL (SQLite3)</th>
+                <th>BEJSON 105 / MFDB</th>
+                <th>Advantage / Factor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Point Query Latency</strong></td>
+                <td>23.53 µs / op</td>
+                <td>0.29 µs / op</td>
+                <td><span class="tag-accent">80.4x Faster</span></td>
+              </tr>
+              <tr>
+                <td><strong>Point Query Throughput</strong></td>
+                <td>42,504 ops/sec</td>
+                <td>3,417,769 ops/sec</td>
+                <td><span class="tag-accent">+3.37M ops/sec</span></td>
+              </tr>
+              <tr>
+                <td><strong>5,000-Row Dataset Size</strong></td>
+                <td>1,130,496 bytes (1.13 MB)</td>
+                <td>873,484 bytes (0.87 MB)</td>
+                <td><span class="tag-accent">-22.7% Disk Size</span></td>
+              </tr>
+              <tr>
+                <td><strong>LLM Context Tokens (5,000 Rows)</strong></td>
+                <td>720,726 tokens</td>
+                <td>226,878 tokens</td>
+                <td><span class="tag-accent">-68.5% (-493k tokens)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Batch Write (5,000 Rows)</strong></td>
+                <td>39.75 ms (WAL trans)</td>
+                <td>94.33 ms (atomic fsync)</td>
+                <td><span class="tag-white">ACID Atomic Verified</span></td>
+              </tr>
+              <tr>
+                <td><strong>Binary / C Dependency</strong></td>
+                <td>Compiled binary (`libsqlite3.so`)</td>
+                <td>Zero-Binary / Pure JSON</td>
+                <td><span class="tag-accent">100% Portable</span></td>
+              </tr>
+              <tr>
+                <td><strong>Git Diffability & Versioning</strong></td>
+                <td>Opaque Binary Blob</td>
+                <td>Deterministic Plaintext</td>
+                <td><span class="tag-accent">Clean Git Diffs</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- S2 TAB 2: QUERIES -->
+      <section id="s2-queries" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">Point Query Throughput (ops/sec)</span>
+            <span class="canvas-meta">10,000 Indexed Lookups: SQLite3 vs BEJSON 105 O(1) Field Map</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 200">
+              <g transform="translate(40, 30)">
+                <text x="180" y="45" fill="#ffffff" font-size="13" font-family="monospace" text-anchor="end">SQLite Indexed</text>
+                <rect x="200" y="28" width="12" height="26" fill="#ffffff"/>
+                <text x="220" y="46" fill="#ffffff" font-size="12" font-family="monospace">42,504 ops/s (23.53 µs)</text>
+
+                <text x="180" y="105" fill="#ffffff" font-size="13" font-family="monospace" text-anchor="end">BEJSON 105 O(1)</text>
+                <rect x="200" y="88" width="620" height="26" fill="#DE2626"/>
+                <text x="830" y="106" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold">3,417,769 ops/s (0.29 µs)</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- S2 TAB 3: TOKENS -->
+      <section id="s2-tokens" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">LLM Context Tokens (5,000 Rows)</span>
+            <span class="canvas-meta">SQL Object Serialization vs BEJSON 105 Matrix</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 200">
+              <line x1="200" y1="20" x2="200" y2="160" stroke="#ffffff"/>
+              <text x="180" y="55" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">SQL JSON Dump</text>
+              <rect x="200" y="38" width="600" height="20" fill="#ffffff"/>
+              <text x="810" y="53" fill="#ffffff" font-size="12" font-family="monospace">720,726 tokens</text>
+
+              <text x="180" y="115" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">BEJSON 105</text>
+              <rect x="200" y="98" width="189" height="20" fill="#DE2626"/>
+              <text x="400" y="113" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold">226,878 tokens (-68.5%)</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- S2 TAB 4: STORAGE -->
+      <section id="s2-storage" class="panel-view">
+        <div class="behtml-spatial-grid">
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">SQLite File Size</span>
+            <div class="behtml-card-val">1,130 <span class="unit">KB</span></div>
+            <span class="behtml-card-status">B-Tree Pages</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">BEJSON 105 File</span>
+            <div class="behtml-card-val">873 <span class="unit">KB</span></div>
+            <span class="behtml-card-status">-22.7% Disk Size</span>
+          </div>
+          <div class="behtml-cell-card" style="grid-column: span 4;">
+            <span class="behtml-card-label">Gzipped Wire Payload</span>
+            <div class="behtml-card-val">137 <span class="unit">KB</span></div>
+            <span class="behtml-card-status">Compact Compression</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- S2 TAB 5: MATRIX -->
+      <section id="s2-matrix" class="panel-view">
+        <div class="behtml-table-container">
+          <table class="behtml-table">
+            <thead>
+              <tr>
+                <th>Portability & Architectural Dimension</th>
+                <th>SQL (SQLite3)</th>
+                <th>BEJSON 105 / MFDB v1.40</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Zero-Binary Portability</strong></td>
+                <td>Requires architecture-compiled C binary / dynamic libraries.</td>
+                <td>Zero external binaries; runs everywhere pure JSON and text run.</td>
+              </tr>
+              <tr>
+                <td><strong>LLM Context Ingestion</strong></td>
+                <td>Must serialize to repetitive JSON or tabular SQL dumps.</td>
+                <td>Native matrix representation cuts prompt token costs by ~70%.</td>
+              </tr>
+              <tr>
+                <td><strong>Multi-Entity Federation</strong></td>
+                <td>Monolithic .sqlite file locks or fragile ATTACH DATABASE.</td>
+                <td>Discrete federated files with bidirectional Parent_Hierarchy links.</td>
+              </tr>
+              <tr>
+                <td><strong>Git Merging & Collaboration</strong></td>
+                <td>Binary conflicts require external tools or database dumps.</td>
+                <td>Standard line-based JSON diffable and mergeable in git.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TEST SERIES 3: High-Scale Stress (25k in 5 Ent & 60k in 3 Ent)  -->
+    <!-- ============================================================== -->
+    <div id="series-3" class="series-viewport">
+      <div class="series-banner-bar">
+        <span class="series-banner-title">Test Series 3: High-Scale Ingestion & Stress Benchmark</span>
+        <span class="tag-accent">85,000 Total Scaled Records</span>
+      </div>
+
+      <!-- S3 TAB 1: OVERVIEW -->
+      <section id="s3-overview" class="panel-view active">
+        <div class="behtml-spatial-grid">
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Workload 1 (5 Ent)</span>
+            <div class="behtml-card-val">25,000 <span class="unit">Records</span></div>
+            <span class="behtml-card-status">53,267 rec/s (0.47s)</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Workload 2 (3 Ent)</span>
+            <div class="behtml-card-val">60,000 <span class="unit">Records</span></div>
+            <span class="behtml-card-status">47,654 rec/s (1.26s)</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">O(1) Lookup Throughput</span>
+            <div class="behtml-card-val">8.3M <span class="unit">ops/s</span></div>
+            <span class="behtml-card-status">Stress Scale Verified</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Peak RSS (60k Rows)</span>
+            <div class="behtml-card-val">35.9 <span class="unit">MB</span></div>
+            <span class="behtml-card-status">&lt; 50 MB Target Ceiling</span>
+          </div>
+        </div>
+
+        <div class="behtml-table-container">
+          <table class="behtml-table">
+            <thead>
+              <tr>
+                <th>Scaling & Stress Metric</th>
+                <th>Workload 1 (25,000 / 5 Entities)</th>
+                <th>Workload 2 (60,000 / 3 Entities)</th>
+                <th>Scaling Characteristics</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Total Records</strong></td>
+                <td>25,000 records</td>
+                <td>60,000 records</td>
+                <td><span class="tag-white">2.4x Dataset Volume</span></td>
+              </tr>
+              <tr>
+                <td><strong>Entity Distribution</strong></td>
+                <td>5 discrete tables (5,000 rows each)</td>
+                <td>3 discrete tables (20,000 rows each)</td>
+                <td><span class="tag-accent">4x Row Density / File</span></td>
+              </tr>
+              <tr>
+                <td><strong>On-Disk Footprint</strong></td>
+                <td>4.00 MB total</td>
+                <td>13.10 MB total</td>
+                <td><span class="tag-white">Linear Byte Density</span></td>
+              </tr>
+              <tr>
+                <td><strong>Ingestion Velocity</strong></td>
+                <td>53,267 records / sec (0.469 s)</td>
+                <td>47,654 records / sec (1.259 s)</td>
+                <td><span class="tag-accent">Sustained 50k+ rec/s</span></td>
+              </tr>
+              <tr>
+                <td><strong>Two-Phase Atomic Commit</strong></td>
+                <td>264.58 ms (5 files)</td>
+                <td>633.05 ms (3 files)</td>
+                <td><span class="tag-white">Full fsync Durability</span></td>
+              </tr>
+              <tr>
+                <td><strong>O(1) Point Lookup Speed</strong></td>
+                <td>8,297,478 ops/sec</td>
+                <td>7,671,864 ops/sec</td>
+                <td><span class="tag-accent">Stable Cache Velocity</span></td>
+              </tr>
+              <tr>
+                <td><strong>Peak Memory (VmRSS)</strong></td>
+                <td>26.07 MB</td>
+                <td>35.85 MB</td>
+                <td><span class="tag-accent">&lt; 50 MB Ceiling Held</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- S3 TAB 2: WORKLOAD 1 (25k) -->
+      <section id="s3-w1" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">Workload 1 Entity Distribution (5,000 rows each)</span>
+            <span class="canvas-meta">Total: 25,000 Rows | Ingestion: 0.469s (53,267 rec/s)</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 240">
+              <g transform="translate(40, 20)">
+                <text x="210" y="30" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">tenant_organizations</text>
+                <rect x="230" y="16" width="450" height="18" fill="#DE2626"/>
+                <text x="690" y="30" fill="#ffffff" font-size="11" font-family="monospace">5k rows (804 KB)</text>
+
+                <text x="210" y="70" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">infrastructure_nodes</text>
+                <rect x="230" y="56" width="450" height="18" fill="#ffffff"/>
+                <text x="690" y="70" fill="#ffffff" font-size="11" font-family="monospace">5k rows (825 KB)</text>
+
+                <text x="210" y="110" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">container_pods</text>
+                <rect x="230" y="96" width="450" height="18" fill="#DE2626"/>
+                <text x="690" y="110" fill="#ffffff" font-size="11" font-family="monospace">5k rows (812 KB)</text>
+
+                <text x="210" y="150" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">audit_events</text>
+                <rect x="230" y="136" width="450" height="18" fill="#ffffff"/>
+                <text x="690" y="150" fill="#ffffff" font-size="11" font-family="monospace">5k rows (831 KB)</text>
+
+                <text x="210" y="190" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">billing_metering</text>
+                <rect x="230" y="176" width="450" height="18" fill="#DE2626"/>
+                <text x="690" y="190" fill="#ffffff" font-size="11" font-family="monospace">5k rows (820 KB)</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- S3 TAB 3: WORKLOAD 2 (60k) -->
+      <section id="s3-w2" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">Workload 2 Entity Distribution (20,000 rows each)</span>
+            <span class="canvas-meta">Total: 60,000 Rows | Ingestion: 1.259s (47,654 rec/s)</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 200">
+              <g transform="translate(40, 30)">
+                <text x="210" y="35" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">telemetry_traces</text>
+                <rect x="230" y="18" width="550" height="24" fill="#DE2626"/>
+                <text x="790" y="35" fill="#ffffff" font-size="11" font-family="monospace">20k (4.38 MB)</text>
+
+                <text x="210" y="85" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">security_access_logs</text>
+                <rect x="230" y="68" width="550" height="24" fill="#ffffff"/>
+                <text x="790" y="85" fill="#ffffff" font-size="11" font-family="monospace">20k (4.35 MB)</text>
+
+                <text x="210" y="135" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">system_metrics_stream</text>
+                <rect x="230" y="118" width="550" height="24" fill="#DE2626"/>
+                <text x="790" y="135" fill="#ffffff" font-size="11" font-family="monospace">20k (4.37 MB)</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- S3 TAB 4: VELOCITY -->
+      <section id="s3-velocity" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">Ingestion Velocity Comparison</span>
+            <span class="canvas-meta">Sustained Ingestion Throughput (Records / Sec)</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 180">
+              <g transform="translate(40, 20)">
+                <text x="200" y="45" fill="#ffffff" font-size="13" font-family="monospace" text-anchor="end">Workload 1 (25k)</text>
+                <rect x="220" y="28" width="532" height="26" fill="#DE2626"/>
+                <text x="765" y="46" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold">53,267 rec/s</text>
+
+                <text x="200" y="105" fill="#ffffff" font-size="13" font-family="monospace" text-anchor="end">Workload 2 (60k)</text>
+                <rect x="220" y="88" width="476" height="26" fill="#ffffff"/>
+                <text x="710" y="106" fill="#ffffff" font-size="12" font-family="monospace" font-weight="bold">47,654 rec/s</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- S3 TAB 5: MEMORY -->
+      <section id="s3-memory" class="panel-view">
+        <div class="behtml-canvas-card">
+          <div class="canvas-card-header">
+            <span class="canvas-title">Process RSS Memory Stability Curve</span>
+            <span class="canvas-meta">VmRSS Telemetry vs 50 MB Target Ceiling</span>
+          </div>
+          <div class="svg-scroll-container">
+            <svg class="behtml-chart" viewBox="0 0 900 200">
+              <line x1="180" y1="20" x2="180" y2="160" stroke="#ffffff"/>
+              <!-- Target -->
+              <text x="160" y="45" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">Target Ceiling</text>
+              <rect x="180" y="30" width="600" height="18" fill="transparent" stroke="#ffffff"/>
+              <text x="790" y="44" fill="#ffffff" font-size="11" font-family="monospace">50.0 MB Target</text>
+
+              <!-- 25k -->
+              <text x="160" y="90" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">25k Records</text>
+              <rect x="180" y="75" width="312" height="18" fill="#ffffff"/>
+              <text x="505" y="89" fill="#ffffff" font-size="11" font-family="monospace">26.07 MB</text>
+
+              <!-- 60k -->
+              <text x="160" y="135" fill="#ffffff" font-size="12" font-family="monospace" text-anchor="end">60k Records</text>
+              <rect x="180" y="120" width="430" height="18" fill="#DE2626"/>
+              <text x="620" y="134" fill="#ffffff" font-size="11" font-family="monospace" font-weight="bold">35.85 MB (&lt; 50 MB Ceiling Held)</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+    </div>
+
+
+    <!-- ============================================================== -->
+    <!-- TEST SERIES 4: 3D Spatial Z-Plane Viewport Demonstration      -->
+    <!-- Architecture: 6 Layers · Z-Index = Layer * 32 · Ry = 32px     -->
+    <!-- ============================================================== -->
+    <div id="series-4" class="series-viewport">
+      <div class="series-banner-bar">
+        <span class="series-banner-title">Test Series 4: 3D Vertical Axis Spatial Viewport</span>
+        <span class="tag-accent">6 Layers &bull; Z = Layer &times; 32 &bull; Ry = 32px</span>
+      </div>
+
+      <!-- S4 TAB 1: 3D INTERACTIVE VIEWPORT -->
+      <section id="s4-interactive" class="panel-view active">
+        <div class="viewport-3d-wrapper">
+          <div class="viewport-3d-header">
+            <span class="canvas-title">3D Vertical Axis Layer Stacking & Optical Separation</span>
+            <span class="tag-accent">Interactive Z-Plane Demonstration</span>
+          </div>
+
+          <!-- Presets -->
+          <div class="viewport-3d-presets">
+            <button class="preset-btn" id="btn-pre-production">Production Occlusion (0x)</button>
+            <button class="preset-btn active" id="btn-pre-canonical">Canonical BEHTML (1x / 32px)</button>
+            <button class="preset-btn" id="btn-pre-exploded">Deep Exploded (2.5x / 80px)</button>
+            <button class="preset-btn" id="btn-pre-xray">X-Ray Wireframe (35% Opacity)</button>
+          </div>
+
+          <!-- Optical / Critical Sliders -->
+          <div class="viewport-3d-controls">
+            <div class="control-group">
+              <label class="control-label">
+                <span>Optical Z-Separation</span>
+                <span class="val-display" id="disp-z-depth">1.0x (32px / Layer)</span>
+              </label>
+              <input type="range" class="behtml-slider" id="slider-z-depth" min="0" max="3" step="0.1" value="1.0">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">
+                <span>Vertical Tilt (Pitch)</span>
+                <span class="val-display" id="disp-pitch">48&deg;</span>
+              </label>
+              <input type="range" class="behtml-slider" id="slider-pitch" min="15" max="80" step="1" value="48">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">
+                <span>Isometric Orbit (Yaw)</span>
+                <span class="val-display" id="disp-yaw">-25&deg;</span>
+              </label>
+              <input type="range" class="behtml-slider" id="slider-yaw" min="-60" max="60" step="1" value="-25">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">
+                <span>Optical Opacity</span>
+                <span class="val-display" id="disp-opacity">85%</span>
+              </label>
+              <input type="range" class="behtml-slider" id="slider-opacity" min="0.2" max="1.0" step="0.05" value="0.85">
+            </div>
+          </div>
+
+          <!-- 3D Perspective Stage -->
+          <div class="perspective-canvas-container">
+            <div class="perspective-axis-hud">
+              <div><strong>AXIS GEOMETRY</strong></div>
+              <div>X-Axis: 8 Macro Lanes (12.5%)</div>
+              <div>Y-Axis: Row Quantization (Ry = 32px)</div>
+              <div>Z-Axis: Depth = Layer &times; 32px</div>
+              <div style="margin-top:4px; color:var(--primary);" id="hud-total-disp">Total Spread: 160px</div>
+            </div>
+
+            <div class="behtml-3d-stage" id="stage-3d">
+
+              <!-- Layer 0: Base Spatial Canvas Void -->
+              <div class="layer-3d-plane" id="plane-l0" style="transform: translateZ(calc(0 * 32px * var(--z-mult, 1))) translateY(calc(0 * -16px * var(--z-mult, 1)));">
+                <span class="plane-badge-tag">L0 &bull; Z: 0 &bull; Base Spatial Canvas Void</span>
+                <div class="plane-preview-content">
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ffffff; padding-bottom:4px;">
+                    <span>Grid Mesh: 8 Lanes &times; 16 Sublanes</span>
+                    <span>Ry = 32px</span>
+                  </div>
+                  <div style="display:grid; grid-template-columns:repeat(8, 1fr); gap:2px; height:32px;">
+                    <div style="background:#000000; border:1px solid #ffffff;"></div>
+                    <div style="background:#000000; border:1px solid #ffffff;"></div>
+                    <div style="background:#000000; border:1px solid #ffffff;"></div>
+                    <div style="background:#000000; border:1px solid #ffffff;"></div>
+                    <div style="background:#000000; border:1px solid #ffffff;"></div>
+                    <div style="background:#000000; border:1px solid #ffffff;"></div>
+                    <div style="background:#000000; border:1px solid #ffffff;"></div>
+                    <div style="background:#000000; border:1px solid #ffffff;"></div>
+                  </div>
+                  <span style="font-size:9px; color:var(--text-muted);">Root background canvas container (z-index: 0)</span>
+                </div>
+              </div>
+
+              <!-- Layer 1: Structural Substrate & Datasets -->
+              <div class="layer-3d-plane" id="plane-l1" style="transform: translateZ(calc(1 * 32px * var(--z-mult, 1))) translateY(calc(1 * -16px * var(--z-mult, 1)));">
+                <span class="plane-badge-tag">L1 &bull; Z: 32 &bull; Structural Substrate</span>
+                <div class="plane-preview-content">
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid #ffffff; padding-bottom:4px;">
+                    <span>Dataset Partitioning</span>
+                    <span style="color:var(--primary);">28px Paradox + 4px Pad</span>
+                  </div>
+                  <div style="display:flex; gap:6px;">
+                    <div style="flex:1; border:1px dashed #ffffff; padding:4px; font-size:9px;">Col 1..4 (50%)</div>
+                    <div style="flex:1; border:1px dashed #ffffff; padding:4px; font-size:9px;">Col 5..8 (50%)</div>
+                  </div>
+                  <span style="font-size:9px; color:var(--text-muted);">Structural containers & element footprints (z-index: 32)</span>
+                </div>
+              </div>
+
+              <!-- Layer 2: Interactive Surfaces & SVG Visuals -->
+              <div class="layer-3d-plane" id="plane-l2" style="transform: translateZ(calc(2 * 32px * var(--z-mult, 1))) translateY(calc(2 * -16px * var(--z-mult, 1)));">
+                <span class="plane-badge-tag accent">L2 &bull; Z: 64 &bull; Surface Cards & Charts</span>
+                <div class="plane-preview-content">
+                  <div style="display:flex; justify-content:space-between;">
+                    <span>Point Queries (80.4x)</span>
+                    <span style="color:var(--primary);">3,417,769 ops/s</span>
+                  </div>
+                  <svg width="100%" height="24" viewBox="0 0 200 24" style="background:#000000; border:1px solid #ffffff;">
+                    <rect x="4" y="6" width="30" height="12" fill="#ffffff" />
+                    <rect x="40" y="3" width="156" height="18" fill="#DE2626" />
+                  </svg>
+                  <span style="font-size:9px; color:var(--text-muted);">Interactive cards, data tables, SVG charts (z-index: 64)</span>
+                </div>
+              </div>
+
+              <!-- Layer 3: Floating Navigation Drawer & Shelves -->
+              <div class="layer-3d-plane" id="plane-l3" style="transform: translateZ(calc(3 * 32px * var(--z-mult, 1))) translateY(calc(3 * -16px * var(--z-mult, 1)));">
+                <span class="plane-badge-tag">L3 &bull; Z: 96 &bull; Sidebar Drawer & Overlays</span>
+                <div class="plane-preview-content">
+                  <div style="display:flex; gap:8px; align-items:center;">
+                    <div style="width:70px; border-right:1px solid #ffffff; padding-right:4px;">
+                      <div style="border-bottom:1px solid #ffffff; font-size:8px; font-weight:700;">DRAWER</div>
+                      <div style="font-size:8px; color:var(--primary);">&bull; Series 1</div>
+                      <div style="font-size:8px;">&bull; Series 2</div>
+                      <div style="font-size:8px;">&bull; Series 3</div>
+                    </div>
+                    <div style="flex:1; font-size:9px;">Contextual Slide-Out Drawer Panel (320px)</div>
+                  </div>
+                  <span style="font-size:9px; color:var(--text-muted);">Drawer backdrop & floating slide-outs (z-index: 96)</span>
+                </div>
+              </div>
+
+              <!-- Layer 4: Persistent Chrome & Top Dock -->
+              <div class="layer-3d-plane" id="plane-l4" style="transform: translateZ(calc(4 * 32px * var(--z-mult, 1))) translateY(calc(4 * -16px * var(--z-mult, 1)));">
+                <span class="plane-badge-tag accent">L4 &bull; Z: 128 &bull; Persistent Chrome</span>
+                <div class="plane-preview-content">
+                  <div style="display:flex; justify-content:space-between; align-items:center; border:1px solid #ffffff; padding:4px 6px; background:#000000;">
+                    <span style="display:flex; gap:4px; align-items:center;">
+                      <span style="display:inline-block; width:6px; height:6px; background:#ffffff;"></span>
+                      <strong style="font-size:9px;">[NAV] BEHTML DASHBOARD</strong>
+                    </span>
+                    <span style="font-size:9px; color:var(--primary);">[SETTINGS]</span>
+                  </div>
+                  <span style="font-size:9px; color:var(--text-muted);">Sticky Header & Horizontal Overflow Dock Strip (z-index: 128)</span>
+                </div>
+              </div>
+
+              <!-- Layer 5: Spatial Inspector HUD & Modals -->
+              <div class="layer-3d-plane" id="plane-l5" style="transform: translateZ(calc(5 * 32px * var(--z-mult, 1))) translateY(calc(5 * -16px * var(--z-mult, 1)));">
+                <span class="plane-badge-tag">L5 &bull; Z: 160 &bull; Spatial Inspector HUD</span>
+                <div class="plane-preview-content">
+                  <div style="border:1px solid var(--primary); padding:6px; background:rgba(0,0,0,0.9);">
+                    <div style="color:var(--primary); font-weight:700; font-size:9px;">MODAL INSPECTOR HUD</div>
+                    <div style="font-size:8px;">Telemetry &bull; Coordinate Verification &bull; Top Stacking</div>
+                  </div>
+                  <span style="font-size:9px; color:var(--text-muted);">Inspection overlay & modal dialogs (z-index: 160)</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Real-Time Mathematical Telemetry Table -->
+          <div class="z-math-telemetry-box">
+            <table class="z-math-table">
+              <thead>
+                <tr>
+                  <th>Layer Index</th>
+                  <th>Layer Specification</th>
+                  <th>CSS z-index</th>
+                  <th>Formula</th>
+                  <th>Calculated Z-Plane</th>
+                  <th>State</th>
+                </tr>
+              </thead>
+              <tbody id="telemetry-body">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- S4 TAB 2: LAYER BREAKDOWN (L0 - L5) -->
+      <section id="s4-layers" class="panel-view">
+        <div class="behtml-spatial-grid">
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Layer 0 (Z: 0)</span>
+            <div class="behtml-card-val">Canvas Void</div>
+            <span class="behtml-card-status">8-Lane Grid Mesh &bull; Ry=32px ticks</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Layer 1 (Z: 32)</span>
+            <div class="behtml-card-val">Substrate</div>
+            <span class="behtml-card-status">Structural Footprints &bull; 28px Paradox</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Layer 2 (Z: 64)</span>
+            <div class="behtml-card-val">Surface Views</div>
+            <span class="behtml-card-status">Interactive Cards &bull; SVG Visual Charts</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Layer 3 (Z: 96)</span>
+            <div class="behtml-card-val">Drawer / Shelves</div>
+            <span class="behtml-card-status">Slide-out Navigation &bull; Widget Shelves</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Layer 4 (Z: 128)</span>
+            <div class="behtml-card-val">Persistent Chrome</div>
+            <span class="behtml-card-status">Sticky Header Row &bull; Overflow Dock</span>
+          </div>
+          <div class="behtml-cell-card">
+            <span class="behtml-card-label">Layer 5 (Z: 160)</span>
+            <div class="behtml-card-val">Inspector HUD</div>
+            <span class="behtml-card-status">Modal Dialogs &bull; Diagnostic HUD</span>
+          </div>
+        </div>
+
+        <div class="behtml-table-container" style="margin-top:20px;">
+          <table class="behtml-data-table">
+            <thead>
+              <tr>
+                <th>Layer Level</th>
+                <th>Architectural Purpose</th>
+                <th>Standard Element Types</th>
+                <th>Occlusion Behavior</th>
+                <th>Event Discipline</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Layer 0</strong></td>
+                <td>Spatial Canvas & Void Grid</td>
+                <td><code>container</code>, <code>canvas</code>, <code>mesh</code></td>
+                <td>Base background; fully occluded by solid surfaces</td>
+                <td>Passive; backdrop clicks</td>
+              </tr>
+              <tr>
+                <td><strong>Layer 1</strong></td>
+                <td>Structural Substrate</td>
+                <td><code>layout-grid</code>, <code>column-sublane</code></td>
+                <td>Maintains structural skeleton without content</td>
+                <td>Non-interactive; alignment only</td>
+              </tr>
+              <tr>
+                <td><strong>Layer 2</strong></td>
+                <td>Active Surfaces & Data Visuals</td>
+                <td><code>card</code>, <code>chart</code>, <code>table</code>, <code>button</code></td>
+                <td>Primary visual layer; opaque fills block L0/L1</td>
+                <td>Full user interaction & clicks</td>
+              </tr>
+              <tr>
+                <td><strong>Layer 3</strong></td>
+                <td>Contextual Overlays & Drawer</td>
+                <td><code>drawer</code>, <code>shelf</code>, <code>popover</code></td>
+                <td>Semi-transparent backdrop occludes L2; drawer slides in</td>
+                <td>Modal trapping & drawer close</td>
+              </tr>
+              <tr>
+                <td><strong>Layer 4</strong></td>
+                <td>Persistent Chrome & Navigation</td>
+                <td><code>header</code>, <code>dock-strip</code>, <code>status-bar</code></td>
+                <td>Always floating above L2/L3 content during scroll</td>
+                <td>High-priority global controls</td>
+              </tr>
+              <tr>
+                <td><strong>Layer 5</strong></td>
+                <td>Spatial Inspector HUD & System Dialogs</td>
+                <td><code>dialog</code>, <code>hud</code>, <code>reticle</code></td>
+                <td>Topmost stacking plane; blocks all underlying planes</td>
+                <td>Isolated dialog event loop</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- S4 TAB 3: Z-AXIS OCCLUSION MATH -->
+      <section id="s4-math" class="panel-view">
+        <div class="behtml-spatial-grid">
+          <div class="behtml-cell-card" style="grid-column: span 4;">
+            <span class="behtml-card-label">Z-Plane Mathematical Occlusion</span>
+            <div class="behtml-card-val" style="font-size:20px;">z-index = Layer &times; 32</div>
+            <span class="behtml-card-status">Multiples of 32 eliminate arbitrary z-index conflicts</span>
+          </div>
+          <div class="behtml-cell-card" style="grid-column: span 4;">
+            <span class="behtml-card-label">Row Quantization Invariant</span>
+            <div class="behtml-card-val" style="font-size:20px;">Ry = 32px Vertical Rhythm</div>
+            <span class="behtml-card-status">Total footprint = y_span &times; 32px</span>
+          </div>
+        </div>
+
+        <div class="behtml-table-container" style="margin-top:20px;">
+          <div style="padding:16px; font-family:var(--font-mono); font-size:12px; line-height:1.7;">
+            <div style="color:var(--primary); font-weight:700; margin-bottom:8px;">MATHEMATICAL FOUNDATIONS & THE 28px PARADOX</div>
+            <p>1. <strong>Deterministic Z-Plane Law</strong>: In BEHTML, arbitrary CSS <code>z-index</code> values (e.g. 99, 999, 9999) are strictly prohibited. Every stacking level is an integer multiple of 32: <code>z-index = Layer * 32</code>. This guarantees non-colliding layers across all plugins and components.</p>
+            <p>2. <strong>The 28px Paradox (Generalized Container Padding Law)</strong>: Vertical padding is applied once per container footprint, not once per quantized row: <code>visual_height = (y_span * 32px) - 4px</code> (with 2px top padding and 2px bottom padding). For <code>y_span = 1</code>, visual height is exactly 28px (+ 4px pad = 32px). For <code>y_span = 2</code>, visual height is 60px (+ 4px pad = 64px).</p>
+            <p>3. <strong>Production Occlusion vs. Inspection Mode</strong>: In production runtime, layers stack natively via CSS <code>z-index</code> where upper layers fully occlude lower layers. In optical inspection mode, the vertical Z-axis is separated via <code>translateZ(Layer * 32px * Factor)</code> allowing full structural inspection of all 6 planes.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Layer 1: Slide-out Sidebar Drawer Navigation (Z-Index: 96) -->
+  <div class="behtml-drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="behtml-drawer-drawer" id="drawer-panel">
+    <div class="drawer-top-row">
+      <span>Categories</span>
+      <button class="header-btn" id="btn-close-drawer">&times;</button>
+    </div>
+    <div class="drawer-nav-list">
+      <button class="drawer-item-btn active" id="nav-s1" data-series="1">
+        <span class="drawer-item-heading">1. Test Series 1: MFDB Federation</span>
+        <span class="drawer-item-sub">254 Entities &bull; Cascades &bull; Scaling</span>
+      </button>
+      <button class="drawer-item-btn" id="nav-s2" data-series="2">
+        <span class="drawer-item-heading">2. Test Series 2: BEJSON 105 vs SQL</span>
+        <span class="drawer-item-sub">SQLite &bull; 80.4x Speedup &bull; Token Savings</span>
+      </button>
+      <button class="drawer-item-btn" id="nav-s3" data-series="3">
+        <span class="drawer-item-heading">3. Test Series 3: High-Scale Stress</span>
+        <span class="drawer-item-sub">25k (5 Ent) &bull; 60k (3 Ent) &bull; 53k rec/s</span>
+      </button>
+      <button class="drawer-item-btn" id="nav-s4" data-series="4">
+        <span class="drawer-item-heading">4. 3D Spatial Z-Plane Viewport</span>
+        <span class="drawer-item-sub">6 Layers &bull; Z=Layer*32 &bull; Optical Slider</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Layer 2: Settings / Inspector Modal (Z-Index: 128) -->
+  <div class="behtml-modal-backdrop" id="modal-backdrop"></div>
+  <div class="behtml-modal-dialog" id="modal-dialog">
+    <div class="modal-head">
+      <span>BEHTML Inspector HUD</span>
+      <button class="header-btn" id="btn-close-modal">&times;</button>
+    </div>
+    <div class="modal-body-content">
+      <div><strong>Framework</strong>: BEHTML 8-Lane Layout / Ry=32px</div>
+      <div><strong>Visual Constitution</strong>: Policy §8.1 Tri-Color (#000000, #ffffff, #DE2626)</div>
+      <div><strong>Stacking Planes</strong>: Layer 0 Base, Layer 1 Drawer, Layer 2 Modal</div>
+      <div style="margin-top: 10px; color: var(--primary);">Active System: BEJSON 105 & MFDB v1.40 Benchmark Suite</div>
+    </div>
+  </div>
+
+  <!-- Mandatory Footer Credit -->
+  <footer class="behtml-footer">
+    <div>Elton Boehnen &middot; <a href="mailto:boehnenelton2024@gmail.com">boehnenelton2024@gmail.com</a> &middot; <a href="https://boehnenelton2024.pages.dev" target="_blank" rel="noreferrer">boehnenelton2024.pages.dev</a> &middot; <a href="https://github.com/boehnenelton" target="_blank" rel="noreferrer">github.com/boehnenelton</a></div>
+    <div style="margin-top: 4px; font-size: 11px;">PolyForm Noncommercial License 1.0.0 (PolyForm-Noncommercial-1.0.0)</div>
+  </footer>
+
+  <script>
+    // Tab Registry per Series
+    const dockTabs = {
+      1: [
+        { id: "s1-overview", label: "Overview" },
+        { id: "s1-speed", label: "Field Lookups" },
+        { id: "s1-tokens", label: "Token Savings" },
+        { id: "s1-writes", label: "Atomic Writes" },
+        { id: "s1-cascades", label: "Federation & Cascades" }
+      ],
+      2: [
+        { id: "s2-overview", label: "SQL Comparison Overview" },
+        { id: "s2-queries", label: "Point Queries (80.4x)" },
+        { id: "s2-tokens", label: "Token Savings (-68.5%)" },
+        { id: "s2-storage", label: "Storage & Footprint" },
+        { id: "s2-matrix", label: "Portability Matrix" }
+      ],
+      3: [
+        { id: "s3-overview", label: "Scale Stress Overview" },
+        { id: "s3-w1", label: "25k in 5 Entities" },
+        { id: "s3-w2", label: "60k in 3 Entities" },
+        { id: "s3-velocity", label: "Ingestion Velocity" },
+        { id: "s3-memory", label: "Memory Stability" }
+      ],
+      4: [
+        { id: "s4-interactive", label: "3D Vertical Viewport" },
+        { id: "s4-layers", label: "Layer Breakdown (L0-L5)" },
+        { id: "s4-math", label: "Z-Axis Occlusion Math" }
+      ]
+    };
+
+    let currentSeries = 1;
+    const dockStrip = document.getElementById("dock-strip");
+    const s1View = document.getElementById("series-1");
+    const s2View = document.getElementById("series-2");
+    const s3View = document.getElementById("series-3");
+    const s4View = document.getElementById("series-4");
+
+    function renderDockTabs(seriesId) {
+      dockStrip.innerHTML = "";
+      const tabs = dockTabs[seriesId];
+      tabs.forEach((t, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "dock-tab-btn" + (idx === 0 ? " active" : "");
+        btn.innerText = t.label;
+        btn.addEventListener("click", () => {
+          activatePanel(seriesId, t.id, btn);
+        });
+        dockStrip.appendChild(btn);
+      });
+      activatePanel(seriesId, tabs[0].id, dockStrip.firstChild);
+    }
+
+    function activatePanel(seriesId, panelId, clickedBtn) {
+      const container = seriesId === 1 ? s1View : (seriesId === 2 ? s2View : (seriesId === 3 ? s3View : s4View));
+      container.querySelectorAll(".panel-view").forEach(p => p.classList.remove("active"));
+      const targetPanel = document.getElementById(panelId);
+      if (targetPanel) targetPanel.classList.add("active");
+
+      dockStrip.querySelectorAll(".dock-tab-btn").forEach(b => b.classList.remove("active"));
+      if (clickedBtn) clickedBtn.classList.add("active");
+    }
+
+    function setSeries(seriesId) {
+      currentSeries = seriesId;
+      [s1View, s2View, s3View, s4View].forEach(v => v.classList.remove("active"));
+      [document.getElementById("nav-s1"), document.getElementById("nav-s2"), document.getElementById("nav-s3"), document.getElementById("nav-s4")].forEach(b => b.classList.remove("active"));
+
+      if (seriesId === 1) {
+        s1View.classList.add("active");
+        document.getElementById("nav-s1").classList.add("active");
+      } else if (seriesId === 2) {
+        s2View.classList.add("active");
+        document.getElementById("nav-s2").classList.add("active");
+      } else if (seriesId === 3) {
+        s3View.classList.add("active");
+        document.getElementById("nav-s3").classList.add("active");
+      } else {
+        s4View.classList.add("active");
+        document.getElementById("nav-s4").classList.add("active");
+      }
+      renderDockTabs(seriesId);
+    }
+
+    // 3D Viewport Controls & Optical Sliders
+    const sliderZDepth = document.getElementById("slider-z-depth");
+    const sliderPitch = document.getElementById("slider-pitch");
+    const sliderYaw = document.getElementById("slider-yaw");
+    const sliderOpacity = document.getElementById("slider-opacity");
+
+    const dispZDepth = document.getElementById("disp-z-depth");
+    const dispPitch = document.getElementById("disp-pitch");
+    const dispYaw = document.getElementById("disp-yaw");
+    const dispOpacity = document.getElementById("disp-opacity");
+    const hudTotalDisp = document.getElementById("hud-total-disp");
+
+    const stage3D = document.getElementById("stage-3d");
+    const planes = [
+      { id: "plane-l0", level: 0, name: "Base Spatial Canvas Void", baseZ: 0 },
+      { id: "plane-l1", level: 1, name: "Structural Substrate & Datasets", baseZ: 32 },
+      { id: "plane-l2", level: 2, name: "Surface Cards & SVG Visuals", baseZ: 64 },
+      { id: "plane-l3", level: 3, name: "Sidebar Drawer & Shelves", baseZ: 96 },
+      { id: "plane-l4", level: 4, name: "Persistent Chrome & Dock", baseZ: 128 },
+      { id: "plane-l5", level: 5, name: "Spatial Inspector HUD & Modals", baseZ: 160 }
+    ];
+
+    function update3DViewport() {
+      const zMult = parseFloat(sliderZDepth.value);
+      const pitch = parseInt(sliderPitch.value, 10);
+      const yaw = parseInt(sliderYaw.value, 10);
+      const opacity = parseFloat(sliderOpacity.value);
+
+      dispZDepth.innerText = `${zMult.toFixed(1)}x (${Math.round(zMult * 32)}px / Layer)`;
+      dispPitch.innerHTML = `${pitch}&deg;`;
+      dispYaw.innerHTML = `${yaw}&deg;`;
+      dispOpacity.innerText = `${Math.round(opacity * 100)}%`;
+      hudTotalDisp.innerText = `Total Spread: ${Math.round(5 * 32 * zMult)}px`;
+
+      stage3D.style.transform = `rotateX(${pitch}deg) rotateY(${yaw}deg) rotateZ(0deg)`;
+
+      planes.forEach(p => {
+        const el = document.getElementById(p.id);
+        if (el) {
+          const zOffset = p.level * 32 * zMult;
+          const yOffset = p.level * -16 * zMult;
+          el.style.transform = `translateZ(${zOffset}px) translateY(${yOffset}px)`;
+          el.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+        }
+      });
+
+      renderTelemetryTable(zMult);
+    }
+
+    function renderTelemetryTable(zMult) {
+      const tbody = document.getElementById("telemetry-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      planes.forEach(p => {
+        const tr = document.createElement("tr");
+        const calcZ = Math.round(p.level * 32 * zMult);
+        const state = zMult === 0 ? "Production Occlusion (Flat Z:0)" : (zMult === 1.0 ? "Canonical Separation" : "Deep Inspection Mode");
+        tr.innerHTML = `
+          <td><strong>Layer ${p.level}</strong></td>
+          <td>${p.name}</td>
+          <td><code>z-index: ${p.baseZ}</code></td>
+          <td>${p.level} &times; 32px</td>
+          <td><strong style="color:var(--primary);">${calcZ}px</strong></td>
+          <td>${state}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    if (sliderZDepth) {
+      sliderZDepth.addEventListener("input", update3DViewport);
+      sliderPitch.addEventListener("input", update3DViewport);
+      sliderYaw.addEventListener("input", update3DViewport);
+      sliderOpacity.addEventListener("input", update3DViewport);
+    }
+
+    // Presets
+    const preProd = document.getElementById("btn-pre-production");
+    const preCanon = document.getElementById("btn-pre-canonical");
+    const preExploded = document.getElementById("btn-pre-exploded");
+    const preXray = document.getElementById("btn-pre-xray");
+    const allPresets = [preProd, preCanon, preExploded, preXray];
+
+    function clearActivePresets() {
+      allPresets.forEach(b => b && b.classList.remove("active"));
+    }
+
+    if (preProd) {
+      preProd.addEventListener("click", () => {
+        clearActivePresets();
+        preProd.classList.add("active");
+        sliderZDepth.value = "0.0";
+        sliderPitch.value = "45";
+        sliderYaw.value = "-25";
+        sliderOpacity.value = "1.0";
+        update3DViewport();
+      });
+      preCanon.addEventListener("click", () => {
+        clearActivePresets();
+        preCanon.classList.add("active");
+        sliderZDepth.value = "1.0";
+        sliderPitch.value = "48";
+        sliderYaw.value = "-25";
+        sliderOpacity.value = "0.85";
+        update3DViewport();
+      });
+      preExploded.addEventListener("click", () => {
+        clearActivePresets();
+        preExploded.classList.add("active");
+        sliderZDepth.value = "2.5";
+        sliderPitch.value = "52";
+        sliderYaw.value = "-28";
+        sliderOpacity.value = "0.80";
+        update3DViewport();
+      });
+      preXray.addEventListener("click", () => {
+        clearActivePresets();
+        preXray.classList.add("active");
+        sliderZDepth.value = "1.8";
+        sliderPitch.value = "48";
+        sliderYaw.value = "-25";
+        sliderOpacity.value = "0.35";
+        update3DViewport();
+      });
+    }
+
+    // Drawer Controls
+    const hamburgerBtn = document.getElementById("btn-hamburger");
+    const drawerBackdrop = document.getElementById("drawer-backdrop");
+    const drawerPanel = document.getElementById("drawer-panel");
+    const closeDrawerBtn = document.getElementById("btn-close-drawer");
+
+    function openDrawer() {
+      drawerBackdrop.classList.add("active");
+      drawerPanel.classList.add("active");
+    }
+
+    function closeDrawer() {
+      drawerBackdrop.classList.remove("active");
+      drawerPanel.classList.remove("active");
+    }
+
+    hamburgerBtn.addEventListener("click", openDrawer);
+    closeDrawerBtn.addEventListener("click", closeDrawer);
+    drawerBackdrop.addEventListener("click", closeDrawer);
+
+    document.getElementById("nav-s1").addEventListener("click", () => {
+      setSeries(1);
+      closeDrawer();
+    });
+
+    document.getElementById("nav-s2").addEventListener("click", () => {
+      setSeries(2);
+      closeDrawer();
+    });
+
+    document.getElementById("nav-s3").addEventListener("click", () => {
+      setSeries(3);
+      closeDrawer();
+    });
+
+    document.getElementById("nav-s4").addEventListener("click", () => {
+      setSeries(4);
+      closeDrawer();
+    });
+
+    // Modal Inspector Controls
+    const settingsBtn = document.getElementById("btn-settings");
+    const modalBackdrop = document.getElementById("modal-backdrop");
+    const modalDialog = document.getElementById("modal-dialog");
+    const closeModalBtn = document.getElementById("btn-close-modal");
+
+    settingsBtn.addEventListener("click", () => {
+      modalBackdrop.classList.add("active");
+      modalDialog.classList.add("active");
+    });
+
+    function closeModal() {
+      modalBackdrop.classList.remove("active");
+      modalDialog.classList.remove("active");
+    }
+
+    closeModalBtn.addEventListener("click", closeModal);
+    modalBackdrop.addEventListener("click", closeModal);
+
+    // Initial load
+    renderDockTabs(1);
+    update3DViewport();
+
+  </script>
+</body>
+</html>

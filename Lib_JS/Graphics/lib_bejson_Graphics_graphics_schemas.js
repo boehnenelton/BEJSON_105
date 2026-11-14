@@ -3,7 +3,9 @@
  * Family:         Graphics
  * Description:    BEJSON 105a Schemas for Blank-Slate Stages, Dynamic Frames & Row-Per-Frame Animations.
  * Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
- * Version:        1.0.1
+ * Version:        1.0.2
+ * Changelog:      1.0.2 (2026-11-12) header: RELATIONAL_ID recency fingerprint added (code unchanged)
+ * RELATIONAL_ID:  25617e99-a06d-48aa-8ba4-da71984535d5
  * Date:           2026-10-30
  * Changelog:
  *   1.0.1 - 2026-10-30: Records_Type key fix (was Record_Type).

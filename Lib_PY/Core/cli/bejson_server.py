@@ -3,12 +3,13 @@ Library:         bejson_server.py
 Family:          cli
 Module Purpose:  API server implementation for BEJSON data distribution.
 Architecture:    BEJSON Core provides foundational format parsing, schema enforcement, path security, positional field map caching, and multi-format integration across runtime environments.
-Version:         2.1.1
+Version:         2.1.2
+Changelog:      2.1.2 (2026-11-12) HOME fallback uses Path.home() instead of a hard-coded Termux path
 Release_Version: 300
 Date:            2026-06-06
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   3b0a2eae-d14c-4307-b64e-a71307f28888
+RELATIONAL_ID:   055f3de4-8226-48d4-b0a7-9b3ef22dee8f
 """
 
 import os
@@ -32,7 +33,7 @@ try:
     from lib_bejson_Core_bejson_core import ResilientPIDLock, bejson_core_atomic_write
 except ImportError:
     def resolve_path(p): 
-        return p.replace("{HOME}", os.environ.get("HOME", "/data/data/com.termux/files/home"))
+        return p.replace("{HOME}", os.environ.get("HOME") or str(Path.home()))
     def bejson_core_atomic_write(path, data):
         try:
             with open(path, 'w') as f: json.dump(data, f, indent=2)

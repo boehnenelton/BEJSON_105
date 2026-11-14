@@ -3,23 +3,24 @@ Library:         Doc_Chunker_Flask.py
 Family:          CLI_Doc_Chunker
 Module Purpose:  Mobile-optimized Flask wrapper for Doc_Chunker.py. Imports Doc_Chunker as a module — no subprocess calls. All routes call Doc_Chunker functions directly and return structured context to Jinja2 templates. Run: python Doc_Chunker_Flask.py Default: http://localhost:5050
 Architecture:    MFDB provides multi-file database federation coordinating a 104a central manifest (104a.mfdb.bejson) with dense 104 entity tables, supporting atomic transaction locks and cross-disk relational foreign keys.
-Version:         1.1.1
+Version:         1.2.0
 Release_Version: 300
-Date:            2026-06-27
+Date:            2026-11-12
+Changelog:       1.2.0 loopback bind + --host/--port flags, per-process secret key, same-origin POST gate, snapshot/doc-name/import validation (see dev/security-notes.md)
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   b4cdd16b-877d-4b90-8e38-47454bd086ef
+RELATIONAL_ID:   f07e4a33-4ade-40b3-9dd7-8ae8345bc8a2
 """
 
 #!/usr/bin/env python3
 """
 Doc_Chunker_Flask.py
 Flask Web Interface — Doc_Chunker Visual Wrapper
-Version:       1.1.1
-Date:          2026-06-27
+Version:       1.2.0
+Date:          2026-11-12
 Author:        Elton Boehnen
 Contact:       eltonboehnen@gmail.com | boehnenelton2024.pages.dev | github.com/boehnenelton
-RELATIONAL_ID: b4cdd16b-877d-4b90-8e38-47454bd086ef
+RELATIONAL_ID: f07e4a33-4ade-40b3-9dd7-8ae8345bc8a2
 
 Description:
   Mobile-optimized Flask wrapper for Doc_Chunker.py.
@@ -31,13 +32,17 @@ Description:
   Default: http://localhost:5050
 """
 
+import os
+import re
 import sys
 import json
 import logging
+import secrets
 from pathlib import Path
 from io import StringIO
+from urllib.parse import urlparse
 from contextlib import redirect_stdout
-from flask import Flask, render_template, redirect, url_for, request, flash, Response
+from flask import Flask, render_template, redirect, url_for, request, flash, Response, abort
 
 # ── Self-locate and import Doc_Chunker as module ───────────────────────────────
 FLASK_DIR  = Path(__file__).resolve().parent
@@ -48,7 +53,28 @@ import Doc_Chunker as DC
 
 # ── App setup ──────────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates", static_folder="static")
-app.secret_key = "doc-chunker-flask-dev-key"
+# Secret key: environment-supplied when set, otherwise a fresh random key per process (flash sessions only).
+app.secret_key = os.environ.get("DOC_CHUNKER_SECRET_KEY") or secrets.token_hex(32)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
+MAX_IMPORT_FILE_BYTES = 10 * 1024 * 1024
+SAFE_SNAPSHOT_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._ -]{0,200}\.zip\Z")
+
+
+@app.before_request
+def reject_cross_origin_writes():
+    if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+        origin = request.headers.get("Origin")
+        if origin and urlparse(origin).netloc != request.host:
+            abort(403)
+
+
+@app.after_request
+def add_security_headers(response):
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    return response
+
 
 DEBUG_MODE = False  # Set True to enable verbose logging
 
@@ -521,6 +547,10 @@ def compile_download(doc_name, fmt):
         flash("Invalid format.", "error")
         return redirect(url_for("panel_compile"))
 
+    if doc_name not in DC._list_doc_names():
+        flash("Unknown document.", "error")
+        return redirect(url_for("panel_compile"))
+
     file_path = DC._doc_compiled_dir(doc_name) / f"{doc_name}_export.{fmt}"
     if not file_path.exists():
         flash("Export file not found. Run export first.", "error")
@@ -530,7 +560,7 @@ def compile_download(doc_name, fmt):
     return Response(
         content,
         mimetype=valid_exts[fmt],
-        headers={"Content-Disposition": f"attachment; filename={file_path.name}"}
+        headers={"Content-Disposition": 'attachment; filename="' + file_path.name.replace('"', "") + '"'}
     )
 
 
@@ -590,7 +620,11 @@ def tools_restore_snapshot():
     if not active_doc or not filename:
         flash("No active doc or filename.", "error")
         return redirect(url_for("panel_tools"))
-    snap_path = DC.DOC_PROJECT_DIR / active_doc / "Snapshots" / filename
+    snapshots_dir = (DC.DOC_PROJECT_DIR / active_doc / "Snapshots").resolve()
+    snap_path     = (snapshots_dir / filename).resolve()
+    if not SAFE_SNAPSHOT_NAME_RE.match(filename) or snap_path.parent != snapshots_dir:
+        flash("Invalid snapshot filename.", "error")
+        return redirect(url_for("panel_tools"))
     out, _    = capture(DC.cmd_doc_restore_snapshot, str(snap_path))
     flash(out, "success" if "Error" not in out else "error")
     return redirect(url_for("panel_tools"))
@@ -618,7 +652,15 @@ def tools_import_file():
     if not file_path or not category:
         flash("File path and category are required.", "error")
         return redirect(url_for("panel_tools"))
-    out, _ = capture(DC.cmd_doc_import_file, file_path, delimiter, category, label_pfx)
+    import_path = Path(file_path).expanduser().resolve()
+    allowed_roots = [Path(r).resolve() for r in os.environ.get("DOC_CHUNKER_IMPORT_ROOTS", "").split(os.pathsep) if r.strip()]
+    if allowed_roots and not any(import_path == r or r in import_path.parents for r in allowed_roots):
+        flash("Import path is outside DOC_CHUNKER_IMPORT_ROOTS.", "error")
+        return redirect(url_for("panel_tools"))
+    if not import_path.is_file() or import_path.stat().st_size > MAX_IMPORT_FILE_BYTES:
+        flash("Import path must be a regular file of at most 10 MB.", "error")
+        return redirect(url_for("panel_tools"))
+    out, _ = capture(DC.cmd_doc_import_file, str(import_path), delimiter, category, label_pfx)
     flash(out, "success" if "Error" not in out else "error")
     return redirect(url_for("panel_chunks"))
 
@@ -668,4 +710,11 @@ def compile_filtered():
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5050, debug=DEBUG_MODE)
+    import argparse
+    _parser = argparse.ArgumentParser(description="Doc_Chunker Flask UI")
+    _parser.add_argument("--host", default="127.0.0.1", help="interface to bind (default 127.0.0.1; the UI has no authentication)")
+    _parser.add_argument("--port", type=int, default=5050)
+    _args = _parser.parse_args()
+    if _args.host not in ("127.0.0.1", "localhost", "::1"):
+        logging.getLogger(__name__).warning("Binding %s: this UI has no authentication.", _args.host)
+    app.run(host=_args.host, port=_args.port, debug=DEBUG_MODE)

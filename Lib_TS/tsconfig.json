@@ -7,6 +7,6 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["index.ts", "Core/**/*.ts", "Gaming/**/*.ts", "Lists/**/*.ts", "Utility/**/*.ts"],
+  "include": ["index.ts", "Core/**/*.ts"],
   "exclude": ["**/tests/**", "**/out/**"]
 }

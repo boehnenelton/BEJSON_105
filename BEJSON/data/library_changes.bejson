@@ -973,6 +973,83 @@
       "lib_bejson_Graphics_graphics_schemas.js",
       "2026-10-30",
       "1.0.1: Records_Type schema bump and fresh Relational ID."
+    ],
+    [
+      "CMS",
+      "PY",
+      "lib_bejson_CMS_mtv_core.py",
+      "2026-11-12",
+      "101: bejson_cms_resolve_confined_path + bejson_cms_validate_identifier (admin-server confinement)"
+    ],
+    [
+      "CMS",
+      "PY",
+      "lib_bejson_CMS_mtv_scaffold.py",
+      "2026-11-12",
+      "101: bare-filename template guard; emitted build_site.py HTML-escapes tokens and URL-allowlists links"
+    ],
+    [
+      "CMS",
+      "PY",
+      "Scaffold_Admin_Entry.py",
+      "2026-11-12",
+      "101: loopback bind, per-process secret key, same-origin POST gate, security headers, output root"
+    ],
+    [
+      "CMS",
+      "PY",
+      "routes/exporter.py",
+      "2026-11-12",
+      "101: export confined to output root, symlinks skipped, atomic archive write, no exception text to clients"
+    ],
+    [
+      "CMS",
+      "PY",
+      "routes/blueprints.py",
+      "2026-11-12",
+      "101: instantiate confined to output root; typed error mapping"
+    ],
+    [
+      "CMS",
+      "PY",
+      "routes/custom_builder.py",
+      "2026-11-12",
+      "101: strict identifier/field/template validation, bounded custom catalog, built-in collision refused"
+    ],
+    [
+      "Canvas",
+      "PY",
+      "lib_bejson_Canvas_canvas_templates.py",
+      "2026-11-12",
+      "1.0.1: template roots from CANVAS_TEMPLATE_DIRS / ADMIN_DEV (no hard-coded /storage paths)"
+    ],
+    [
+      "Canvas",
+      "JS",
+      "lib_bejson_Canvas_canvas_templates.js",
+      "2026-11-12",
+      "1.0.1: template roots from CANVAS_TEMPLATE_DIRS / ADMIN_DEV (no hard-coded /storage paths)"
+    ],
+    [
+      "Graphics",
+      "PY",
+      "lib_bejson_Graphics_graphics_canvas_templates.py",
+      "2026-11-12",
+      "1.0.1: legacy exemplar directory resolved from ADMIN_DEV"
+    ],
+    [
+      "Graphics",
+      "JS",
+      "lib_bejson_Graphics_graphics_schemas.js",
+      "2026-11-12",
+      "1.0.2: header RELATIONAL_ID fingerprint (code unchanged)"
+    ],
+    [
+      "Graphics",
+      "JS",
+      "lib_bejson_Graphics_graphics_canvas_templates.js",
+      "2026-11-12",
+      "1.0.1: header RELATIONAL_ID fingerprint (code unchanged)"
     ]
   ]
 }

@@ -8,10 +8,11 @@ BEJSON:         BEJSON stands for BOEHNEN ELTON JSON. Authoritative definition;
                 (Pronounced Bee-Jay-Son / Bay-nin Elton JSON)
 MFDB:           MFDB stands for Multi File Database. Authoritative definition;
                 do not restate or reinterpret this acronym elsewhere.
-Version:        1.0.0
+Version:        1.0.1
+Changelog:      1.0.1 (2026-11-12) template search roots come from CANVAS_TEMPLATE_DIRS / ADMIN_DEV instead of hard-coded /storage paths
 Date:           2026-10-25
 Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID:  9c4a8b1d-2e3f-4a5b-b789-0c1d2e3f4a5b
+RELATIONAL_ID:  c5b4e895-3cf3-43f4-9171-22b89952c8fa
 Release_Version: 300
 """
 
@@ -34,9 +35,16 @@ logger = logging.getLogger("lib_bejson_Canvas_canvas_templates")
 VERSION = "1.0.0"
 
 # Standard repository and system search paths for templates
-TEMPLATE_ROOT_CANDIDATES: List[Path] = [
-    Path("/storage/emulated/0/Admin/Dev/Templates/Canvas_SVG_Capture_Templates"),
-    Path("/storage/emulated/0/Admin/Dev/Skills/agy-consolidated/playwright-termux-automation/assets/canvas_templates"),
+def _environment_template_roots() -> List[Path]:
+    """Template roots taken from the environment (never hard-coded): CANVAS_TEMPLATE_DIRS (os.pathsep list) and ADMIN_DEV."""
+    roots: List[Path] = [Path(p) for p in os.environ.get("CANVAS_TEMPLATE_DIRS", "").split(os.pathsep) if p.strip()]
+    admin_dev = os.environ.get("ADMIN_DEV", "").strip()
+    if admin_dev:
+        roots.append(Path(admin_dev) / "Templates" / "Canvas_SVG_Capture_Templates")
+    return roots
+
+
+TEMPLATE_ROOT_CANDIDATES: List[Path] = _environment_template_roots() + [
     Path.home() / ".gemini/config/skills/canvas-animation-studio/assets/canvas_templates",
     Path(_HERE) / "templates"
 ]

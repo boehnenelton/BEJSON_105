@@ -1,0 +1,84 @@
+{
+  "timestamp": "2026-11-09T19:12:58.949824+00:00",
+  "suite_version": "1.0.0",
+  "field_map_performance": {
+    "iterations": 200000,
+    "cached_ops_per_sec": 15736022.55602665,
+    "linear_scan_ops_per_sec": 2038157.4461471618,
+    "speedup_factor": 7.720709990179266
+  },
+  "atomic_write_tiers": {
+    "1KB_Tiny": {
+      "rows": 5,
+      "size_bytes": 1492,
+      "avg_latency_ms": 1.005,
+      "min_latency_ms": 0.855,
+      "max_latency_ms": 1.53,
+      "throughput_mb_per_sec": 1.42
+    },
+    "10KB_Small": {
+      "rows": 50,
+      "size_bytes": 12107,
+      "avg_latency_ms": 1.359,
+      "min_latency_ms": 1.237,
+      "max_latency_ms": 1.983,
+      "throughput_mb_per_sec": 8.5
+    },
+    "100KB_Medium": {
+      "rows": 500,
+      "size_bytes": 118707,
+      "avg_latency_ms": 5.297,
+      "min_latency_ms": 4.741,
+      "max_latency_ms": 5.634,
+      "throughput_mb_per_sec": 21.37
+    },
+    "500KB_Large": {
+      "rows": 2500,
+      "size_bytes": 594207,
+      "avg_latency_ms": 20.665,
+      "min_latency_ms": 19.4,
+      "max_latency_ms": 22.887,
+      "throughput_mb_per_sec": 27.42
+    }
+  },
+  "bundle_vs_federation": {
+    "iterations": 5000,
+    "bundle_105db_ops_per_sec": 2581669.834829267,
+    "bundle_avg_latency_us": 0.3873461999319261,
+    "mfdb_entity_ops_per_sec": 456.87527434861863,
+    "mfdb_avg_latency_us": 2188.7811754000722
+  },
+  "cascade_resolution": {
+    "tree_depth": 3,
+    "insert_duration_ms": 51.374,
+    "cascade_delete_duration_ms": 1442.31
+  },
+  "compression_and_tokens": {
+    "dataset_rows": 4000,
+    "standard_minified_bytes": 2172001,
+    "standard_pretty_bytes": 2508002,
+    "standard_gzipped_bytes": 116744,
+    "standard_estimated_tokens": 564156,
+    "bejson_minified_bytes": 649417,
+    "bejson_pretty_bytes": 1053864,
+    "bejson_gzipped_bytes": 109813,
+    "bejson_estimated_tokens": 168679,
+    "net_tokens_saved": 395476,
+    "byte_reduction_pct": 70.1,
+    "token_reduction_pct": 70.1,
+    "gzipped_reduction_pct": 5.94
+  },
+  "system_telemetry": {
+    "VmPeak": "2239168 kB",
+    "VmSize": "2237120 kB",
+    "VmRSS": "16824 kB",
+    "VmData": "46124 kB",
+    "VmStk": "144 kB",
+    "Threads": "1",
+    "ru_utime_sec": 11.47312,
+    "ru_stime_sec": 1.130304,
+    "ru_minflt": 13565,
+    "ru_majflt": 451,
+    "ru_maxrss_kb": 256956
+  }
+}

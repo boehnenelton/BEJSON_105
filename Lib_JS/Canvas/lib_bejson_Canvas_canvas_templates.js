@@ -8,10 +8,11 @@
  *                 (Pronounced Bee-Jay-Son / Bay-nin Elton JSON)
  * MFDB:           MFDB stands for Multi File Database. Authoritative definition;
  *                 do not restate or reinterpret this acronym elsewhere.
- * Version:        1.0.0
+ * Version:        1.0.1
+ * Changelog:      1.0.1 (2026-11-12) template search roots come from CANVAS_TEMPLATE_DIRS / ADMIN_DEV instead of hard-coded /storage paths
  * Date:           2026-10-25
  * Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
- * RELATIONAL_ID:  2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f
+ * RELATIONAL_ID:  a8f7aabc-1678-4397-b487-3d54e284262a
  * Release_Version: 300
  */
 
@@ -295,10 +296,21 @@ const CANVAS_TEMPLATE_CATALOG = {
   }
 };
 
-const TEMPLATE_ROOT_CANDIDATES = [
-  '/storage/emulated/0/Admin/Dev/Templates/Canvas_SVG_Capture_Templates',
-  '/storage/emulated/0/Admin/Dev/Skills/agy-consolidated/playwright-termux-automation/assets/canvas_templates'
-];
+// Template roots come from the environment (never hard-coded): CANVAS_TEMPLATE_DIRS (path.delimiter list) and ADMIN_DEV.
+function environmentTemplateRoots() {
+  const roots = [];
+  const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
+  const delimiter = (path && path.delimiter) ? path.delimiter : ':';
+  for (const entry of String(env.CANVAS_TEMPLATE_DIRS || '').split(delimiter)) {
+    if (entry.trim()) roots.push(entry.trim());
+  }
+  if (env.ADMIN_DEV && env.ADMIN_DEV.trim() && path) {
+    roots.push(path.join(env.ADMIN_DEV.trim(), 'Templates', 'Canvas_SVG_Capture_Templates'));
+  }
+  return roots;
+}
+
+const TEMPLATE_ROOT_CANDIDATES = environmentTemplateRoots();
 
 function resolveTemplateRoot() {
   if (fs) {
@@ -308,7 +320,7 @@ function resolveTemplateRoot() {
       }
     }
   }
-  return TEMPLATE_ROOT_CANDIDATES[0];
+  return TEMPLATE_ROOT_CANDIDATES.length ? TEMPLATE_ROOT_CANDIDATES[0] : (path ? path.join(__dirname, 'templates') : 'templates');
 }
 
 function listCanvasTemplates() {

@@ -4,11 +4,12 @@ Family:         CMS
 Module Purpose: Core MTV Scaffolding Engine: materializes Model (105 MFDB manifest & entity tables),
                 Template (13 canonical BEHTML 8-lane skeletons with field token binding),
                 and View (standalone zero-dependency build_site.py with polymorphic strategy renderers).
-Version:        100
+Version:        101
 Release_Version: 300
 Date Created:   2026-11-06
+Changelog:      101 (2026-11-12) template names must be bare filenames; emitted build_site.py HTML-escapes tokens and URL-allowlists links
 Author Credit:  Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
-RELATIONAL_ID:  b7e41c30-5a82-4f16-92d1-e608a49c2517
+RELATIONAL_ID:  3ff5a347-6413-403a-9730-252e51a4e6ce
 """
 
 from __future__ import annotations
@@ -65,6 +66,7 @@ Author Credit:  Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.
 import os
 import sys
 import json
+import html
 import shutil
 import logging
 from pathlib import Path
@@ -72,6 +74,21 @@ from typing import Dict, List, Any, Optional
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("MTV_Publisher")
+
+# Context keys whose values are trusted, pre-built markup. Every other token is HTML-escaped.
+TRUSTED_MARKUP_TOKEN_KEYS = {"media_embed_url", "article_body_content", "table_of_contents_markup", "document_content_body", "gallery_grid_markup"}
+
+def escape_text(value: Any) -> str:
+    return html.escape(str(value), quote=True)
+
+def safe_url(value: Any) -> str:
+    """Allow only http(s), mailto, fragment and scheme-less relative URLs; anything else becomes '#'."""
+    candidate = str(value).strip()
+    lowered = candidate.lower()
+    if ":" in lowered.split("/", 1)[0]:
+        if not lowered.startswith(("http://", "https://", "mailto:")):
+            return "#"
+    return html.escape(candidate, quote=True)
 
 SCRIPT_DIRECTORY_PATH = Path(__file__).resolve().parent
 MANIFEST_FILE_PATH = SCRIPT_DIRECTORY_PATH / "storage" / "mfdb" / "105a.mfdb.bejson"
@@ -102,7 +119,8 @@ class BasePageRenderer:
 
         for token_key, token_value in context_dictionary.items():
             replacement_target = f"{{{{{token_key}}}}}"
-            html_markup = html_markup.replace(replacement_target, str(token_value))
+            rendered_value = str(token_value) if token_key in TRUSTED_MARKUP_TOKEN_KEYS else escape_text(token_value)
+            html_markup = html_markup.replace(replacement_target, rendered_value)
         return html_markup
 
 
@@ -124,7 +142,7 @@ class VideoPageRenderer(BasePageRenderer):
     def render_media_player(self, media_row_data: Dict[str, Any], playlist_title_text: str = "") -> str:
         context = {
             "media_title": media_row_data.get("extmedia_title", "Video"),
-            "media_embed_url": media_row_data.get("extmedia_url", "#"),
+            "media_embed_url": safe_url(media_row_data.get("extmedia_url", "#")),
             "media_duration_label": f"{media_row_data.get('extmedia_duration_seconds', 0)}s",
             "playlist_header_title": playlist_title_text or "Playlist Queue"
         }
@@ -136,7 +154,7 @@ class DocumentPageRenderer(BasePageRenderer):
     def render_document_chapter(self, document_row_data: Dict[str, Any], toc_items_list: List[Dict[str, Any]]) -> str:
         toc_markup_lines = []
         for toc_item in toc_items_list:
-            toc_markup_lines.append(f\'<li class="fw-toc-item"><a href="{toc_item.get("doc_slug", "#")}.html">{toc_item.get("doc_title", "Chapter")}</a></li>\')
+            toc_markup_lines.append(f\'<li class="fw-toc-item"><a href="{safe_url(str(toc_item.get("doc_slug", "#")) + ".html")}">{escape_text(toc_item.get("doc_title", "Chapter"))}</a></li>\')
         context = {
             "document_title": document_row_data.get("doc_title", "Document"),
             "table_of_contents_markup": "\\n".join(toc_markup_lines),
@@ -151,7 +169,7 @@ class ShowcasePageRenderer(BasePageRenderer):
         gallery_cards_markup = []
         for asset in asset_items_list:
             gallery_cards_markup.append(
-                f\'<div class="fw-gallery-card"><img src="{asset.get("asset_filename_path", "#")}" alt="{asset.get("asset_caption_text", "Image")}" /></div>\'
+                f\'<div class="fw-gallery-card"><img src="{safe_url(asset.get("asset_filename_path", "#"))}" alt="{escape_text(asset.get("asset_caption_text", "Image"))}" /></div>\'
             )
         context = {
             "project_title": project_row_data.get("project_title", "Project Showcase"),
@@ -362,6 +380,9 @@ class MTVScaffoldSynthesizer:
             shutil.copy2(css_source_path, self.static_directory_path / "css" / "framework_core_layout.css")
 
         for template_name in bound_templates:
+            if not isinstance(template_name, str) or template_name != os.path.basename(template_name) or not template_name.endswith(".html"):
+                logger.warning("Rejected template name (must be a bare .html filename): %r", template_name)
+                continue
             template_source_file = Path(TEMPLATES_SOURCE_DIRECTORY) / template_name
             target_template_file = self.templates_directory_path / template_name
             if template_source_file.exists():

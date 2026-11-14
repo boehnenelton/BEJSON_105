@@ -1,3 +1,11 @@
+"""
+File Name : test_standards_state.py
+Rel. Path : Lib_PY/Standards/tests/test_standards_state.py
+Purpose   : Tests for the Standards stateful loaded-chamber logging module.
+VERSION   : 1.0.0
+Author    : Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+RELATIONAL_ID : fde17b7e-a252-446f-84a3-05948f80a940
+"""
 import os
 import sys
 import tempfile

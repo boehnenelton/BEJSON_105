@@ -3,7 +3,9 @@
  * Family:         Graphics
  * Description:    Main entry point for BEJSON 105a Graphics JavaScript library.
  * Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
- * Version:        1.0.0
+ * Version:        1.0.1
+ * Changelog:      1.0.1 (2026-11-12) header: RELATIONAL_ID recency fingerprint added (code unchanged)
+ * RELATIONAL_ID:  3af4899b-cb7b-47ca-8baa-15026cbd208f
  */
 
 'use strict';

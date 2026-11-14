@@ -3,6 +3,8 @@
 Script: generate_bejson_105_presentation.py
 Description: Generates a sleek, minimal 5-slide presentation explaining BEJSON 105
              using the Lib_PY.Graphics 105 family and the new clean point-focus templates.
+Version:        1.0.0
+RELATIONAL_ID:  516f2078-3b58-42b8-931d-5d4b88b5a7ca
 Author: Elton Boehnen
 """
 

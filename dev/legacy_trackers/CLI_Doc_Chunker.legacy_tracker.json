@@ -1,0 +1,50 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104a",
+  "Format_Creator": "Elton Boehnen",
+  "Session_Id": "",
+  "Project_Name": "CLI_Doc_Chunker",
+  "Project_Modified_Date": "2026-08-09",
+  "Project_Description": "",
+  "Schema_Version": "2.0.0",
+  "Project_Version": "",
+  "Package_Version": "",
+  "Package_Date": "",
+  "Remote_Repo": "",
+  "Launcher": "",
+  "Known_Issues": "",
+  "User_Feedback": "",
+  "Project_GUID": "b8eddf38-9fb7-421f-8c26-1d1570c0c798",
+  "Flags": [
+    "Legacy"
+  ],
+  "Records_Type": [
+    "RootPackage"
+  ],
+  "Fields": [
+    {
+      "name": "change_log",
+      "type": "string"
+    },
+    {
+      "name": "date_changed",
+      "type": "string"
+    },
+    {
+      "name": "change_log",
+      "type": "string"
+    }
+  ],
+  "Values": [
+    [
+      "Standardized by FS_Indexer",
+      "2026-07-24",
+      "Bulk-injected by FS_Indexer Project Tools \u2014 flagged Legacy; Project_Version/Package_Version left blank for manual entry."
+    ],
+    [
+      "Standardized by FS_Indexer",
+      "2026-08-09",
+      "Schema migrated from 1.0.2 to 2.0.0 (bulk schema update)."
+    ]
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "url": "http://127.0.0.1:8080/index.html",
+  "states_evaluated": [
+    {
+      "state_key": "01_initial_series1",
+      "screenshot": "/storage/emulated/0/Admin/Libraries/libraries_105/dev/metrics/visual_audit/debug/01_initial_series1.png",
+      "description": "Test Series 1 MFDB Federation and 254 entities overview"
+    },
+    {
+      "state_key": "02_sidebar_open",
+      "screenshot": "/storage/emulated/0/Admin/Libraries/libraries_105/dev/metrics/visual_audit/debug/02_sidebar_open.png",
+      "computed_margin_top": "32px",
+      "computed_z_index": "96",
+      "description": "Sidebar navigation open with verified 32px top margin (1 quantized row)"
+    },
+    {
+      "state_key": "03_series2_sql",
+      "screenshot": "/storage/emulated/0/Admin/Libraries/libraries_105/dev/metrics/visual_audit/debug/03_series2_sql.png",
+      "description": "Test Series 2 BEJSON 105 vs SQLite point queries and token comparison"
+    },
+    {
+      "state_key": "04_series3_stress",
+      "screenshot": "/storage/emulated/0/Admin/Libraries/libraries_105/dev/metrics/visual_audit/debug/04_series3_stress.png",
+      "description": "Test Series 3 High-scale stress: 25k (5 entities) and 60k (3 entities)"
+    },
+    {
+      "state_key": "05_series4_3d_viewport",
+      "screenshot": "/storage/emulated/0/Admin/Libraries/libraries_105/dev/metrics/visual_audit/debug/05_series4_3d_viewport.png",
+      "description": "Test Series 4 Canonical 6-layer 3D vertical axis viewport demonstration"
+    },
+    {
+      "state_key": "06_3d_exploded_2.5x",
+      "screenshot": "/storage/emulated/0/Admin/Libraries/libraries_105/dev/metrics/visual_audit/debug/06_3d_exploded_2.5x.png",
+      "stage_transform": "rotateX(52deg) rotateY(-28deg) rotateZ(0deg)",
+      "layer5_transform": "translateZ(400px) translateY(-200px)",
+      "hud_total_disp": "Total Spread: 400px",
+      "description": "Exploded 3D stage with 2.5x Z-separation (400px dispersion)"
+    },
+    {
+      "state_key": "07_inspector_hud_modal",
+      "screenshot": "/storage/emulated/0/Admin/Libraries/libraries_105/dev/metrics/visual_audit/debug/07_inspector_hud_modal.png",
+      "computed_modal_z_index": "160",
+      "description": "Spatial Inspector HUD modal open with verified z-index: 160"
+    }
+  ],
+  "dom_metrics": {
+    "drawer_nav_list_margin_top": "32px",
+    "drawer_z_index": "96",
+    "stage_transform": "rotateX(52deg) rotateY(-28deg) rotateZ(0deg)",
+    "layer5_transform": "translateZ(400px) translateY(-200px)",
+    "hud_total_disp": "Total Spread: 400px",
+    "header_z_index": "128",
+    "dock_z_index": "128",
+    "modal_z_index": "160",
+    "doc_width": 1280,
+    "win_width": 1280,
+    "has_horizontal_overflow": false
+  },
+  "console_events": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+    }
+  ],
+  "page_errors": [],
+  "overall_status": "PASS"
+}

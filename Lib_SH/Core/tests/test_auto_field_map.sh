@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # Library:        test_auto_field_map.sh
 # Family:         Core
 # Description:    Tests that the Bash field map is SELF-MAINTAINING (callers never build/refresh it):
@@ -17,7 +17,7 @@ export BEJSON_FM_CACHE_BASE="$WORK/cache"; mkdir -p "$BEJSON_FM_CACHE_BASE"
 
 # jq counting shim: every real jq invocation bumps a counter file.
 REAL_JQ="$(command -v jq)"; mkdir -p "$WORK/shim"
-printf '#!/data/data/com.termux/files/usr/bin/bash\necho x >> "%s/jq_calls"\nexec "%s" "$@"\n' "$WORK" "$REAL_JQ" > "$WORK/shim/jq"; chmod +x "$WORK/shim/jq"
+printf '#!/usr/bin/env bash\necho x >> "%s/jq_calls"\nexec "%s" "$@"\n' "$WORK" "$REAL_JQ" > "$WORK/shim/jq"; chmod +x "$WORK/shim/jq"
 export PATH="$WORK/shim:$PATH"
 jq_calls() { [[ -f "$WORK/jq_calls" ]] && wc -l < "$WORK/jq_calls" | tr -d ' ' || echo 0; }
 

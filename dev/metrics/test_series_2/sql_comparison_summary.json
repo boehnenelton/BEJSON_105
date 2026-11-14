@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-11-09 22:24:55 UTC",
+  "test_series": "test_series_2",
+  "description": "Comparative Benchmarks: BEJSON 105 & MFDB v1.40 vs SQL (SQLite)",
+  "author": "Elton Boehnen",
+  "system_telemetry": {
+    "vm_rss_kb": 28800,
+    "vm_rss_mb": 28.12
+  },
+  "query_and_storage_metrics": {
+    "sql_batch_insert_ms": 39.75,
+    "bejson_atomic_write_ms": 94.33,
+    "sql_point_query_ops_sec": 42504,
+    "sql_point_query_avg_us": 23.53,
+    "bejson_point_query_ops_sec": 3417769,
+    "bejson_point_query_avg_us": 0.29,
+    "query_speedup_factor": 80.41,
+    "sql_scan_latency_ms": 1.174,
+    "bejson_scan_latency_ms": 0.483,
+    "sql_size_bytes": 1130496,
+    "bejson_size_bytes": 1376671,
+    "bejson_minified_bytes": 873484,
+    "sql_gz_bytes": 365363,
+    "bejson_gz_bytes": 178322,
+    "storage_reduction_pct": 22.73
+  },
+  "llm_token_metrics": {
+    "dataset_rows": 5000,
+    "sql_json_chars": 2774797,
+    "sql_json_tokens": 720726,
+    "bejson_chars": 873484,
+    "bejson_tokens": 226878,
+    "tokens_saved": 493847,
+    "token_savings_pct": 68.52
+  },
+  "cascading_integrity_metrics": {
+    "sql_cascade_ms": 5.22,
+    "sql_all_dependents_removed": true,
+    "mfdb_cascade_ms": 1950.82,
+    "notes": "SQLite executes in-process B-tree page deletion; MFDB executes cross-file two-phase snapshot-guarded atomic writes with Parent_Hierarchy validation."
+  },
+  "architectural_matrix": {
+    "factors": [
+      {
+        "factor": "Driver / C-Binary Dependency",
+        "sqlite": "Requires compiled binary (libsqlite3.so / C extension)",
+        "bejson_105": "Zero binary dependencies (pure text, universal Python/JS/TS/Shell stdlib)"
+      },
+      {
+        "factor": "AI & LLM Context Injection",
+        "sqlite": "Requires serialization to JSON/SQL text with high token overhead",
+        "bejson_105": "Native 105 schema matrix (-70.1% token consumption)"
+      },
+      {
+        "factor": "Point Query Throughput",
+        "sqlite": "In-memory / Disk B-tree page traversals (~120k ops/sec)",
+        "bejson_105": "O(1) compiled Field-Map dictionary (~1.4M - 15.7M ops/sec)"
+      },
+      {
+        "factor": "Multi-Entity Federation",
+        "sqlite": "Single monolithic database file or complex ATTACH DATABASE locks",
+        "bejson_105": "Discrete federated entity files with bidirectional Parent_Hierarchy"
+      },
+      {
+        "factor": "Git & Version Control Diffability",
+        "sqlite": "Opaque binary file (cannot cleanly git diff / merge)",
+        "bejson_105": "Deterministic plaintext JSON (clean line-based git diff and merge)"
+      }
+    ]
+  }
+}

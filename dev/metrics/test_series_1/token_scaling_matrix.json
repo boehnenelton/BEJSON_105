@@ -1,0 +1,282 @@
+{
+  "benchmark_name": "Test_Series_1_Extending_Scales_Token_Savings",
+  "timestamp_utc": "2026-11-10T01:18:35Z",
+  "author": "Elton Boehnen \u00b7 boehnenelton2024@gmail.com",
+  "chars_per_token_constant": 3.85,
+  "scales_tested": [
+    500,
+    1000,
+    2500,
+    5000,
+    10000,
+    25000,
+    50000,
+    100000
+  ],
+  "results": [
+    {
+      "rows": 500,
+      "std_bytes": 271501,
+      "bej_bytes": 81832,
+      "byte_reduction_pct": 69.86,
+      "std_tokens": 70519,
+      "bej_tokens": 21255,
+      "tokens_saved": 49264,
+      "token_reduction_pct": 69.86,
+      "dollar_savings_at_2_50_mtok": 0.1232,
+      "context_limits": {
+        "ctx_32k": {
+          "std_fits": false,
+          "bej_fits": true
+        },
+        "ctx_128k": {
+          "std_fits": true,
+          "bej_fits": true
+        },
+        "ctx_200k": {
+          "std_fits": true,
+          "bej_fits": true
+        },
+        "ctx_1m": {
+          "std_fits": true,
+          "bej_fits": true
+        },
+        "ctx_2m": {
+          "std_fits": true,
+          "bej_fits": true
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "std_bytes": 543001,
+      "bej_bytes": 162832,
+      "byte_reduction_pct": 70.01,
+      "std_tokens": 141039,
+      "bej_tokens": 42294,
+      "tokens_saved": 98745,
+      "token_reduction_pct": 70.01,
+      "dollar_savings_at_2_50_mtok": 0.2469,
+      "context_limits": {
+        "ctx_32k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_128k": {
+          "std_fits": false,
+          "bej_fits": true
+        },
+        "ctx_200k": {
+          "std_fits": true,
+          "bej_fits": true
+        },
+        "ctx_1m": {
+          "std_fits": true,
+          "bej_fits": true
+        },
+        "ctx_2m": {
+          "std_fits": true,
+          "bej_fits": true
+        }
+      }
+    },
+    {
+      "rows": 2500,
+      "std_bytes": 1357501,
+      "bej_bytes": 405832,
+      "byte_reduction_pct": 70.1,
+      "std_tokens": 352597,
+      "bej_tokens": 105410,
+      "tokens_saved": 247187,
+      "token_reduction_pct": 70.1,
+      "dollar_savings_at_2_50_mtok": 0.618,
+      "context_limits": {
+        "ctx_32k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_128k": {
+          "std_fits": false,
+          "bej_fits": true
+        },
+        "ctx_200k": {
+          "std_fits": false,
+          "bej_fits": true
+        },
+        "ctx_1m": {
+          "std_fits": true,
+          "bej_fits": true
+        },
+        "ctx_2m": {
+          "std_fits": true,
+          "bej_fits": true
+        }
+      }
+    },
+    {
+      "rows": 5000,
+      "std_bytes": 2715001,
+      "bej_bytes": 810832,
+      "byte_reduction_pct": 70.14,
+      "std_tokens": 705195,
+      "bej_tokens": 210605,
+      "tokens_saved": 494590,
+      "token_reduction_pct": 70.14,
+      "dollar_savings_at_2_50_mtok": 1.2365,
+      "context_limits": {
+        "ctx_32k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_128k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_200k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_1m": {
+          "std_fits": true,
+          "bej_fits": true
+        },
+        "ctx_2m": {
+          "std_fits": true,
+          "bej_fits": true
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "std_bytes": 5430001,
+      "bej_bytes": 1620832,
+      "byte_reduction_pct": 70.15,
+      "std_tokens": 1410389,
+      "bej_tokens": 420995,
+      "tokens_saved": 989394,
+      "token_reduction_pct": 70.15,
+      "dollar_savings_at_2_50_mtok": 2.4735,
+      "context_limits": {
+        "ctx_32k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_128k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_200k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_1m": {
+          "std_fits": false,
+          "bej_fits": true
+        },
+        "ctx_2m": {
+          "std_fits": true,
+          "bej_fits": true
+        }
+      }
+    },
+    {
+      "rows": 25000,
+      "std_bytes": 13575001,
+      "bej_bytes": 4050832,
+      "byte_reduction_pct": 70.16,
+      "std_tokens": 3525974,
+      "bej_tokens": 1052164,
+      "tokens_saved": 2473810,
+      "token_reduction_pct": 70.16,
+      "dollar_savings_at_2_50_mtok": 6.1845,
+      "context_limits": {
+        "ctx_32k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_128k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_200k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_1m": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_2m": {
+          "std_fits": false,
+          "bej_fits": true
+        }
+      }
+    },
+    {
+      "rows": 50000,
+      "std_bytes": 27150001,
+      "bej_bytes": 8100832,
+      "byte_reduction_pct": 70.16,
+      "std_tokens": 7051948,
+      "bej_tokens": 2104112,
+      "tokens_saved": 4947836,
+      "token_reduction_pct": 70.16,
+      "dollar_savings_at_2_50_mtok": 12.3696,
+      "context_limits": {
+        "ctx_32k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_128k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_200k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_1m": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_2m": {
+          "std_fits": false,
+          "bej_fits": false
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "std_bytes": 54300001,
+      "bej_bytes": 16200832,
+      "byte_reduction_pct": 70.16,
+      "std_tokens": 14103896,
+      "bej_tokens": 4208008,
+      "tokens_saved": 9895888,
+      "token_reduction_pct": 70.16,
+      "dollar_savings_at_2_50_mtok": 24.7397,
+      "context_limits": {
+        "ctx_32k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_128k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_200k": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_1m": {
+          "std_fits": false,
+          "bej_fits": false
+        },
+        "ctx_2m": {
+          "std_fits": false,
+          "bej_fits": false
+        }
+      }
+    }
+  ]
+}

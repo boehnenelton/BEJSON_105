@@ -68,7 +68,7 @@ let currentArchetypeId = "";
 function openInstantiateModal(archId, archName) {
     currentArchetypeId = archId;
     document.getElementById("modalTitle").innerText = "Instantiate: " + archName;
-    document.getElementById("targetPathInput").value = "/data/data/com.termux/files/home/downloads/" + archId + "_scaffold";
+    document.getElementById("targetPathInput").value = archId + "_scaffold";
     document.getElementById("projectTitleInput").value = archName;
     document.getElementById("modalStatus").innerText = "";
     document.getElementById("instantiateModal").style.display = "flex";
