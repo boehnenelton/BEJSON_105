@@ -2,7 +2,7 @@
 Test Suite:      test_ai_gateway_prototypes.py
 Family:          AI
 Purpose:         Unit & integration tests for BEJSON 105 Multi-AI Gateway prototypes (Gemini REST)
-Version:         1.2.0
+Version:         1.6.0
 Release_Version: 300
 Date:            2026-11-14
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
@@ -28,6 +28,8 @@ from lib_bejson_AI_bejson_errors import (  # noqa: E402
     ERR_AI_KEY_MISSING,
     ERR_AI_OUTPUT_VALIDATION_FAILED,
     ERR_AI_PROVIDER_NOT_REGISTERED,
+    ERR_AI_RENDERER_FAILED,
+    ERR_AI_RENDERER_NOT_FOUND,
     ERR_AI_TOKEN_LIMIT_EXCEEDED,
     ERR_AI_XML_PARSE_FAILED,
 )
@@ -36,6 +38,7 @@ from lib_bejson_ai_client_geminirest import GeminiRestClient  # noqa: E402
 from lib_bejson_ai_dispatcher import (  # noqa: E402
     AIDispatcher,
     Get_Interaction_ID,
+    Get_Rendered_Output,
     Get_Response_JSON,
     Get_Response_Text,
     Get_Response_Usage,
@@ -62,6 +65,14 @@ from lib_bejson_ai_parser_registry import (  # noqa: E402
 )
 from lib_bejson_ai_postprocessor import AIPostprocessor  # noqa: E402
 from lib_bejson_ai_preprocessor import AIPreprocessor  # noqa: E402
+from lib_bejson_ai_renderer_base import (  # noqa: E402
+    Base_Renderer,
+    BaseRenderer,
+)
+from lib_bejson_ai_renderer_registry import (  # noqa: E402
+    Renderer_Registry,
+    RendererRegistry,
+)
 from lib_bejson_ai_tooling_base import BaseToolingSystem, Base_Tooling_System  # noqa: E402
 from lib_bejson_ai_tooling_interactions import (  # noqa: E402
     InteractionsToolingSystem,
@@ -817,6 +828,199 @@ class TestAIGatewayPrototypes(unittest.TestCase):
             self.assertEqual(Get_Response_Text(dispatched_enabled_response), "Processed output [EXT_POST]")
             second_turn_sent_prompt = captured_network_request_body_dict["body"]["contents"][0]["parts"][0]["text"]
             self.assertEqual(second_turn_sent_prompt, "[EXT_PRE] Hello model")
+
+    def test_renderer_registry_config_toggle_and_persistence(self) -> None:
+        class MockHtmlSummaryRenderer(BaseRenderer):
+            renderer_name: str = "html_summary"
+            output_format: str = "html"
+
+            def render(self, cleaned_response_envelope_dict: Dict[str, Any]) -> Dict[str, Any]:
+                updated_envelope = dict(cleaned_response_envelope_dict)
+                updated_envelope["rendered_output"] = f"<article>{updated_envelope.get('text', '')}</article>"
+                return updated_envelope
+
+        with tempfile.TemporaryDirectory() as temporary_directory_path_str:
+            target_config_file_path = Path(temporary_directory_path_str) / "renderer_config.105a.bejson"
+            configuration_manager_instance = AIGlobalConfigManager(config_target_file_path=target_config_file_path)
+            renderer_registry_instance = Renderer_Registry(config_manager_instance=configuration_manager_instance)
+
+            self.assertFalse(renderer_registry_instance.Is_Enabled())
+            self.assertEqual(configuration_manager_instance.Get_Active_Renderer_Name(), "default")
+            self.assertIsNone(renderer_registry_instance.Get_Active_Renderer())
+
+            html_renderer_instance = MockHtmlSummaryRenderer()
+            renderer_registry_instance.Register_Renderer(html_renderer_instance)
+            self.assertIn("html_summary", renderer_registry_instance.List_Renderers())
+
+            renderer_registry_instance.Set_Enabled(True)
+            renderer_registry_instance.Select_Renderer("html_summary")
+
+            reloaded_config_manager = AIGlobalConfigManager(config_target_file_path=target_config_file_path)
+            reloaded_renderer_registry = RendererRegistry(config_manager_instance=reloaded_config_manager)
+            reloaded_renderer_registry.register_renderer(html_renderer_instance)
+
+            self.assertTrue(reloaded_renderer_registry.is_enabled())
+            self.assertEqual(reloaded_config_manager.get_active_renderer_name(), "html_summary")
+            self.assertIsNotNone(reloaded_renderer_registry.get_active_renderer())
+
+            with self.assertRaises(AIException) as error_context:
+                reloaded_renderer_registry.select_renderer("unregistered_renderer")
+            self.assertEqual(error_context.exception.code, ERR_AI_RENDERER_NOT_FOUND)
+
+    def test_modular_renderer_postprocessor_attachment(self) -> None:
+        class MockJsonCardRenderer(Base_Renderer):
+            renderer_name: str = "json_card_renderer"
+            output_format: str = "html"
+
+            def render(self, cleaned_response_envelope_dict: Dict[str, Any]) -> Dict[str, Any]:
+                updated_envelope = dict(cleaned_response_envelope_dict)
+                structured_payload = updated_envelope.get("structured_data") or {}
+                card_title = structured_payload.get("title", "Untitled")
+                card_note = structured_payload.get("note", "")
+                updated_envelope["rendered_output"] = f"<div class='card'><h1>{card_title}</h1><p>{card_note}</p></div>"
+                return updated_envelope
+
+        with tempfile.TemporaryDirectory() as temporary_directory_path_str:
+            target_config_file_path = Path(temporary_directory_path_str) / "renderer_dispatch.105a.bejson"
+            configuration_manager_instance = AIGlobalConfigManager(config_target_file_path=target_config_file_path)
+            renderer_registry_instance = RendererRegistry(config_manager_instance=configuration_manager_instance)
+            renderer_registry_instance.register_renderer(MockJsonCardRenderer())
+
+            def mock_json_transport(request_payload_object, timeout_seconds_metric):
+                simulated_response_payload = {
+                    "candidates": [
+                        {
+                            "content": {
+                                "parts": [
+                                    {
+                                        "text": '```json\n{"title": "Status", "note": "Key AIzaSyLeakedSecretKey1234567890"}\n```'
+                                    }
+                                ]
+                            },
+                            "finishReason": "STOP",
+                        }
+                    ],
+                    "usageMetadata": {"promptTokenCount": 5, "candidatesTokenCount": 10},
+                }
+                return json.dumps(simulated_response_payload).encode("utf-8")
+
+            gemini_rest_client_instance = GeminiRestClient(transport=mock_json_transport)
+
+            # Test 1: renderer_enabled=False -> rendered_output absent, raw text routed to stdout
+            renderer_registry_instance.set_enabled(False)
+            dispatcher_disabled = AIDispatcher(
+                renderer_registry=renderer_registry_instance,
+                auto_register_defaults=False,
+            )
+            dispatcher_disabled.register_provider(gemini_rest_client_instance)
+
+            disabled_sink = io.StringIO()
+            disabled_response = dispatcher_disabled.dispatch(
+                {"prompt": "Emit status", "response_format": "json"},
+                explicit_keys=["AIzaSyMockTestKey1234567890"],
+                stdout_routing=True,
+                output_sink=disabled_sink,
+            )
+            self.assertNotIn("rendered_output", disabled_response)
+            self.assertEqual(Get_Response_JSON(disabled_response)["title"], "Status")
+            self.assertEqual(Get_Rendered_Output(disabled_response), Get_Response_Text(disabled_response))
+            self.assertIn("Status", disabled_sink.getvalue())
+
+            # Test 2: renderer_enabled=True -> runs AFTER AIPostprocessor (keys redacted, structured_data ready)
+            renderer_registry_instance.set_enabled(True)
+            renderer_registry_instance.select_renderer("json_card_renderer")
+            dispatcher_enabled = AIDispatcher(
+                renderer_registry=renderer_registry_instance,
+                auto_register_defaults=False,
+            )
+            dispatcher_enabled.register_provider(gemini_rest_client_instance)
+
+            enabled_sink = io.StringIO()
+            enabled_response = dispatcher_enabled.dispatch(
+                {"prompt": "Emit status", "response_format": "json"},
+                explicit_keys=["AIzaSyMockTestKey1234567890"],
+                stdout_routing=True,
+                output_sink=enabled_sink,
+            )
+            expected_html = "<div class='card'><h1>Status</h1><p>Key [REDACTED_API_KEY]</p></div>"
+            self.assertEqual(enabled_response.get("rendered_output"), expected_html)
+            self.assertEqual(enabled_response.get("rendered_format"), "html")
+            self.assertEqual(enabled_response.get("rendered_by"), "json_card_renderer")
+            self.assertEqual(Get_Rendered_Output(enabled_response), expected_html)
+            self.assertEqual(Get_Response_JSON(enabled_response)["title"], "Status")
+            self.assertEqual(enabled_sink.getvalue().strip(), expected_html)
+
+    def test_renderer_error_fallback_and_strict_mode(self) -> None:
+        class BrokenRenderer(BaseRenderer):
+            renderer_name: str = "broken_renderer"
+            output_format: str = "text"
+
+            def render(self, cleaned_response_envelope_dict: Dict[str, Any]) -> Dict[str, Any]:
+                raise RuntimeError("Simulated renderer crash")
+
+        with tempfile.TemporaryDirectory() as temporary_directory_path_str:
+            target_config_file_path = Path(temporary_directory_path_str) / "renderer_error.105a.bejson"
+            configuration_manager_instance = AIGlobalConfigManager(config_target_file_path=target_config_file_path)
+            renderer_registry_instance = RendererRegistry(config_manager_instance=configuration_manager_instance)
+            renderer_registry_instance.register_renderer(BrokenRenderer())
+            renderer_registry_instance.set_enabled(True)
+
+            sample_envelope = {"text": "Clean fallback text", "provider": "geminirest"}
+            fallback_result = renderer_registry_instance.execute_renderers(sample_envelope, fail_on_error=False)
+            self.assertEqual(Get_Rendered_Output(fallback_result), "Clean fallback text")
+
+            with self.assertRaises(AIException) as error_context:
+                renderer_registry_instance.execute_renderers(sample_envelope, fail_on_error=True)
+            self.assertEqual(error_context.exception.code, ERR_AI_RENDERER_FAILED)
+
+
+
+    def test_dispatcher_reads_global_config_defaults(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = AIGlobalConfigManager(config_target_file_path=Path(tmp) / "defaults.105a.bejson")
+            cfg.update_setting("default_provider", "geminirest")
+            cfg.update_setting("default_model", "gemini-3.1-flash-lite")
+            cfg.update_setting("stdout_routing", True)
+            reg = ToolingRegistry(config_manager_instance=cfg)
+
+            captured = {}
+            def mock_transport(req, timeout):
+                captured["url"] = req.full_url
+                return json.dumps({
+                    "candidates": [{"content": {"parts": [{"text": "Config default OK"}]}, "finishReason": "STOP"}]
+                }).encode("utf-8")
+
+            d = AIDispatcher(tooling_registry=reg, auto_register_defaults=False)
+            d.register_provider(GeminiRestClient(transport=mock_transport))
+            sink = io.StringIO()
+            res = d.dispatch(
+                {"prompt": "Check defaults"},
+                explicit_keys=["AIzaSyMockTestKey1234567890"],
+                output_sink=sink,
+            )
+            self.assertIn("gemini-3.1-flash-lite", captured["url"])
+            self.assertEqual(sink.getvalue().strip(), "Config default OK")
+            self.assertEqual(Get_Response_Text(res), "Config default OK")
+
+    def test_bejson_105_response_preserves_rendered_and_interaction_fields(self) -> None:
+        from lib_bejson_ai_translator import AITranslator
+        translator = AITranslator()
+        doc = translator.to_bejson_105_response({
+            "provider": "geminiinteractions",
+            "model": "gemini-3.1-flash-lite",
+            "text": "Done",
+            "finish_reason": "COMPLETED",
+            "interaction_id": "inter-123",
+            "rendered_output": "<p>Done</p>",
+            "rendered_format": "html",
+            "turn_continuation_command": {"request_turn": True, "continuation_prompt": "Next"},
+        })
+        field_names = [f["name"] for f in doc["Fields"]]
+        row_map = dict(zip(field_names, doc["Values"][0][1:]))
+        self.assertEqual(row_map["interaction_id"], "inter-123")
+        self.assertEqual(row_map["rendered_output"], "<p>Done</p>")
+        self.assertEqual(row_map["rendered_format"], "html")
+        self.assertIn("Next", row_map["turn_continuation_json"])
 
 
 if __name__ == "__main__":

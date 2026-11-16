@@ -58,6 +58,8 @@ ERR_AI_HTTP_BAD_RESPONSE: Final[int] = 230
 ERR_AI_HTTP_NETWORK_ERROR: Final[int] = 231
 ERR_AI_PROVIDER_ERROR: Final[int] = 232
 ERR_AI_INTERACTION_STATE_INVALID: Final[int] = 233
+ERR_AI_RENDERER_NOT_FOUND: Final[int] = 234
+ERR_AI_RENDERER_FAILED: Final[int] = 235
 
 ERROR_DESCRIPTIONS: Final[Dict[int, str]] = {
     ERR_AI_SUCCESS: "Operation completed successfully.",
@@ -90,6 +92,8 @@ ERROR_DESCRIPTIONS: Final[Dict[int, str]] = {
     ERR_AI_HTTP_NETWORK_ERROR: "Network transport failure communicating with AI provider.",
     ERR_AI_PROVIDER_ERROR: "AI provider returned an application-level error.",
     ERR_AI_INTERACTION_STATE_INVALID: "Gemini interaction state or step sequence is invalid.",
+    ERR_AI_RENDERER_NOT_FOUND: "Requested modular renderer is not registered in RendererRegistry.",
+    ERR_AI_RENDERER_FAILED: "Modular post-processing renderer execution failed.",
 }
 
 

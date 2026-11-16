@@ -94,7 +94,7 @@ def make_bejson_105_field(name: str, field_type: str = "string") -> Dict[str, An
 def build_bejson_105_ai_request(
     prompt: str,
     provider: str = "geminirest",
-    model: str = "gemini-2.5-flash",
+    model: str = "gemini-3.1-flash-lite",
     system_instruction: str = "",
     temperature: float = 0.7,
     max_tokens: int = 2048,
@@ -138,6 +138,10 @@ def build_bejson_105_ai_response(
     finish_reason: str = "STOP",
     usage: Optional[Dict[str, Any]] = None,
     structured_data: Optional[Any] = None,
+    interaction_id: str = "",
+    rendered_output: Optional[str] = None,
+    rendered_format: str = "",
+    turn_continuation_command: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Build a Format 105 compliant AI_Response BEJSON document."""
     fields = [
@@ -147,6 +151,10 @@ def build_bejson_105_ai_response(
         make_bejson_105_field("finish_reason", "string"),
         make_bejson_105_field("usage_json", "string"),
         make_bejson_105_field("structured_json", "string"),
+        make_bejson_105_field("interaction_id", "string"),
+        make_bejson_105_field("rendered_output", "string"),
+        make_bejson_105_field("rendered_format", "string"),
+        make_bejson_105_field("turn_continuation_json", "string"),
     ]
     record_uuid = str(uuid.uuid4())
     return {
@@ -163,6 +171,10 @@ def build_bejson_105_ai_response(
                 finish_reason,
                 json.dumps(usage or {}),
                 json.dumps(structured_data) if structured_data is not None else "",
+                interaction_id,
+                rendered_output if rendered_output is not None else "",
+                rendered_format,
+                json.dumps(turn_continuation_command) if turn_continuation_command is not None else "",
             ]
         ],
     }

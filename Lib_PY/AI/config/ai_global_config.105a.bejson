@@ -76,6 +76,18 @@
       "extension_parser_enabled",
       "false",
       "bool"
+    ],
+    [
+      "b7d4e21a-3c8f-4a61-9d2e-1f5c8a7b3091",
+      "renderer_enabled",
+      "false",
+      "bool"
+    ],
+    [
+      "c9f1a432-6e7b-4d05-8a3c-2b4e9f1d6042",
+      "active_renderer",
+      "\"default\"",
+      "str"
     ]
   ]
 }

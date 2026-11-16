@@ -545,6 +545,73 @@ BRANDING_SLIDE_ARCHETYPES: List[Dict[str, Any]] = [
 
 
 # ---------------------------------------------------------------------------
+# Canonical Game Engine Blank-Slate Stage Archetypes
+# ---------------------------------------------------------------------------
+
+GAME_STAGE_ARCHETYPES: List[Dict[str, Any]] = [
+    {
+        "template_id": "game_sprite_sheet_studio_512",
+        "template_name": "template_game_sprite_sheet_studio.html",
+        "category": "game_stage",
+        "width_px": 512,
+        "height_px": 512,
+        "aspect_ratio": "1:1",
+        "stage_selector": "#capture-stage",
+        "bg_theme": "#000000",
+        "description": "512x512 Game Sprite Sheet Studio blank-slate stage with 16/32/48/64px cells, pivot reticles, window.setCellSvg(r,c,svg), and #isolated-cell export."
+    },
+    {
+        "template_id": "game_sprite_animation_stage_400",
+        "template_name": "template_game_sprite_animation_stage.html",
+        "category": "game_stage",
+        "width_px": 400,
+        "height_px": 400,
+        "aspect_ratio": "1:1",
+        "stage_selector": "#capture-stage",
+        "bg_theme": "#000000",
+        "description": "400x400 Game Sprite Animation Stage with 2x/4x/8x zoom, onion skinning ghost layer, 4-frame pill strip, and window.setAnimationFrames(frames,label)."
+    },
+    {
+        "template_id": "game_tilemap_palette_stage_512",
+        "template_name": "template_game_tilemap_palette_stage.html",
+        "category": "game_stage",
+        "width_px": 512,
+        "height_px": 512,
+        "aspect_ratio": "1:1",
+        "stage_selector": "#capture-stage",
+        "bg_theme": "#000000",
+        "description": "512x512 Game Tilemap Palette Stage with 16/32/64px tiles, solid/passable collision badges (X/O), window.setTileSvg(r,c,svg,solid), and #isolated-tile export."
+    },
+    {
+        "template_id": "game_hud_ui_stage_640",
+        "template_name": "template_game_hud_ui_stage.html",
+        "category": "game_stage",
+        "width_px": 640,
+        "height_px": 480,
+        "aspect_ratio": "4:3",
+        "stage_selector": "#capture-stage",
+        "bg_theme": "#000000",
+        "description": "640x480 Game HUD & UI Stage with hearts, MP gauge, B/Y active item boxes, virtual gamepad controls, dialog letterbox, and #isolated-element export."
+    }
+]
+
+
+def _resolve_templates_resource_dir() -> Optional[Path]:
+    """Resolves the canonical Canvas_SVG_Capture_Templates directory dynamically without hardcoding."""
+    env_res = os.environ.get("ADMIN_RESOURCES", "").strip()
+    if env_res:
+        cand = Path(env_res) / "Templates" / "Canvas_SVG_Capture_Templates"
+        if cand.is_dir():
+            return cand
+    # Derive relative to _HERE (/storage/emulated/0/Admin/Libraries/libraries_105/Lib_PY/Graphics -> Admin/Resources/...)
+    admin_root = _HERE.parent.parent.parent.parent
+    cand2 = admin_root / "Resources" / "Templates" / "Canvas_SVG_Capture_Templates"
+    if cand2.is_dir():
+        return cand2
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Embedded BEJSON 105a Scaffold & Template Registry
 # ---------------------------------------------------------------------------
 
@@ -555,8 +622,8 @@ def get_canvas_template_registry_105a(
 ) -> Dict[str, Any]:
     """
     Returns the canonical BEJSON 105a Scaffold & Template Registry.
-    Contains both the core blank slate canvas stages and any historical
-    exemplar templates harvested from the dev directory.
+    Contains core blank slate canvas stages, branding slides, game engine stages,
+    and any historical exemplar templates harvested from the dev directory.
     """
     global _REGISTRY_CACHE
     if _REGISTRY_CACHE is not None:
@@ -651,12 +718,47 @@ def get_canvas_template_registry_105a(
         ]
         values_rows.append(row)
 
+    # 1.2 Register canonical game engine blank-slate stage templates
+    res_tpl_dir = _resolve_templates_resource_dir()
+    for g_arc in GAME_STAGE_ARCHETYPES:
+        html_str = ""
+        if res_tpl_dir is not None:
+            tpl_file = res_tpl_dir / g_arc["template_name"]
+            if tpl_file.is_file():
+                try:
+                    html_str = tpl_file.read_text(encoding="utf-8")
+                except Exception:
+                    html_str = ""
+        if not html_str:
+            html_str = generate_blank_slate_html(
+                width_px=g_arc["width_px"],
+                height_px=g_arc["height_px"],
+                bg_theme=g_arc.get("bg_theme", "#000000"),
+                title=g_arc["description"]
+            )
+        h_hash = hashlib.sha256(html_str.encode("utf-8")).hexdigest()
+        rec_uuid = str(uuid.uuid4())
+        row = [
+            rec_uuid,
+            g_arc["template_id"],
+            g_arc["template_name"],
+            g_arc["category"],
+            g_arc["width_px"],
+            g_arc["height_px"],
+            g_arc["aspect_ratio"],
+            g_arc["stage_selector"],
+            g_arc["description"],
+            html_str,
+            h_hash
+        ]
+        values_rows.append(row)
+
     # 2. Ingest legacy/exemplar templates if directory exists
     if include_legacy_source_dir and os.path.isdir(include_legacy_source_dir):
         legacy_dir = Path(include_legacy_source_dir)
         for html_file in sorted(legacy_dir.glob("*.html")):
             t_name = html_file.name
-            # Avoid duplicating blank slates
+            # Avoid duplicating blank slates or game stages
             if any(r[2] == t_name for r in values_rows):
                 continue
             try:
@@ -746,8 +848,12 @@ def get_template_html(
     for row in reg["Values"]:
         if row[fmap["template_name"]] == resolved_name or row[fmap["template_id"]] == resolved_name:
             html = row[fmap["html_template"]]
-            if width_px is not None and height_px is not None:
-                # If custom dimensions are supplied on a blank slate, re-generate clean
+            if (
+                width_px is not None
+                and height_px is not None
+                and row[fmap["category"]] == "blank_slate"
+            ):
+                # If custom dimensions are supplied on a dynamic blank slate, re-generate clean
                 return generate_blank_slate_html(width_px, height_px, bg_theme)
             return html
 
@@ -766,9 +872,20 @@ def instantiate_stage_file(
     initial_svg_markup: Optional[str] = None
 ) -> Path:
     """
-    Writes a self-contained blank slate stage HTML file to disk, ready for Playwright navigation.
+    Writes a self-contained blank slate or game stage HTML file to disk, ready for Playwright navigation.
     """
-    html = generate_blank_slate_html(
+    reg = get_canvas_template_registry_105a()
+    fmap = build_field_map_105(reg["Fields"])
+    matched_html = None
+    for row in reg["Values"]:
+        if (
+            (row[fmap["template_name"]] == template_name or row[fmap["template_id"]] == template_name)
+            and row[fmap["category"]] in ("game_stage", "branding_slide")
+        ):
+            matched_html = row[fmap["html_template"]]
+            break
+
+    html = matched_html or generate_blank_slate_html(
         width_px=width_px,
         height_px=height_px,
         bg_theme=bg_theme,
@@ -816,6 +933,39 @@ def get_branding_slide_template_html(template_id: str) -> Optional[str]:
     return None
 
 
+def list_game_stage_templates() -> List[Dict[str, Any]]:
+    """Returns metadata for all registered game engine blank-slate stage templates."""
+    reg = get_canvas_template_registry_105a()
+    fmap = build_field_map_105(reg["Fields"])
+    stages = []
+    for row in reg["Values"]:
+        if row[fmap["category"]] == "game_stage":
+            stages.append({
+                "template_id": row[fmap["template_id"]],
+                "template_name": row[fmap["template_name"]],
+                "width_px": row[fmap["width_px"]],
+                "height_px": row[fmap["height_px"]],
+                "aspect_ratio": row[fmap["aspect_ratio"]],
+                "stage_selector": row[fmap["stage_selector"]],
+                "description": row[fmap["description"]],
+                "checksum_sha256": row[fmap["checksum_sha256"]][:8]
+            })
+    return stages
+
+
+def get_game_stage_template_html(template_id: str) -> Optional[str]:
+    """Retrieves the full HTML stage markup for a specified game engine stage template."""
+    reg = get_canvas_template_registry_105a()
+    fmap = build_field_map_105(reg["Fields"])
+    for row in reg["Values"]:
+        if (
+            row[fmap["category"]] == "game_stage"
+            and (row[fmap["template_id"]] == template_id or row[fmap["template_name"]] == template_id)
+        ):
+            return row[fmap["html_template"]]
+    return None
+
+
 def save_canvas_template_registry_105a(registry_file_path: Optional[str] = None) -> Path:
     """
     Serializes and commits the active BEJSON 105a template registry to disk.
@@ -827,4 +977,18 @@ def save_canvas_template_registry_105a(registry_file_path: Optional[str] = None)
     with open(target, "w", encoding="utf-8") as f:
         json.dump(doc, f, indent=2)
     return target
+
+
+# Name_Case Architectural Component Bindings
+Generate_Blank_Slate_Html = generate_blank_slate_html
+Get_Canvas_Template_Registry_105a = get_canvas_template_registry_105a
+List_Registered_Templates = list_registered_templates
+Get_Template_Html = get_template_html
+Instantiate_Stage_File = instantiate_stage_file
+List_Branding_Slide_Templates = list_branding_slide_templates
+Get_Branding_Slide_Template_Html = get_branding_slide_template_html
+List_Game_Stage_Templates = list_game_stage_templates
+Get_Game_Stage_Template_Html = get_game_stage_template_html
+Save_Canvas_Template_Registry_105a = save_canvas_template_registry_105a
+
 

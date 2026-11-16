@@ -1,0 +1,64 @@
+/**
+ * Library:        lib_bejson_Gaming_Editors_errors.js
+ * Family:         Gaming_Editors (libraries_105)
+ * Description:    Unified error registry for Gaming_Editors 105 Family (520-539).
+ * Version:        1.0.0
+ * Date:           2026-11-15
+ * Author:         Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+ * License:        PolyForm-Noncommercial-1.0.0
+ * RELATIONAL_ID:  7b9a1c2d-3e4f-5a6b-7c8d-9e0f1a2b3c4d
+ * Release_Version: 300
+ */
+
+'use strict';
+
+const E_GAMING_EDITORS_CORE_VALIDATION_FAILED     = 520;
+const E_GAMING_EDITORS_INVALID_RECORDS_TYPE       = 521;
+const E_GAMING_EDITORS_INVALID_SPRITE_GRID        = 522;
+const E_GAMING_EDITORS_INVALID_TILEMAP_PALETTE    = 523;
+const E_GAMING_EDITORS_INVALID_COLLISION_FLAG     = 524;
+const E_GAMING_EDITORS_INVALID_HUD_LAYOUT         = 525;
+const E_GAMING_EDITORS_INVALID_ANIM_TIMELINE      = 526;
+const E_GAMING_EDITORS_INVALID_SVG_MARKUP         = 527;
+const E_GAMING_EDITORS_PALETTE_VIOLATION          = 528;
+const E_GAMING_EDITORS_STAGE_NOT_FOUND            = 529;
+const E_GAMING_EDITORS_BARRIER_OF_ENTRY_FAILED    = 530;
+
+const ERROR_NAMES = {
+  520: 'E_GAMING_EDITORS_CORE_VALIDATION_FAILED',
+  521: 'E_GAMING_EDITORS_INVALID_RECORDS_TYPE',
+  522: 'E_GAMING_EDITORS_INVALID_SPRITE_GRID',
+  523: 'E_GAMING_EDITORS_INVALID_TILEMAP_PALETTE',
+  524: 'E_GAMING_EDITORS_INVALID_COLLISION_FLAG',
+  525: 'E_GAMING_EDITORS_INVALID_HUD_LAYOUT',
+  526: 'E_GAMING_EDITORS_INVALID_ANIM_TIMELINE',
+  527: 'E_GAMING_EDITORS_INVALID_SVG_MARKUP',
+  528: 'E_GAMING_EDITORS_PALETTE_VIOLATION',
+  529: 'E_GAMING_EDITORS_STAGE_NOT_FOUND',
+  530: 'E_GAMING_EDITORS_BARRIER_OF_ENTRY_FAILED'
+};
+
+class GamingEditorsValidationError extends Error {
+  constructor(message, code = E_GAMING_EDITORS_BARRIER_OF_ENTRY_FAILED) {
+    const errorName = ERROR_NAMES[code] || `E_GAMING_EDITORS_${code}`;
+    super(`[${errorName}] ${message}`);
+    this.name = 'GamingEditorsValidationError';
+    this.code = code;
+  }
+}
+
+module.exports = {
+  E_GAMING_EDITORS_CORE_VALIDATION_FAILED,
+  E_GAMING_EDITORS_INVALID_RECORDS_TYPE,
+  E_GAMING_EDITORS_INVALID_SPRITE_GRID,
+  E_GAMING_EDITORS_INVALID_TILEMAP_PALETTE,
+  E_GAMING_EDITORS_INVALID_COLLISION_FLAG,
+  E_GAMING_EDITORS_INVALID_HUD_LAYOUT,
+  E_GAMING_EDITORS_INVALID_ANIM_TIMELINE,
+  E_GAMING_EDITORS_INVALID_SVG_MARKUP,
+  E_GAMING_EDITORS_PALETTE_VIOLATION,
+  E_GAMING_EDITORS_STAGE_NOT_FOUND,
+  E_GAMING_EDITORS_BARRIER_OF_ENTRY_FAILED,
+  ERROR_NAMES,
+  GamingEditorsValidationError
+};

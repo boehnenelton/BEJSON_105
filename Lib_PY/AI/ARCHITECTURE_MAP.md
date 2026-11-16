@@ -1,4 +1,4 @@
-# Full System Architecture Map (Art Specialist Reference — `v1.5.0`)
+# Full System Architecture Map (Art Specialist Reference — `v1.6.0`)
 
 ## Tri-Color Styling Spec
 - **Background:** `#000000`
@@ -8,12 +8,12 @@
 
 ## Nodes by Tier
 - **Client:** `Client [BEJSON 105 / AI_Dispatch / AI_Dispatch_Async]`
-- **Global Config Store:** `Lib_PY/AI/config/ai_global_config.105a.bejson` *(auto-exported on first use; persistently stores `tooling_enabled`, `active_tooling_system`, `default_provider`, `default_model`, `max_tool_roundtrips`, `stdout_routing`, `global_pre_parser_enabled`, `global_post_parser_enabled`, `extension_parser_enabled`)*
+- **Global Config Store:** `Lib_PY/AI/config/ai_global_config.105a.bejson` *(auto-exported on first use; persistently stores `tooling_enabled`, `active_tooling_system`, `default_provider`, `default_model`, `max_tool_roundtrips`, `stdout_routing`, `global_pre_parser_enabled`, `global_post_parser_enabled`, `extension_parser_enabled`, `renderer_enabled`, `active_renderer`)*
 - **Tier 1 — Abstraction Layers:**
   - `Dispatch Abstractor` (`lib_bejson_ai_dispatcher.py` — `AIDispatcher` / `AI_Dispatcher`)
   - `Model Catalog` (`lib_bejson_ai_models.py` — `Resolve_Model_Identifier`)
   - `Service Abstractor` (`lib_bejson_ai_translator.py` — `AITranslator` / `AI_Translator`)
-- **Tier 2 — Model Features, Gates, Tooling & Modular Parsers (`v1.5.0`):**
+- **Tier 2 — Model Features, Gates, Tooling & Modular Parsers (`v1.6.0`):**
   - `Pre-Processing Gate` (`lib_bejson_ai_preprocessor.py`)
   - `Post-Processing Gate` (`lib_bejson_ai_postprocessor.py`)
   - `Tooling/Skill Abstraction Layer` (`ToolingRegistry` / `Tooling_Registry` + `Base_Tooling_System` + `Interactions_Tooling_System`)

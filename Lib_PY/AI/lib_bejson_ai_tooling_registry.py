@@ -43,6 +43,8 @@ DEFAULT_SETTINGS_INITIAL_VALUES: Dict[str, Any] = {
     "global_pre_parser_enabled": False,
     "global_post_parser_enabled": False,
     "extension_parser_enabled": False,
+    "renderer_enabled": False,
+    "active_renderer": "default",
 }
 
 
@@ -217,6 +219,22 @@ class AIGlobalConfigManager:
         """Toggle persistent custom Python module extension parser gate."""
         self.update_setting("extension_parser_enabled", bool(target_enabled_flag))
 
+    def is_renderer_enabled(self) -> bool:
+        """Check persistent modular post-processing renderer gate."""
+        return bool(self.get_setting("renderer_enabled", False))
+
+    def set_renderer_enabled(self, target_enabled_flag: bool) -> None:
+        """Toggle persistent modular post-processing renderer gate."""
+        self.update_setting("renderer_enabled", bool(target_enabled_flag))
+
+    def get_active_renderer_name(self) -> str:
+        """Get identifier of selected modular renderer."""
+        return str(self.get_setting("active_renderer", "default"))
+
+    def set_active_renderer_name(self, target_renderer_identifier_name: str) -> None:
+        """Switch active modular renderer identifier and persist."""
+        self.update_setting("active_renderer", str(target_renderer_identifier_name).strip())
+
     # Name_Case Method Bindings
     Get_Setting = get_setting
     Update_Setting = update_setting
@@ -230,6 +248,10 @@ class AIGlobalConfigManager:
     Set_Global_Post_Parser_Enabled = set_global_post_parser_enabled
     Is_Extension_Parser_Enabled = is_extension_parser_enabled
     Set_Extension_Parser_Enabled = set_extension_parser_enabled
+    Is_Renderer_Enabled = is_renderer_enabled
+    Set_Renderer_Enabled = set_renderer_enabled
+    Get_Active_Renderer_Name = get_active_renderer_name
+    Set_Active_Renderer_Name = set_active_renderer_name
     Ensure_Configuration_Loaded = ensure_configuration_loaded
     Auto_Export_Default_Configuration = auto_export_default_configuration
     Persist_Current_Configuration_To_Disk = persist_current_configuration_to_disk

@@ -258,6 +258,32 @@ class TestGraphicsBarrierValidator(unittest.TestCase):
         self.assertIsNotNone(split_html)
         alias_html = get_branding_slide_template_html("slide_branding_title_1280")
         self.assertIsNotNone(alias_html)
+
+    def test_canvas_template_registry_game_stage_archetypes(self):
+        """Tests that all 4 game engine blank-slate stage templates are registered and pass the barrier."""
+        from lib_bejson_Graphics_graphics_canvas_templates import (
+            get_canvas_template_registry_105a,
+            list_game_stage_templates,
+            get_game_stage_template_html
+        )
+
+        game_stages = list_game_stage_templates()
+        self.assertEqual(len(game_stages), 4, "Should register 4 canonical game engine stage templates")
+        stage_ids = {g["template_id"] for g in game_stages}
+        self.assertIn("game_sprite_sheet_studio_512", stage_ids)
+        self.assertIn("game_sprite_animation_stage_400", stage_ids)
+        self.assertIn("game_tilemap_palette_stage_512", stage_ids)
+        self.assertIn("game_hud_ui_stage_640", stage_ids)
+
+        for sid in stage_ids:
+            html = get_game_stage_template_html(sid)
+            self.assertIsNotNone(html)
+            self.assertIn("capture-stage", html)
+
+        reg_doc = get_canvas_template_registry_105a()
+        res = validate_graphics_barrier(reg_doc)
+        self.assertTrue(res.valid, f"Template registry failed barrier validation: {res.errors}")
+
     def test_video_compilation_with_dwell_durations(self):
         """Tests compiling slide sequences into MP4 video with custom dwell durations (4s, 8s, 12s)."""
         from PIL import Image
@@ -289,4 +315,5 @@ class TestGraphicsBarrierValidator(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 

@@ -1,6 +1,6 @@
-# Architecture Roadmap & Implementation Status (`v1.5.0`)
+# Architecture Roadmap & Implementation Status (`v1.6.0`)
 
-**Implemented Baseline (`v1.5.0`, 18/18 tests passing, 0 naming violations):**
+**Implemented Baseline (`v1.6.0`, 23/23 tests passing, 0 naming violations):**
 - `lib_bejson_ai_dispatcher.py` (`AIDispatcher`, `AI_Dispatch`, `AI_Dispatch_Async`, `Get_Response_*`, `Get_Interaction_ID`, `Get_Tool_Calls`, `Get_Turn_Continuation_Command`)
 - `lib_bejson_ai_models.py` (`Name_Case` model catalog + `Resolve_Model_Identifier`)
 - `lib_bejson_ai_client_geminirest.py` & `lib_bejson_ai_client_geminiinteractions.py`
@@ -36,7 +36,7 @@ Mirroring the `ToolingRegistry` / `BaseToolingSystem` pattern, two **configurati
 
 ---
 
-## Planned Next Step (`v1.6.0`): Modular Renderer Post-Processing Abstraction Layer
+## Implemented (`v1.6.0`): Modular Renderer Post-Processing Abstraction Layer
 
 Adding a **modular renderer abstraction layer** (`RendererRegistry` / `Renderer_Registry` + `BaseRenderer` / `Base_Renderer`) near the post-processing layer for custom rendering of parsed content aligns directly with the **Tier 2 config-gated registry pattern** used across `Lib_PY/AI`.
 
@@ -53,7 +53,7 @@ In the outbound sequence:
 1. `ParserRegistry.execute_post_parsers()`
 2. `ExtensionParserRegistry.execute_extension_post_parsers()`
 3. `AIPostprocessor.process()`
-4. **[Planned `v1.6.0`] `RendererRegistry.execute_renderers()`**
+4. **[Implemented `v1.6.0`] `RendererRegistry.execute_renderers()`**
 5. `stdout_routing` / `to_bejson_105_response()`
 
 **Placing the renderer abstraction *after* `AIPostprocessor.process()` (immediately before or replacing the raw `stdout_routing` step)** is the cleanest boundary:

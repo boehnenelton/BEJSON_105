@@ -3,7 +3,7 @@ Library:         lib_bejson_ai_dispatcher.py
 Family:          AI
 Module Purpose:  Tier 1 Master Ingress & Universal Router for the Multi-AI Provider Gateway
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 1: Abstraction Layers)
-Version:         1.4.0
+Version:         1.6.0
 Release_Version: 300
 Date:            2026-11-14
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
@@ -37,18 +37,19 @@ from lib_bejson_ai_models import Resolve_Model_Identifier  # noqa: E402
 from lib_bejson_ai_parser_registry import ParserRegistry  # noqa: E402
 from lib_bejson_ai_postprocessor import AIPostprocessor  # noqa: E402
 from lib_bejson_ai_preprocessor import AIPreprocessor  # noqa: E402
+from lib_bejson_ai_renderer_registry import RendererRegistry  # noqa: E402
 from lib_bejson_ai_tooling_interactions import InteractionsToolingSystem  # noqa: E402
 from lib_bejson_ai_tooling_registry import ToolingRegistry  # noqa: E402
 from lib_bejson_ai_translator import AITranslator  # noqa: E402
 
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 
 
 class AIDispatcher:
     """
     Master ingress router coordinating:
       Tier 1: Dispatcher -> Translator
-      Tier 2: Preprocessor -> Postprocessor + ToolingRegistry + ParserRegistry + ExtensionParserRegistry
+      Tier 2: Preprocessor -> Postprocessor + ToolingRegistry + ParserRegistry + ExtensionParserRegistry + RendererRegistry
       Tier 3: JITKeyHandler + KeyRotator + BaseAIClient drivers (GeminiRestClient, GeminiInteractionsClient)
     """
 
@@ -61,6 +62,7 @@ class AIDispatcher:
         tooling_registry: Optional[ToolingRegistry] = None,
         parser_registry: Optional[ParserRegistry] = None,
         extension_parser_registry: Optional[ExtensionParserRegistry] = None,
+        renderer_registry: Optional[RendererRegistry] = None,
         auto_register_defaults: bool = True,
         **extra_keyword_arguments: Any,
     ) -> None:
@@ -88,6 +90,11 @@ class AIDispatcher:
             extension_parser_registry
             or extra_keyword_arguments.get("extension_parser_registry_instance")
             or ExtensionParserRegistry(config_manager_instance=self.tooling_registry.config_manager)
+        )
+        self.renderer_registry: RendererRegistry = (
+            renderer_registry
+            or extra_keyword_arguments.get("renderer_registry_instance")
+            or RendererRegistry(config_manager_instance=self.tooling_registry.config_manager)
         )
         self._registered_providers_map: Dict[str, BaseAIClient] = {}
 
@@ -173,7 +180,7 @@ class AIDispatcher:
         vault_path: Optional[Path] = None,
         explicit_keys: Optional[List[str]] = None,
         return_bejson_105: bool = False,
-        stdout_routing: bool = False,
+        stdout_routing: Optional[bool] = None,
         output_sink: Optional[Any] = None,
         max_key_retries: int = 2,
         **extra_keyword_arguments: Any,
@@ -185,11 +192,14 @@ class AIDispatcher:
         normalized_request_payload = normalize_inbound_payload(
             payload or extra_keyword_arguments.get("incoming_request_payload")
         )
+        configured_default_provider = str(
+            self.tooling_registry.config_manager.get_setting("default_provider", "geminirest")
+        )
         target_provider_identifier = (
             provider
             or extra_keyword_arguments.get("provider_name_override")
             or normalized_request_payload.get("provider")
-            or "geminirest"
+            or configured_default_provider
         ).lower().strip()
 
         if target_provider_identifier not in self._registered_providers_map:
@@ -198,11 +208,14 @@ class AIDispatcher:
                 f"Provider '{target_provider_identifier}' is not registered. Available: {self.list_providers()}",
             )
         provider_client_instance = self._registered_providers_map[target_provider_identifier]
+        configured_default_model = str(
+            self.tooling_registry.config_manager.get_setting("default_model", provider_client_instance.default_model)
+        )
         unresolved_model_token = str(
             model
             or extra_keyword_arguments.get("model_name_override")
             or normalized_request_payload.get("model")
-            or provider_client_instance.default_model
+            or configured_default_model
         )
         resolved_model_identifier_name = Resolve_Model_Identifier(unresolved_model_token)
 
@@ -213,10 +226,13 @@ class AIDispatcher:
             if "return_bejson_105_flag" not in extra_keyword_arguments
             else bool(extra_keyword_arguments["return_bejson_105_flag"])
         )
+        configured_stdout_routing = bool(
+            self.tooling_registry.config_manager.get_setting("stdout_routing", False)
+        )
         resolved_stdout_routing_flag = (
-            stdout_routing
-            if "stdout_routing_flag" not in extra_keyword_arguments
-            else bool(extra_keyword_arguments["stdout_routing_flag"])
+            bool(extra_keyword_arguments["stdout_routing_flag"])
+            if "stdout_routing_flag" in extra_keyword_arguments
+            else (bool(stdout_routing) if stdout_routing is not None else configured_stdout_routing)
         )
         resolved_stdout_destination_sink = output_sink or extra_keyword_arguments.get("stdout_destination_sink")
         resolved_maximum_key_retries = (
@@ -333,8 +349,19 @@ class AIDispatcher:
             expected_format=expected_response_format_token,
         )
 
+        # Tier 2 Post-Processing Modular Renderer Gate
+        if self.renderer_registry.is_enabled():
+            cleaned_response_envelope = self.renderer_registry.execute_renderers(
+                cleaned_response_envelope
+            )
+
         if resolved_stdout_routing_flag:
-            response_text_content_str = str(cleaned_response_envelope.get("text", ""))
+            rendered_output_value = cleaned_response_envelope.get("rendered_output")
+            response_text_content_str = (
+                str(rendered_output_value)
+                if rendered_output_value is not None
+                else str(cleaned_response_envelope.get("text", ""))
+            )
             output_target_stream = resolved_stdout_destination_sink if resolved_stdout_destination_sink is not None else sys.stdout
             output_target_stream.write(response_text_content_str + "\n")
             output_target_stream.flush()
@@ -351,7 +378,7 @@ class AIDispatcher:
         vault_path: Optional[Path] = None,
         explicit_keys: Optional[List[str]] = None,
         return_bejson_105: bool = False,
-        stdout_routing: bool = False,
+        stdout_routing: Optional[bool] = None,
         output_sink: Optional[Any] = None,
         max_key_retries: int = 2,
         **extra_keyword_arguments: Any,
@@ -437,6 +464,13 @@ def Get_Turn_Continuation_Command(response_payload_dictionary: Dict[str, Any]) -
             "continuation_prompt": str(response_payload_dictionary.get("continuation_prompt", "")),
         }
     return None
+
+
+def Get_Rendered_Output(response_payload_dictionary: Dict[str, Any]) -> str:
+    """Retrieve rendered_output if populated by RendererRegistry, else fallback to Get_Response_Text."""
+    if response_payload_dictionary.get("rendered_output") is not None:
+        return str(response_payload_dictionary["rendered_output"])
+    return Get_Response_Text(response_payload_dictionary)
 
 
 

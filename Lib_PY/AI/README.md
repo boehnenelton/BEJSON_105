@@ -1,4 +1,4 @@
-# `Lib_PY/AI` — BEJSON 105 Multi-AI Provider Gateway (`v1.5.0`)
+# `Lib_PY/AI` — BEJSON 105 Multi-AI Provider Gateway (`v1.6.0`)
 
 3-tier implementation of the `lib_bejson_ai_*` architecture featuring **Gemini REST** (`geminirest`), **Gemini Interactions** (`geminiinteractions`), a persistent **Global AI Config** (`config/ai_global_config.105a.bejson`), a **Config-Gated Tooling Abstraction Layer** (`interactions_tools`), a **Modular Parser Abstraction Layer** (`ParserRegistry`), and a **Localized Custom Python Module Extension Parser Layer** (`ExtensionParserRegistry`).
 
@@ -10,9 +10,9 @@
 
 - See [ARCHITECTURE.md](./ARCHITECTURE.md) for the complete 3-tier architecture and pipeline flow.
 - See [ARCHITECTURE_MAP.md](./ARCHITECTURE_MAP.md) for the art specialist node-and-edge specification.
-- See [NEXT_STEP_PLAN.md](./NEXT_STEP_PLAN.md) for architectural roadmap and specifications, including the **Planned `v1.6.0` Modular Renderer Post-Processing Abstraction Layer** (`Renderer_Registry` / `Base_Renderer`, placed immediately after `AIPostprocessor.process()` for custom rendering of parsed content into HTML/CMS, SVG/Canvas, or ANSI/Standards outputs).
+- See [NEXT_STEP_PLAN.md](./NEXT_STEP_PLAN.md) for architectural roadmap and specifications, including the **Implemented `v1.6.0` Modular Renderer Post-Processing Abstraction Layer** (`RendererRegistry` / `BaseRenderer`, placed immediately after `AIPostprocessor.process()`; see [docs/MODULAR_PARSER_AND_RENDERER_GUIDE.md](./docs/MODULAR_PARSER_AND_RENDERER_GUIDE.md)).
 
-## Implemented Module Map (`v1.5.0`)
+## Implemented Module Map (`v1.6.0`)
 
 - **Error Registry (`200–235`)**: `lib_bejson_AI_bejson_errors.py`
 - **Tier 1 — Abstraction Layers**:
@@ -28,6 +28,8 @@
   - `lib_bejson_ai_parser_base.py` (`BaseModularParser`, `Base_Modular_Parser`)
   - `lib_bejson_ai_parser_registry.py` (`ParserRegistry`, `Parser_Registry`)
   - `lib_bejson_ai_extension_parser.py` (`BaseExtensionModuleParser`, `Base_Extension_Module_Parser`, `ExtensionParserRegistry`, `Extension_Parser_Registry`)
+  - `lib_bejson_ai_renderer_base.py` (`BaseRenderer`, `Base_Renderer`)
+  - `lib_bejson_ai_renderer_registry.py` (`RendererRegistry`, `Renderer_Registry`)
   - `lib_bejson_ai_features_common.py`
 - **Tier 3 — Service Callers & Security**:
   - `lib_bejson_ai_client_base.py` (`BaseAIClient`, `Base_AI_Client`)

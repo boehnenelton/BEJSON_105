@@ -137,6 +137,62 @@ function generateBlankSlateHtml(options = {}) {
 `;
 }
 
+const GAME_STAGE_ARCHETYPES = [
+  {
+    template_id: 'game_sprite_sheet_studio_512',
+    template_name: 'template_game_sprite_sheet_studio.html',
+    category: 'game_stage',
+    width_px: 512,
+    height_px: 512,
+    aspect_ratio: '1:1',
+    stage_selector: '#capture-stage',
+    bg_theme: '#000000',
+    description: '512x512 Game Sprite Sheet Studio blank-slate stage with 16/32/48/64px cells, pivot reticles, window.setCellSvg(r,c,svg), and #isolated-cell export.'
+  },
+  {
+    template_id: 'game_sprite_animation_stage_400',
+    template_name: 'template_game_sprite_animation_stage.html',
+    category: 'game_stage',
+    width_px: 400,
+    height_px: 400,
+    aspect_ratio: '1:1',
+    stage_selector: '#capture-stage',
+    bg_theme: '#000000',
+    description: '400x400 Game Sprite Animation Stage with 2x/4x/8x zoom, onion skinning ghost layer, 4-frame pill strip, and window.setAnimationFrames(frames,label).'
+  },
+  {
+    template_id: 'game_tilemap_palette_stage_512',
+    template_name: 'template_game_tilemap_palette_stage.html',
+    category: 'game_stage',
+    width_px: 512,
+    height_px: 512,
+    aspect_ratio: '1:1',
+    stage_selector: '#capture-stage',
+    bg_theme: '#000000',
+    description: '512x512 Game Tilemap Palette Stage with 16/32/64px tiles, solid/passable collision badges (X/O), window.setTileSvg(r,c,svg,solid), and #isolated-tile export.'
+  },
+  {
+    template_id: 'game_hud_ui_stage_640',
+    template_name: 'template_game_hud_ui_stage.html',
+    category: 'game_stage',
+    width_px: 640,
+    height_px: 480,
+    aspect_ratio: '4:3',
+    stage_selector: '#capture-stage',
+    bg_theme: '#000000',
+    description: '640x480 Game HUD & UI Stage with hearts, MP gauge, B/Y active item boxes, virtual gamepad controls, dialog letterbox, and #isolated-element export.'
+  }
+];
+
+function listGameStageTemplates() {
+  return GAME_STAGE_ARCHETYPES.map(t => Object.assign({}, t));
+}
+
 module.exports = {
-  generateBlankSlateHtml
+  generateBlankSlateHtml,
+  GAME_STAGE_ARCHETYPES,
+  listGameStageTemplates,
+  Generate_Blank_Slate_Html: generateBlankSlateHtml,
+  List_Game_Stage_Templates: listGameStageTemplates
 };
+

@@ -79,6 +79,10 @@ class AITranslator:
             finish_reason=str(normalized_response_envelope_dict.get("finish_reason", "STOP")),
             usage=normalized_response_envelope_dict.get("usage"),
             structured_data=normalized_response_envelope_dict.get("structured_data"),
+            interaction_id=str(normalized_response_envelope_dict.get("interaction_id", "")),
+            rendered_output=normalized_response_envelope_dict.get("rendered_output"),
+            rendered_format=str(normalized_response_envelope_dict.get("rendered_format", "")),
+            turn_continuation_command=normalized_response_envelope_dict.get("turn_continuation_command"),
         )
 
     def _to_gemini_rest(
