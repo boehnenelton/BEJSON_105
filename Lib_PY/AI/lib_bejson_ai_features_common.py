@@ -125,7 +125,8 @@ def build_bejson_105_ai_request(
     return {
         "Format": "BEJSON",
         "Format_Version": "105",
-        "Record_Type_Parent": "AI_Request",
+        "Format_Creator": "Elton Boehnen",
+        "Records_Type": ["AI_Request"],
         "Fields": fields,
         "Values": [
             [
@@ -171,7 +172,8 @@ def build_bejson_105_ai_response(
     return {
         "Format": "BEJSON",
         "Format_Version": "105",
-        "Record_Type_Parent": "AI_Response",
+        "Format_Creator": "Elton Boehnen",
+        "Records_Type": ["AI_Response"],
         "Fields": fields,
         "Values": [
             [

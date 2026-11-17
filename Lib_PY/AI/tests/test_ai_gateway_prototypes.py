@@ -122,7 +122,7 @@ class TestAIGatewayPrototypes(unittest.TestCase):
 
         self.assertEqual(bejson_resp["Format"], "BEJSON")
         self.assertEqual(bejson_resp["Format_Version"], "105")
-        self.assertEqual(bejson_resp["Record_Type_Parent"], "AI_Response")
+        self.assertEqual(bejson_resp["Records_Type"], ["AI_Response"])
         self.assertTrue(all("field_uuid" in f for f in bejson_resp["Fields"]))
         self.assertEqual(len(bejson_resp["Values"][0]), len(bejson_resp["Fields"]) + 1)
         self.assertIn("X-goog-api-key", captured["headers"])
