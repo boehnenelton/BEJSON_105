@@ -188,14 +188,15 @@ class AIEnvVault:
         env_override = os.environ.get("BEJSON_DEFINITIONS_FILE")
         if env_override:
             candidates.append(Path(env_override).expanduser().resolve())
+        definitions_env_pointer = os.environ.get("DEFINITIONS_FILE")
+        if definitions_env_pointer:
+            candidates.append(Path(definitions_env_pointer).expanduser().resolve())
         candidates.extend([
             self.script_path / "config" / "definitions.json",
             self.script_path / "config" / "definitions.py",
             self.script_path.parent / "config" / "definitions.json",
             _canonical_definitions_json(),
             _canonical_definitions_py(),
-            Path("/storage/emulated/0/.env/user/definitions.json"),
-            Path("/storage/emulated/0/.env/user/definitions.py"),
         ])
         return candidates
 
@@ -214,7 +215,6 @@ class AIEnvVault:
             self.script_path.parent / "config" / "secureenv_file.json",
             self.script_path / ".env",
             _canonical_secureenv_json(),
-            Path("/storage/emulated/0/.env/secure/secureenv_file.json"),
         ])
         return candidates
 

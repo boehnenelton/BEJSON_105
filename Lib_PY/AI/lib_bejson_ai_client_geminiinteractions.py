@@ -13,6 +13,7 @@ RELATIONAL_ID:   b5e1a2c3-4d6f-4789-9e0a-1b2c3d4e5018
 from __future__ import annotations
 
 import json
+import logging
 import socket
 import sys
 import urllib.error
@@ -36,6 +37,10 @@ from lib_bejson_AI_bejson_errors import (  # noqa: E402
 )
 from lib_bejson_ai_client_base import BaseAIClient  # noqa: E402
 from lib_bejson_ai_models import Gemini_3_1_Flash_Lite  # noqa: E402
+
+from lib_bejson_ai_features_common import redact_provider_error_text  # noqa: E402
+
+_LOGGER_INSTANCE = logging.getLogger("lib_bejson_ai_client_geminiinteractions")
 
 VERSION = "1.0.0"
 
@@ -98,6 +103,7 @@ class GeminiInteractionsClient(BaseAIClient):
                     raw_response_bytes = network_http_response.read()
         except urllib.error.HTTPError as http_error_exception:
             response_status_code = http_error_exception.code
+            _LOGGER_INSTANCE.warning("Gemini Interactions HTTP %s", response_status_code)
             error_response_body_text = ""
             try:
                 error_response_body_text = http_error_exception.read().decode("utf-8", errors="replace")
@@ -106,16 +112,16 @@ class GeminiInteractionsClient(BaseAIClient):
             if response_status_code in (401, 403):
                 raise AIException(
                     ERR_AI_HTTP_AUTH_FAILED,
-                    f"HTTP {response_status_code}: {error_response_body_text}",
+                    f"HTTP {response_status_code}: {redact_provider_error_text(error_response_body_text)}",
                 ) from http_error_exception
             if response_status_code == 429:
                 raise AIException(
                     ERR_AI_HTTP_RATE_LIMITED,
-                    f"HTTP 429: {error_response_body_text}",
+                    f"HTTP 429: {redact_provider_error_text(error_response_body_text)}",
                 ) from http_error_exception
             raise AIException(
                 ERR_AI_PROVIDER_ERROR,
-                f"HTTP {response_status_code}: {error_response_body_text}",
+                f"HTTP {response_status_code}: {redact_provider_error_text(error_response_body_text)}",
             ) from http_error_exception
         except (TimeoutError, socket.timeout) as timeout_exception:
             raise AIException(

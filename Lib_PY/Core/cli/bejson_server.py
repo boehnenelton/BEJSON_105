@@ -31,7 +31,12 @@ if CORE_DIR not in sys.path: sys.path.insert(0, CORE_DIR)
 try:
     from lib_bejson_Core_bejson_env import resolve_path
     from lib_bejson_Core_bejson_core import ResilientPIDLock, bejson_core_atomic_write
-except ImportError:
+except ImportError as _import_err:
+    import logging as _logging
+    _logging.getLogger("bejson_server").warning(
+        "BEJSON Core library unavailable (%s); operating in degraded fallback mode without PID locking or atomic rename.",
+        _import_err
+    )
     def resolve_path(p): 
         return p.replace("{HOME}", os.environ.get("HOME") or str(Path.home()))
     def bejson_core_atomic_write(path, data):

@@ -102,9 +102,9 @@
     [
       "Graphics",
       "PY",
-      "false",
+      "true",
       "Lib_PY/Graphics",
-      "Format 105a blank-slate stages, row-per-frame animation ledgers, and multi-format export engine."
+      "Format 105a blank-slate stages, row-per-frame animation ledgers, and multi-format export engine. Error registry 500-519 in lib_bejson_Graphics_graphics_errors.py."
     ],
     [
       "Graphics",
@@ -119,6 +119,13 @@
       "false",
       "Lib_PY/CMS",
       "Format 105 Taxonomy-Driven MTV Scaffolding Engine & Admin Dashboard (Model, Template, View with MFDB v1.40 and 13 canonical BEHTML 8-lane templates)."
+    ],
+    [
+      "AI",
+      "PY",
+      "true",
+      "Lib_PY/AI",
+      "3-Tier Multi-AI Provider Gateway (Gemini REST & Interactions, model catalog, config-gated tooling & parsers). Error block 200-235 in lib_bejson_AI_bejson_errors.py."
     ]
   ]
 }

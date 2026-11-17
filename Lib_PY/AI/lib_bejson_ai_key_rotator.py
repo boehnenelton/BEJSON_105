@@ -13,6 +13,7 @@ RELATIONAL_ID:   a3b9c512-1f4e-4b78-9d2a-8c6e0f3a4100
 from __future__ import annotations
 
 import json
+import logging
 import sys
 import threading
 import time
@@ -27,7 +28,9 @@ if str(_HERE) not in sys.path:
 
 from lib_bejson_AI_bejson_errors import AIException, ERR_AI_KEY_EXHAUSTED  # noqa: E402
 
-VERSION = "1.0.0"
+_LOGGER_INSTANCE = logging.getLogger("lib_bejson_ai_key_rotator")
+
+VERSION = "1.1.0"
 
 
 @dataclass
@@ -128,6 +131,7 @@ class KeyRotator:
             key_health_record = self._records.get((provider.lower(), key_name))
             if key_health_record is not None:
                 key_health_record.rate_limits += 1
+                _LOGGER_INSTANCE.warning("Key '%s' (%s) rate limited; cooldown %.0fs.", key_name, provider, duration)
                 key_health_record.cooldown_until_epoch = time.time() + duration
                 self._maybe_save_state()
 
@@ -138,6 +142,7 @@ class KeyRotator:
             if key_health_record is not None:
                 key_health_record.errors += 1
                 key_health_record.quarantined = True
+                _LOGGER_INSTANCE.warning("Key '%s' (%s) quarantined after auth failure.", key_name, provider)
                 self._maybe_save_state()
 
     def get_stats(self, provider: Optional[str] = None) -> List[Dict[str, Any]]:

@@ -608,8 +608,8 @@ Not part of the spec and **not** added: scanning the directory for unlisted enti
 
 | Where | Says | Reality |
 | :--- | :--- | :--- |
-| `libraries_105` README §3.7 | FK metadata includes `fk_target_field_uuid` | No Python code reads it. FKs always target `record_uuid` |
-| README §3.7 and §10.6 | Error codes `E90`–`E95` for 105 | Removed in `bejson_errors` 2.9.0. Codes 86–114 do not exist |
+| `libraries_105` README §3.7 (historical) | FK metadata included `fk_target_field_uuid` | Reconciled at PKG111: FKs always target `record_uuid` |
+| README §3.7 and §10.6 (historical) | Error codes `E90`–`E95` for 105 | Reconciled at PKG118: removed in `bejson_errors` 2.9.0; codes 86–114 do not exist |
 | README / v23 course | MFDB 1.40 databases | `mfdb_core_create_database` defaults `MFDB_Version` to `"1.31"`; pass `"1.40"` |
 | Older 104 course nesting section | A nested document can be a string **or** object | The scanner only finds nested documents stored as JSON **strings** |
 | README §1.2 | 105 runtime enforces "strict positional length, data-type conformance" | True after this patch; it was not true before it |

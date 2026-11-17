@@ -8,7 +8,7 @@
   "Schema_Version": "2.6.1",
   "Author": "Elton Boehnen",
   "Created_At": "2026-07-18T06:45:04Z",
-  "Modified_At": "2026-10-31T03:59:10Z",
+  "Modified_At": "2026-11-17T10:25:00Z",
   "Network_Role": "Master",
   "Records_Type": [
     "mfdb"
@@ -44,7 +44,7 @@
       "Errors",
       "data/errors.bejson",
       "Global cross-family error code map (read-only aggregate; each family's own errors file is the source of truth)",
-      290,
+      333,
       "2.2",
       null
     ],
@@ -52,7 +52,7 @@
       "Metadata",
       "data/metadata.bejson",
       "Library versioning AND governance rules hub (EAV-style: RECORD_TYPE is VERSION or RULE), keyed by LIBRARY_FAMILY + LANGUAGE + KEY. Includes the Core-parity, MFDB-is-part-of-Core, BEJSON acronym, and PMS-deprecation rules.",
-      12,
+      9,
       "3.3",
       null
     ],
@@ -60,7 +60,7 @@
       "Library_Changes",
       "data/library_changes.bejson",
       "Library change log, keyed by LIBRARY_FAMILY + LANGUAGE + LIBRARY_FILE",
-      146,
+      158,
       "2.2",
       null
     ],
@@ -68,7 +68,7 @@
       "Families",
       "data/families.bejson",
       "Registry of every family x language combo and whether it has an owned error registry file \u2014 feeds the Reports dropdown and future CLI tooling",
-      13,
+      14,
       "1.1",
       null
     ],
@@ -91,7 +91,7 @@
     [
       "Schemas",
       "data/schemas.bejson",
-      "Centralized SCHEMA_* constants from across the PY libraries, migration-tracked via SOURCE_FILE; reference/audit mirror for now (see docs/SCHEMAS_ENTITY_MIGRATION_DECISION.md)",
+      "Centralized SCHEMA_* constants from across the PY libraries, migration-tracked via SOURCE_FILE; reference/audit mirror.",
       3,
       "1.0",
       null

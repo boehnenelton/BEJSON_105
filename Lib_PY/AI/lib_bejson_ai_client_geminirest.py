@@ -13,6 +13,7 @@ RELATIONAL_ID:   e2f4b673-0d45-4c99-d6fc-5a8b0c4e6005
 from __future__ import annotations
 
 import json
+import logging
 import socket
 import sys
 import urllib.error
@@ -35,6 +36,10 @@ from lib_bejson_AI_bejson_errors import (  # noqa: E402
     ERR_AI_PROVIDER_ERROR,
 )
 from lib_bejson_ai_client_base import BaseAIClient  # noqa: E402
+
+from lib_bejson_ai_features_common import redact_provider_error_text  # noqa: E402
+
+_LOGGER_INSTANCE = logging.getLogger("lib_bejson_ai_client_geminirest")
 
 VERSION = "1.0.0"
 
@@ -98,16 +103,17 @@ class GeminiRestClient(BaseAIClient):
                     raw_bytes = resp.read()
         except urllib.error.HTTPError as exc:
             status = exc.code
+            _LOGGER_INSTANCE.warning("Gemini REST HTTP %s", status)
             err_body = ""
             try:
                 err_body = exc.read().decode("utf-8", errors="replace")
             except Exception:
                 pass
             if status in (401, 403):
-                raise AIException(ERR_AI_HTTP_AUTH_FAILED, f"HTTP {status}: {err_body}") from exc
+                raise AIException(ERR_AI_HTTP_AUTH_FAILED, f"HTTP {status}: {redact_provider_error_text(err_body)}") from exc
             if status == 429:
-                raise AIException(ERR_AI_HTTP_RATE_LIMITED, f"HTTP 429: {err_body}") from exc
-            raise AIException(ERR_AI_PROVIDER_ERROR, f"HTTP {status}: {err_body}") from exc
+                raise AIException(ERR_AI_HTTP_RATE_LIMITED, f"HTTP 429: {redact_provider_error_text(err_body)}") from exc
+            raise AIException(ERR_AI_PROVIDER_ERROR, f"HTTP {status}: {redact_provider_error_text(err_body)}") from exc
         except (TimeoutError, socket.timeout) as exc:
             raise AIException(ERR_AI_HTTP_TIMEOUT, f"Request timed out after {timeout}s") from exc
         except urllib.error.URLError as exc:

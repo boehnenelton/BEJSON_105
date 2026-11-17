@@ -6,7 +6,7 @@
 - **RELATIONAL_ID:** 02d1cc40-7040-46f0-9334-82e43b469254
 - **Author:** Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 
-Never seen this before? Read **START_HERE.md** in the project root first. It has pictures and crayons. This family needs `Taxonomies` and `Core` next to it.
+Never seen this before? Read **README.md** in the project root first. It has pictures and crayons. This family needs `Taxonomies` and `Core` next to it.
 
 ## What is in the box: three files
 

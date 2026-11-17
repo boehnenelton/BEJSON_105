@@ -6,7 +6,7 @@
 - **RELATIONAL_ID:** 8fcdc360-ec21-43c1-9cce-893a5519dd5a
 - **Author:** Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 
-Never seen this before? Read **START_HERE.md** in the project root first. It has pictures and crayons.
+Never seen this before? Read **README.md** in the project root first. It has pictures and crayons.
 
 ## What is in the box: three files
 

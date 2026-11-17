@@ -159,9 +159,9 @@ def create_isometric_cube_svg(
     ]
 
     return f"""<svg viewBox="0 0 {viewbox_size} {viewbox_size}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
-  <polygon points="{' '.join(p_top)}" fill="#181822" stroke="{stroke_color}" stroke-width="2" />
-  <polygon points="{' '.join(p_left)}" fill="#0e0e14" stroke="{stroke_color}" stroke-width="2" />
-  <polygon points="{' '.join(p_right)}" fill="#12121a" stroke="{stroke_color}" stroke-width="2" />
+  <polygon points="{' '.join(p_top)}" fill="#14141A" stroke="{stroke_color}" stroke-width="2" />
+  <polygon points="{' '.join(p_left)}" fill="#0C0C10" stroke="{stroke_color}" stroke-width="2" />
+  <polygon points="{' '.join(p_right)}" fill="#0C0C10" stroke="{stroke_color}" stroke-width="2" />
   <circle cx="{center_x}" cy="{center_y}" r="{3 * pulse_intensity}" fill="{accent_color}" />
 </svg>"""
 
@@ -226,9 +226,9 @@ def render_spinning_cube_svg(
             if face_name == "top":
                 fill, fill_op, stroke = accent_color, "0.4", accent_color
             elif face_name in ("front", "left"):
-                fill, fill_op, stroke = "#0E0E16", "0.95", "#FFFFFF"
+                fill, fill_op, stroke = "#0C0C10", "0.95", "#FFFFFF"
             else:
-                fill, fill_op, stroke = "#161622", "0.95", "#FFFFFF"
+                fill, fill_op, stroke = "#14141A", "0.95", "#FFFFFF"
             svg_lines.append(f'<polygon points="{pts}" fill="{fill}" fill-opacity="{fill_op}" stroke="{stroke}" stroke-width="2"/>')
 
     svg_lines.append(f'<circle cx="{cx}" cy="{cy}" r="5" fill="{accent_color}"/>')
@@ -258,10 +258,10 @@ def render_radar_scanner_svg(
     return f"""<svg width="{width_px}" height="{height_px}" viewBox="0 0 {width_px} {height_px}" xmlns="http://www.w3.org/2000/svg">
   <rect width="{width_px}" height="{height_px}" fill="#000000"/>
   <circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
-  <circle cx="{cx}" cy="{cy}" r="{r*0.66}" fill="none" stroke="#1C1C28" stroke-width="1"/>
-  <circle cx="{cx}" cy="{cy}" r="{r*0.33}" fill="none" stroke="#1C1C28" stroke-width="1"/>
-  <line x1="{cx-r}" y1="{cy}" x2="{cx+r}" y2="{cy}" stroke="#1C1C28" stroke-width="1"/>
-  <line x1="{cx}" y1="{cy-r}" x2="{cx}" y2="{cy+r}" stroke="#1C1C28" stroke-width="1"/>
+  <circle cx="{cx}" cy="{cy}" r="{r*0.66}" fill="none" stroke="#1C1C24" stroke-width="1"/>
+  <circle cx="{cx}" cy="{cy}" r="{r*0.33}" fill="none" stroke="#1C1C24" stroke-width="1"/>
+  <line x1="{cx-r}" y1="{cy}" x2="{cx+r}" y2="{cy}" stroke="#1C1C24" stroke-width="1"/>
+  <line x1="{cx}" y1="{cy-r}" x2="{cx}" y2="{cy+r}" stroke="#1C1C24" stroke-width="1"/>
   <path d="M{cx},{cy} L{bx:.1f},{by:.1f} A{r},{r} 0 0,0 {tx:.1f},{ty:.1f} Z" fill="{accent_color}" fill-opacity="0.25"/>
   <line x1="{cx}" y1="{cy}" x2="{bx:.1f},{by:.1f}" stroke="{accent_color}" stroke-width="2"/>
   <circle cx="{cx}" cy="{cy}" r="4" fill="{accent_color}"/>
@@ -276,9 +276,9 @@ def render_radar_scanner_svg(
 
 def bejson_logo_svg(x: int = 1030, y: int = 655, is_dark: bool = True) -> str:
     """Renders canonical BEJSON text logo with isometric 3D cube emblem."""
-    txt_col = "#FFFFFF" if is_dark else "#111111"
-    cutout_col = "#111113" if is_dark else "#F8F9FA"
-    left_col = "#1C1C22" if is_dark else "#E5E7EB"
+    txt_col = "#FFFFFF" if is_dark else "#0C0C10"
+    cutout_col = "#0C0C10" if is_dark else "#FFFFFF"
+    left_col = "#1C1C24" if is_dark else "#FFFFFF"
     return f"""<g transform="translate({x}, {y})">
     <text x="0" y="22" fill="{txt_col}" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="900" letter-spacing="1.5">BEJSON</text>
     <g transform="translate(112, 0)">
@@ -312,19 +312,19 @@ def render_slide_split_visual_svg(
 
     w, h = width_px, height_px
     logo = bejson_logo_svg(x=w - 230, y=h - 60, is_dark=True)
-    visual_slot = inner_svg if inner_svg else f"""<rect x="64" y="64" width="540" height="520" rx="4" fill="#0E0E10" stroke="#24242A" stroke-width="1.5"/>
-  <path d="M 64 88 L 64 64 L 88 64" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
-  <path d="M 580 64 L 604 64 L 604 88" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
-  <path d="M 64 560 L 64 584 L 88 584" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
-  <path d="M 580 584 L 604 584 L 604 560" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
-  <text x="334" y="328" fill="#555562" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{visual_placeholder}</text>"""
+    visual_slot = inner_svg if inner_svg else f"""<rect x="64" y="64" width="540" height="520" rx="4" fill="#0C0C10" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 64 88 L 64 64 L 88 64" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 580 64 L 604 64 L 604 88" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 64 560 L 64 584 L 88 584" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 580 584 L 604 584 L 604 560" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <text x="334" y="328" fill="#333333" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{visual_placeholder}</text>"""
 
     return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#111113"/>
+  <rect width="{w}" height="{h}" fill="#0C0C10"/>
   {visual_slot}
   <text x="660" y="130" fill="#FFFFFF" font-size="48" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
-  <text x="660" y="175" fill="#777782" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
-  <text x="660" y="340" fill="#888894" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{content}</text>
+  <text x="660" y="175" fill="#FFFFFF" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
+  <text x="660" y="340" fill="#FFFFFF" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{content}</text>
   <line x1="64" y1="{h-65}" x2="{w-64}" y2="{h-65}" stroke="#DE2626" stroke-width="2"/>
   {logo}
 </svg>"""
@@ -355,21 +355,21 @@ def render_slide_key_points_svg(
     bullets_svg = []
     for i, pt in enumerate(pts):
         by = 335 + i * 50
-        bullets_svg.append(f"""<circle cx="695" cy="{by-5}" r="3.5" fill="#777784"/>
-  <text x="715" y="{by}" fill="#888894" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{pt}</text>""")
+        bullets_svg.append(f"""<circle cx="695" cy="{by-5}" r="3.5" fill="#FFFFFF"/>
+  <text x="715" y="{by}" fill="#FFFFFF" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{pt}</text>""")
     bullets_markup = "\n  ".join(bullets_svg)
 
     return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#111113"/>
+  <rect width="{w}" height="{h}" fill="#0C0C10"/>
   <!-- Subtle coordinate crosshairs -->
-  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#222228" stroke-width="1.5"/>
-  <path d="M 640 {h-44} L 640 {h-24} M 630 {h-34} L 650 {h-34}" stroke="#222228" stroke-width="1.5"/>
-  <path d="M 34 350 L 34 370 M 24 360 L 44 360" stroke="#222228" stroke-width="1.5"/>
-  <path d="M {w-34} 350 L {w-34} 370 M {w-44} 360 L {w-24} 360" stroke="#222228" stroke-width="1.5"/>
+  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 640 {h-44} L 640 {h-24} M 630 {h-34} L 650 {h-34}" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 34 350 L 34 370 M 24 360 L 44 360" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M {w-34} 350 L {w-34} 370 M {w-44} 360 L {w-24} 360" stroke="#2A2A38" stroke-width="1.5"/>
   <!-- Left Column -->
   <text x="64" y="130" fill="#FFFFFF" font-size="48" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
-  <text x="64" y="175" fill="#777782" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
-  <text x="64" y="280" fill="#666672" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{narrative}</text>
+  <text x="64" y="175" fill="#FFFFFF" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
+  <text x="64" y="280" fill="#333333" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">{narrative}</text>
   <!-- Right Column -->
   <text x="680" y="280" fill="#FFFFFF" font-size="26" font-family="system-ui, -apple-system, sans-serif" font-weight="700" letter-spacing="1">KEY POINTS</text>
   {bullets_markup}
@@ -400,22 +400,22 @@ def render_slide_visual_focus_light_svg(
     w, h = width_px, height_px
     logo = bejson_logo_svg(x=w - 230, y=h - 85, is_dark=False)
     visual_slot = inner_svg if inner_svg else f"""<!-- Visual Area Registration Marks -->
-  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#D8D9E0" stroke-width="1.5"/>
-  <path d="M 100 240 L 100 260 M 90 250 L 110 250" stroke="#D8D9E0" stroke-width="1.5"/>
-  <path d="M {w-100} 240 L {w-100} 260 M {w-110} 250 L {w-90} 250" stroke="#D8D9E0" stroke-width="1.5"/>
-  <path d="M 640 450 L 640 470 M 630 460 L 650 460" stroke="#D8D9E0" stroke-width="1.5"/>
-  <path d="M 120 100 L 120 80 L 140 80" fill="none" stroke="#C0C0CA" stroke-width="1.5"/>
-  <path d="M {w-120} 440 L {w-120} 460 L {w-140} 460" fill="none" stroke="#C0C0CA" stroke-width="1.5"/>
-  <text x="640" y="255" fill="#888892" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{placeholder_text}</text>"""
+  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M 100 240 L 100 260 M 90 250 L 110 250" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M {w-100} 240 L {w-100} 260 M {w-110} 250 L {w-90} 250" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M 640 450 L 640 470 M 630 460 L 650 460" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M 120 100 L 120 80 L 140 80" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M {w-120} 440 L {w-120} 460 L {w-140} 460" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <text x="640" y="255" fill="#FFFFFF" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{placeholder_text}</text>"""
 
     return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#F8F9FA"/>
+  <rect width="{w}" height="{h}" fill="#FFFFFF"/>
   {visual_slot}
   <!-- Divider -->
   <line x1="64" y1="510" x2="{w-64}" y2="510" stroke="#DE2626" stroke-width="2.5"/>
   <!-- Lower Section -->
-  <text x="64" y="575" fill="#111111" font-size="36" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
-  <text x="64" y="618" fill="#44444A" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400">{description}</text>
+  <text x="64" y="575" fill="#0C0C10" font-size="36" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
+  <text x="64" y="618" fill="#333333" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400">{description}</text>
   {logo}
 </svg>"""
 
@@ -442,22 +442,22 @@ def render_slide_visual_focus_dark_svg(
     w, h = width_px, height_px
     logo = bejson_logo_svg(x=w - 230, y=h - 85, is_dark=True)
     visual_slot = inner_svg if inner_svg else f"""<!-- Visual Area Registration Marks -->
-  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#222228" stroke-width="1.5"/>
-  <path d="M 100 250 L 100 270 M 90 260 L 110 260" stroke="#222228" stroke-width="1.5"/>
-  <path d="M {w-100} 250 L {w-100} 270 M {w-110} 260 L {w-90} 260" stroke="#222228" stroke-width="1.5"/>
-  <path d="M 640 460 L 640 480 M 630 470 L 650 470" stroke="#222228" stroke-width="1.5"/>
-  <path d="M 120 100 L 120 80 L 140 80" fill="none" stroke="#2A2A32" stroke-width="1.5"/>
-  <path d="M {w-120} 450 L {w-120} 470 L {w-140} 470" fill="none" stroke="#2A2A32" stroke-width="1.5"/>
-  <text x="640" y="260" fill="#555562" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{placeholder_text}</text>"""
+  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 100 250 L 100 270 M 90 260 L 110 260" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M {w-100} 250 L {w-100} 270 M {w-110} 260 L {w-90} 260" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 640 460 L 640 480 M 630 470 L 650 470" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 120 100 L 120 80 L 140 80" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M {w-120} 450 L {w-120} 470 L {w-140} 470" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <text x="640" y="260" fill="#333333" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="500" letter-spacing="0.5" text-anchor="middle">{placeholder_text}</text>"""
 
     return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#111113"/>
+  <rect width="{w}" height="{h}" fill="#0C0C10"/>
   {visual_slot}
   <!-- Divider -->
   <line x1="64" y1="520" x2="{w-64}" y2="520" stroke="#DE2626" stroke-width="2"/>
   <!-- Lower Section -->
   <text x="64" y="585" fill="#FFFFFF" font-size="44" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
-  <text x="64" y="635" fill="#777782" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
+  <text x="64" y="635" fill="#FFFFFF" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">{tagline}</text>
   {logo}
 </svg>"""
 
@@ -492,15 +492,15 @@ def render_slide_process_flow_svg(
         lbl = cards_data[i].get("label", f"Step {i+1}") if i < len(cards_data) else f"Step {i+1}"
         sub = cards_data[i].get("sub", "") if i < len(cards_data) else ""
         lbl_svg = f'<text x="{c_x + card_w/2}" y="{c_y + card_h/2 + 6}" fill="#FFFFFF" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="600" text-anchor="middle">{lbl}</text>' if lbl else ''
-        sub_svg = f'<text x="{c_x + card_w/2}" y="{c_y + card_h/2 + 30}" fill="#777782" font-size="13" font-family="system-ui, -apple-system, sans-serif" text-anchor="middle">{sub}</text>' if sub else ''
-        cards_svg.append(f"""<rect x="{c_x}" y="{c_y}" width="{card_w}" height="{card_h}" rx="12" fill="#16161A" stroke="#26262E" stroke-width="1.5"/>
+        sub_svg = f'<text x="{c_x + card_w/2}" y="{c_y + card_h/2 + 30}" fill="#FFFFFF" font-size="13" font-family="system-ui, -apple-system, sans-serif" text-anchor="middle">{sub}</text>' if sub else ''
+        cards_svg.append(f"""<rect x="{c_x}" y="{c_y}" width="{card_w}" height="{card_h}" rx="12" fill="#14141A" stroke="#2A2A38" stroke-width="1.5"/>
   {lbl_svg}
   {sub_svg}""")
 
     cards_markup = "\n  ".join(cards_svg)
 
     return f"""<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{w}" height="{h}" fill="#111113"/>
+  <rect width="{w}" height="{h}" fill="#0C0C10"/>
   <!-- Red accent bar above title -->
   <rect x="64" y="60" width="44" height="4" rx="2" fill="#DE2626"/>
   <text x="64" y="115" fill="#FFFFFF" font-size="44" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">{title}</text>
@@ -516,7 +516,7 @@ def render_slide_process_flow_svg(
     <polygon points="84,-6 96,0 84,6" fill="#DE2626"/>
   </g>
   <!-- Bottom divider -->
-  <line x1="64" y1="{h-65}" x2="{w-64}" y2="{h-65}" stroke="#1C1C22" stroke-width="1"/>
+  <line x1="64" y1="{h-65}" x2="{w-64}" y2="{h-65}" stroke="#1C1C24" stroke-width="1"/>
   {logo}
 </svg>"""
 

@@ -519,6 +519,7 @@ function _cloneWith(doc: BEJSONDocument, overrides: Partial<BEJSONDocument>): BE
 }
 
 function _coerceValue(value: any, fieldType: string): BEJSONValue {
+  if (value === null || value === undefined) return null;
   if (fieldType === "string") return String(value);
   if (fieldType === "integer" || fieldType === "number") {
     const num = fieldType === "integer" ? parseInt(value, 10) : parseFloat(value);

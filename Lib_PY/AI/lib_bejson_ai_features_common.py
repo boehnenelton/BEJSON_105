@@ -29,7 +29,18 @@ from lib_bejson_AI_bejson_errors import (  # noqa: E402
     ERR_AI_SCHEMA_MISMATCH,
 )
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
+
+_API_KEY_LEAK_RE = re.compile(r"AIza[0-9A-Za-z\-_]{20,}")
+MAX_PROVIDER_ERROR_TEXT_CHARS = 500
+
+
+def redact_provider_error_text(raw_error_text: str, max_chars: int = MAX_PROVIDER_ERROR_TEXT_CHARS) -> str:
+    """Redact API-key-shaped tokens and cap length before text is embedded in an exception."""
+    redacted_error_text = _API_KEY_LEAK_RE.sub("[REDACTED_API_KEY]", str(raw_error_text))
+    if len(redacted_error_text) > max_chars:
+        return redacted_error_text[:max_chars] + " [truncated]"
+    return redacted_error_text
 
 _XML_TAG_RE = re.compile(r"<([a-zA-Z_][a-zA-Z0-9_-]*)>(.*?)</\1>", re.DOTALL)
 _CODE_FENCE_JSON_RE = re.compile(r"```(?:json)?\s*\n?(.*?)\n?```", re.DOTALL | re.IGNORECASE)

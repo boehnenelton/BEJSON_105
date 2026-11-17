@@ -13,6 +13,7 @@ RELATIONAL_ID:   d1e9a128-5c9a-414e-c14b-0f3a5b9d1010
 from __future__ import annotations
 
 import importlib
+import logging
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -26,6 +27,7 @@ from lib_bejson_AI_bejson_errors import (  # noqa: E402
     ERR_AI_HTTP_AUTH_FAILED,
     ERR_AI_HTTP_RATE_LIMITED,
     ERR_AI_PROVIDER_NOT_REGISTERED,
+    ERR_AI_UNKNOWN_PROVIDER,
 )
 from lib_bejson_ai_client_base import BaseAIClient  # noqa: E402
 from lib_bejson_ai_client_geminiinteractions import GeminiInteractionsClient  # noqa: E402
@@ -42,7 +44,9 @@ from lib_bejson_ai_tooling_interactions import InteractionsToolingSystem  # noqa
 from lib_bejson_ai_tooling_registry import ToolingRegistry  # noqa: E402
 from lib_bejson_ai_translator import AITranslator  # noqa: E402
 
-VERSION = "1.6.0"
+_LOGGER_INSTANCE = logging.getLogger("lib_bejson_ai_dispatcher")
+
+VERSION = "1.6.1"
 
 
 class AIDispatcher:
@@ -119,12 +123,22 @@ class AIDispatcher:
         """Return sorted list of registered provider names."""
         return sorted(self._registered_providers_map.keys())
 
-    def discover_providers(self, library_target_directory_path: Optional[Path] = None) -> List[str]:
+    def discover_providers(
+        self,
+        library_target_directory_path: Optional[Path] = None,
+        allow_external_directory: bool = False,
+    ) -> List[str]:
         """
         Scan directory for `lib_bejson_ai_client_*.py` modules (excluding `base`)
-        and return discovered provider names.
+        and return discovered provider names. Importing executes module code, so only the
+        gateway's own package directory is scanned unless `allow_external_directory=True`.
         """
         target_directory = Path(library_target_directory_path) if library_target_directory_path else _CURRENT_MODULE_DIR
+        if target_directory.resolve() != _CURRENT_MODULE_DIR and not allow_external_directory:
+            raise AIException(
+                ERR_AI_UNKNOWN_PROVIDER,
+                f"Provider discovery outside the gateway package directory is disabled: {target_directory}",
+            )
         discovered_provider_names_list: List[str] = []
         for file_candidate_path in sorted(target_directory.glob("lib_bejson_ai_client_*.py")):
             module_file_stem = file_candidate_path.stem
@@ -164,11 +178,26 @@ class AIDispatcher:
                 return raw_provider_response_dict
             except AIException as client_call_exception:
                 if client_call_exception.code == ERR_AI_HTTP_RATE_LIMITED and key_rotation_attempt_counter <= maximum_key_rotation_retries:
+                    _LOGGER_INSTANCE.warning(
+                        "Provider '%s' rate limited (attempt %d); rotating key.",
+                        target_provider_identifier_name,
+                        key_rotation_attempt_counter,
+                    )
                     self.key_handler.mark_rate_limited(acquired_api_key_secret)
                     continue
                 if client_call_exception.code == ERR_AI_HTTP_AUTH_FAILED and key_rotation_attempt_counter <= maximum_key_rotation_retries:
+                    _LOGGER_INSTANCE.warning(
+                        "Provider '%s' auth failure (attempt %d); quarantining key and rotating.",
+                        target_provider_identifier_name,
+                        key_rotation_attempt_counter,
+                    )
                     self.key_handler.quarantine_key(acquired_api_key_secret)
                     continue
+                _LOGGER_INSTANCE.error(
+                    "Provider '%s' call failed with code %s.",
+                    target_provider_identifier_name,
+                    client_call_exception.code,
+                )
                 self.key_handler.record_error(acquired_api_key_secret)
                 raise
 

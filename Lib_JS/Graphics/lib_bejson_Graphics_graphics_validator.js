@@ -207,6 +207,13 @@ function validateGraphicsBarrier(inputData, isFile = false) {
             const svgCheck = checkSvg(svgContent);
             if (!svgCheck.valid) {
               errors.push(`[E_GRAPHICS_INVALID_SVG_MARKUP] Row #${rowIdx} ${svgCheck.error}`);
+            } else if (typeof svgContent === 'string') {
+              const hexMatches = svgContent.match(/#[0-9a-fA-F]{6}\b/g) || [];
+              for (const hexMatch of hexMatches) {
+                if (!checkPalette(hexMatch)) {
+                  warnings.push(`[E_GRAPHICS_PALETTE_VIOLATION] Row #${rowIdx} svg_markup color '${hexMatch}' deviates from Policy §8.1 Tri-Color Palette`);
+                }
+              }
             }
           }
         }

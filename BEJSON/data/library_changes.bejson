@@ -1050,6 +1050,90 @@
       "lib_bejson_Graphics_graphics_canvas_templates.js",
       "2026-11-12",
       "1.0.1: header RELATIONAL_ID fingerprint (code unchanged)"
+    ],
+    [
+      "Graphics",
+      "PY",
+      "lib_bejson_Graphics_graphics_schemas.py",
+      "2026-11-01",
+      "1.1.0 (PKG113): Added GRAPHIC_ANIMATION_TIMELINE_FIELDS, compute_frame_timeline_105a, create_svg_animation_timeline_105a, and create_graphics_mfdb_manifest_105a."
+    ],
+    [
+      "Graphics",
+      "PY",
+      "lib_bejson_Graphics_graphics_validator.py",
+      "2026-11-01",
+      "1.1.0 (PKG113): Two-tier Barrier of Entry validator enforcing error codes 500-519."
+    ],
+    [
+      "Graphics",
+      "PY",
+      "lib_bejson_Graphics_graphics_errors.py",
+      "2026-11-01",
+      "1.1.0 (PKG113): Unified error registry for Graphics domain (500-519)."
+    ],
+    [
+      "Graphics",
+      "PY",
+      "lib_bejson_Graphics_graphics_core.py",
+      "2026-11-01",
+      "1.2.0 (PKG113/PKG115): Procedural SVG renderers, frame pruning, slide dwell durations, and presentation video compilation."
+    ],
+    [
+      "Graphics",
+      "PY",
+      "lib_bejson_Graphics_graphics_canvas_templates.py",
+      "2026-11-01",
+      "1.0.0 (PKG115): Registered 5 canonical 16:9 branding slide archetypes into canvas_templates_registry.105a.bejson."
+    ],
+    [
+      "Standards",
+      "PY",
+      "lib_bejson_Standards_bejson_logging.py",
+      "2026-11-02",
+      "1.1.0 (PKG116): Stateful loaded chamber logging module and unit test suite."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_bejson_errors.js",
+      "2026-11-17",
+      "2.3.1: Added codes 57-60 (E_MFDB_CORE_DUPLICATE_ENTITY_NAME .. E_MFDB_CORE_ENTITY_NOT_IN_MANIFEST) for 77-code parity."
+    ],
+    [
+      "Core",
+      "JS",
+      "lib_bejson_Core_mfdb_core.js",
+      "2026-11-17",
+      "2.3.6: Throw E_MFDB_CORE_DUPLICATE_ENTITY_NAME (57) on duplicate entity registration matching TS."
+    ],
+    [
+      "Core",
+      "TS",
+      "lib_bejson_Core_bejson_core.ts",
+      "2026-11-17",
+      "2.3.1: Permit null/undefined in _coerceValue without throwing WRITE_TYPE_MISMATCH."
+    ],
+    [
+      "Core",
+      "PY",
+      "lib_bejson_Core_bejson_static_backend.py",
+      "2026-11-17",
+      "2.1.5: Added realpath containment guard on entity file_path and replaced print with logger.error."
+    ],
+    [
+      "Graphics",
+      "PY",
+      "lib_bejson_Graphics_graphics_validator.py",
+      "2026-11-17",
+      "1.1.1: Extended palette inspection to hex colors inside svg_markup."
+    ],
+    [
+      "Graphics",
+      "JS",
+      "lib_bejson_Graphics_graphics_validator.js",
+      "2026-11-17",
+      "1.0.1: Extended palette inspection to hex colors inside svg_markup."
     ]
   ]
 }

@@ -13,7 +13,9 @@ RELATIONAL_ID:   e8a2b1c4-5d9f-4371-9c0b-6a4e7f8d1016
 from __future__ import annotations
 
 import json
+import logging
 import os
+import time
 import sys
 import uuid
 from pathlib import Path
@@ -29,7 +31,9 @@ from lib_bejson_AI_bejson_errors import (  # noqa: E402
 )
 from lib_bejson_ai_tooling_base import BaseToolingSystem  # noqa: E402
 
-VERSION = "1.0.0"
+_LOGGER_INSTANCE = logging.getLogger("lib_bejson_ai_tooling_registry")
+
+VERSION = "1.1.0"
 
 DEFAULT_GLOBAL_CONFIG_FILENAME = "ai_global_config.105a.bejson"
 
@@ -126,8 +130,28 @@ class AIGlobalConfigManager:
                     except (json.JSONDecodeError, TypeError):
                         loaded_settings_map[setting_key_name] = serialized_raw_value
             self._cached_configuration_settings_map = loaded_settings_map
-        except Exception:
+        except Exception as config_load_exception:
+            self._quarantine_corrupt_configuration(config_load_exception)
             self.auto_export_default_configuration()
+
+    def _quarantine_corrupt_configuration(self, config_load_exception: Exception) -> None:
+        """Preserve an unreadable config file as `.corrupt-<epoch>` and warn instead of silently discarding it."""
+        corrupt_backup_path = self.config_target_file_path.with_name(
+            f"{self.config_target_file_path.name}.corrupt-{int(time.time())}"
+        )
+        try:
+            self.config_target_file_path.replace(corrupt_backup_path)
+            _LOGGER_INSTANCE.warning(
+                "AI global config unreadable (%s); preserved as %s and regenerated defaults.",
+                config_load_exception,
+                corrupt_backup_path,
+            )
+        except OSError as backup_failure_exception:
+            _LOGGER_INSTANCE.warning(
+                "AI global config unreadable (%s) and backup failed (%s); regenerating defaults.",
+                config_load_exception,
+                backup_failure_exception,
+            )
 
     def auto_export_default_configuration(self) -> None:
         """Export default 105a configuration file to disk atomically."""

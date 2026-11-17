@@ -34,11 +34,11 @@ def build_bejson_105_slides(output_dir: Path):
 
     # 1. Slide 1: Split Visual - BEJSON 105 Overview
     cube_svg = create_isometric_cube_svg(viewbox_size=360, cube_style="104a_floating", accent_color=COLOR_RED)
-    inner_visual = f"""<rect x="64" y="64" width="540" height="520" rx="6" fill="#0E0E10" stroke="#24242A" stroke-width="1.5"/>
-  <path d="M 64 88 L 64 64 L 88 64" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
-  <path d="M 580 64 L 604 64 L 604 88" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
-  <path d="M 64 560 L 64 584 L 88 584" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
-  <path d="M 580 584 L 604 584 L 604 560" fill="none" stroke="#3A3A44" stroke-width="1.5"/>
+    inner_visual = f"""<rect x="64" y="64" width="540" height="520" rx="6" fill="#0C0C10" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 64 88 L 64 64 L 88 64" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 580 64 L 604 64 L 604 88" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 64 560 L 64 584 L 88 584" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 580 584 L 604 584 L 604 560" fill="none" stroke="#2A2A38" stroke-width="1.5"/>
   <g transform="translate(154, 144)">
     {cube_svg}
   </g>"""
@@ -143,7 +143,7 @@ def build_bejson_105_slides(output_dir: Path):
         body {{
             margin: 0;
             padding: 24px;
-            background-color: #0A0A0C;
+            background-color: #0C0C10;
             color: #FFFFFF;
             font-family: system-ui, -apple-system, sans-serif;
             display: flex;
@@ -161,23 +161,23 @@ def build_bejson_105_slides(output_dir: Path):
             letter-spacing: 1px;
         }}
         p.subtitle {{
-            color: #888894;
+            color: #FFFFFF;
             font-size: 16px;
             margin: 0;
         }}
         .slide-card {{
             width: 100%;
             max-width: 1080px;
-            background: #111114;
-            border: 1px solid #222228;
+            background: #0C0C10;
+            border: 1px solid #2A2A38;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }}
         .slide-header {{
             padding: 12px 20px;
-            background: #16161B;
-            border-bottom: 1px solid #222228;
+            background: #14141A;
+            border-bottom: 1px solid #2A2A38;
             font-size: 14px;
             font-weight: 600;
             display: flex;

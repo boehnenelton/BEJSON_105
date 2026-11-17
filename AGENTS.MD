@@ -106,4 +106,14 @@ Run the relevant suite before reporting a change complete. Last full run (2026-1
 ## 10. Before you finish
 Run the checklist in `Libraries_105_Agent_Directive-V10101-PKG101.md` §11. Report any language gap or doc discrepancy you hit.
 
+## 11. Governance & Self-Tracking Ledger Invariants (Added 2026-11-17)
+- **Self-Tracking MFDB Ledger Synchronization:** Every package bump, new family registration, error code addition, or version anchor update MUST atomically update the `BEJSON/` self-tracking MFDB (`104a.mfdb.bejson`, `data/errors.bejson`, `data/families.bejson`, `data/metadata.bejson`, `data/library_changes.bejson`) and verify `validate_mfdb_database('BEJSON/104a.mfdb.bejson').valid == True`. Never ship a package with a stale `BEJSON/` ledger or duplicate EAV keys in `metadata.bejson`.
+- **Cross-Language Core Error & Null Parity:** Core error codes (1–139) and CRUD exception numbers (such as `57 E_MFDB_CORE_DUPLICATE_ENTITY_NAME`) must remain identical across PY, JS, TS, and SH. Null values in typed cells must pass through `_coerceValue` as `null` without throwing `NaN` / `WRITE_TYPE_MISMATCH`.
+- **Graphics SVG Palette Enforcement:** `svg_markup` cells in Graphics 105/105a documents must be scanned for embedded hex colors against `AUTHORIZED_PALETTE_HEX` (Policy §8.1 Tri-Color palette).
+
 *Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton*
+
+## Relocated from ~/.gemini/GEMINI.md (2026-11-17)
+
+- **Test Schema Synchronization:** When changing canonical seed registries, defaults, or schemas in BEJSON/MFDB stores, update all test assertions and fixture baselines in the same atomic commit. Tests must not tolerate known assertion drift or magic numbers that diverge from the canonical seed. Skill: `bejson-enforcement-suite-builder`.
+- **Metrics Destination:** Benchmarks, test suites, performance metrics, and dashboards for this library resolve their target from `$DEFINITIONS_FILE` (`$ADMIN_LIBRARIES_105`) at `<library root>/dev/metrics/`. No scratch folders outside the definitions tree for canonical deliveries. Updating metrics is an atomic in-place replacement: purge stale unindexed files and keep the series layout `test_series_1`, `test_series_2`, `test_series_3`, `index.html`. Skills: `file-hierarchy-manager`, `bejson-enforcement-suite-builder`.

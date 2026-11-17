@@ -21,6 +21,11 @@ Changelog:
           add_field validates the type string on the 105 path. The 104 adder
           bejson_core_add_record now RAISES on 105-series docs (it used to append
           a uuid-less row) -- use add_record_105.
+  3.5.3 - ResilientPIDLock reclaim-guard fix: added atomic reclaim-guard lockdir
+          and post-guard re-verification of lock_meta.json to eliminate overlapping
+          lock holders under concurrent stale-reclaim contention (verified by stress suite).
+  3.5.2 - Initial ResilientPIDLock per-owner token check on release() and stale
+          owner detection.
   3.5.1 - Consolidation re-merge: the V6-PKG101 silent-exception logging fix
           (lock-owner liveness retry, field-map cache attach) had been
           reverted/lost on the forward V10-PKG102 branch; re-applied on top

@@ -23,6 +23,7 @@ if str(_CURRENT_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_CURRENT_MODULE_DIR))
 
 from lib_bejson_AI_bejson_errors import AIException, ERR_AI_PROVIDER_ERROR  # noqa: E402
+from lib_bejson_ai_features_common import redact_provider_error_text  # noqa: E402
 
 VERSION = "1.0.0"
 
@@ -83,7 +84,7 @@ def Query_Live_Gemini_Models(gemini_api_key_secret: str, timeout_seconds_metric:
     Dynamically query Google Generative Language v1beta endpoint to fetch
     the live list of available models supporting generateContent.
     """
-    models_endpoint_url_str = f"https://generativelanguage.googleapis.com/v1beta/models?key={gemini_api_key_secret}"
+    models_endpoint_url_str = "https://generativelanguage.googleapis.com/v1beta/models"
     api_request_object = urllib.request.Request(
         url=models_endpoint_url_str,
         headers={"x-goog-api-key": gemini_api_key_secret},
@@ -103,5 +104,5 @@ def Query_Live_Gemini_Models(gemini_api_key_secret: str, timeout_seconds_metric:
     except Exception as exc:
         raise AIException(
             ERR_AI_PROVIDER_ERROR,
-            f"Failed to query live Gemini models list: {exc}",
+            f"Failed to query live Gemini models list: {redact_provider_error_text(exc)}",
         ) from exc

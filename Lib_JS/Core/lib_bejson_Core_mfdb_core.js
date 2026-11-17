@@ -68,6 +68,7 @@ const {
   E_MFDB_CORE_INVALID_OPERATION,
   E_MFDB_CORE_INDEX_OUT_OF_BOUNDS,
   E_MFDB_CORE_JOIN_FAILED,
+  E_MFDB_CORE_DUPLICATE_ENTITY_NAME,
   E_MFDB_CORE_ARCHIVE_ERROR,
   E_MFDB_CORE_MOUNT_CONFLICT
 } = BEJSON_ERRORS;
@@ -174,7 +175,7 @@ function mfdb_core_register_entity(manifestPath, record) {
   const entries = _rowsAsDicts(doc);
 
   if (entries.some(e => e.entity_name === record.entity_name)) {
-    throw new MFDBCoreError(`Entity '${record.entity_name}' already registered`, E_MFDB_CORE_JOIN_FAILED);
+    throw new MFDBCoreError(`Entity '${record.entity_name}' already registered`, E_MFDB_CORE_DUPLICATE_ENTITY_NAME);
   }
 
   const names = doc.Fields.map(f => f.name);
@@ -1378,6 +1379,7 @@ const exports_ = {
   E_MFDB_CORE_INVALID_OPERATION,
   E_MFDB_CORE_INDEX_OUT_OF_BOUNDS,
   E_MFDB_CORE_JOIN_FAILED,
+  E_MFDB_CORE_DUPLICATE_ENTITY_NAME,
   E_MFDB_CORE_ARCHIVE_ERROR,
   E_MFDB_CORE_MOUNT_CONFLICT,
   // Classes

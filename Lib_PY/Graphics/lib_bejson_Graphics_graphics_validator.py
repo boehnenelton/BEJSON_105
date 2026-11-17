@@ -372,6 +372,13 @@ def validate_graphics_barrier(
                                 f"[{ERROR_NAMES[E_GRAPHICS_INVALID_SVG_MARKUP]}] "
                                 f"Row #{row_idx} {svg_err}"
                             )
+                        elif isinstance(svg_content, str):
+                            for hex_match in re.findall(r"#[0-9a-fA-F]{6}\b", svg_content):
+                                if not bejson_graphics_validator_check_palette(hex_match):
+                                    core_result.add_warning(
+                                        f"[{ERROR_NAMES[E_GRAPHICS_PALETTE_VIOLATION]}] "
+                                        f"Row #{row_idx} svg_markup color '{hex_match}' deviates from Policy §8.1 Tri-Color Palette"
+                                    )
 
             # Check remove_frame_source boolean in row
             if has_rfs:

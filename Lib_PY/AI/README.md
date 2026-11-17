@@ -1,4 +1,4 @@
-# `Lib_PY/AI` — BEJSON 105 Multi-AI Provider Gateway (`v1.6.0`)
+# `Lib_PY/AI` — BEJSON 105 Multi-AI Provider Gateway (`v1.6.1`)
 
 3-tier implementation of the `lib_bejson_ai_*` architecture featuring **Gemini REST** (`geminirest`), **Gemini Interactions** (`geminiinteractions`), a persistent **Global AI Config** (`config/ai_global_config.105a.bejson`), a **Config-Gated Tooling Abstraction Layer** (`interactions_tools`), a **Modular Parser Abstraction Layer** (`ParserRegistry`), and a **Localized Custom Python Module Extension Parser Layer** (`ExtensionParserRegistry`).
 
@@ -38,6 +38,10 @@
   - `lib_bejson_ai_env_vault.py` (`AIEnvVault` — Policy §5.3.3 dynamic path/vault loader)
   - `lib_bejson_ai_key_rotator.py` (`KeyRotator`)
   - `lib_bejson_ai_jit_key_handler.py` (`JITKeyHandler`)
+
+## Remediation Log (`v1.6.1`)
+
+Gap-audit fixes (key-out-of-URL, no hardcoded vault paths, corrupt-config preservation, single tool execution, redacted/capped provider errors, restricted provider discovery, logging) are covered by `tests/test_ai_remediation.py`. Rules for future changes: [AGENTS.md](./AGENTS.md).
 
 ## Running Tests
 

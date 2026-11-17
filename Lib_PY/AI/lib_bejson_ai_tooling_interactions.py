@@ -12,6 +12,7 @@ RELATIONAL_ID:   a7f3e1b9-2c4d-4e88-b1a0-9e5d2c8f1017
 """
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 import sys
@@ -31,6 +32,19 @@ from lib_bejson_ai_tooling_base import BaseToolingSystem  # noqa: E402
 VERSION = "1.0.0"
 
 _LOGGER_INSTANCE = logging.getLogger("lib_bejson_ai_tooling_interactions")
+
+
+def _arguments_bind_as_keywords(handler_callable: Callable[..., Any], argument_mapping: Dict[str, Any]) -> bool:
+    """True when `argument_mapping` can be passed as **kwargs; decided before the call so a TypeError inside the handler never triggers a second execution."""
+    try:
+        handler_signature = inspect.signature(handler_callable)
+    except (TypeError, ValueError):
+        return True
+    try:
+        handler_signature.bind(**argument_mapping)
+        return True
+    except TypeError:
+        return False
 
 
 class InteractionsToolingSystem(BaseToolingSystem):
@@ -127,9 +141,9 @@ class InteractionsToolingSystem(BaseToolingSystem):
         target_handler_callable = self._registered_tool_callables_map[target_tool_name_identifier]
         try:
             if isinstance(tool_invocation_arguments_payload, dict):
-                try:
+                if _arguments_bind_as_keywords(target_handler_callable, tool_invocation_arguments_payload):
                     raw_execution_result_payload = target_handler_callable(**tool_invocation_arguments_payload)
-                except TypeError:
+                else:
                     raw_execution_result_payload = target_handler_callable(tool_invocation_arguments_payload)
             else:
                 raw_execution_result_payload = target_handler_callable(tool_invocation_arguments_payload)

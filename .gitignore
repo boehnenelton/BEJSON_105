@@ -19,6 +19,7 @@ data/temp/
 .ttxfolder
 .bejson_project.json
 AGENTS.md
+!Lib_PY/AI/AGENTS.md
 
 # Logs & runtime telemetry (NEVER commit logs)
 logs/
@@ -48,4 +49,6 @@ Lib_PY/AI/config/*key_rotation*.bejson
 /libraries_105.zip
 /exports/
 scaffold_output/
+chunked5/
+remediate.md
 

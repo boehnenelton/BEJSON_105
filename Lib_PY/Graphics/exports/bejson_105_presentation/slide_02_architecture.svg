@@ -1,0 +1,30 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1280" height="720" fill="#0C0C10"/>
+  <!-- Subtle coordinate crosshairs -->
+  <path d="M 640 24 L 640 44 M 630 34 L 650 34" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 640 676 L 640 696 M 630 686 L 650 686" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 34 350 L 34 370 M 24 360 L 44 360" stroke="#2A2A38" stroke-width="1.5"/>
+  <path d="M 1246 350 L 1246 370 M 1236 360 L 1256 360" stroke="#2A2A38" stroke-width="1.5"/>
+  <!-- Left Column -->
+  <text x="64" y="130" fill="#FFFFFF" font-size="48" font-family="system-ui, -apple-system, sans-serif" font-weight="800" letter-spacing="1">CORE INVARIANTS</text>
+  <text x="64" y="175" fill="#FFFFFF" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" letter-spacing="1">POSITIONAL RIGOR & IDENTITY</text>
+  <text x="64" y="280" fill="#333333" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">Deterministic schema declaration separated from raw positional row values.</text>
+  <!-- Right Column -->
+  <text x="680" y="280" fill="#FFFFFF" font-size="26" font-family="system-ui, -apple-system, sans-serif" font-weight="700" letter-spacing="1">KEY POINTS</text>
+  <circle cx="695" cy="330" r="3.5" fill="#FFFFFF"/>
+  <text x="715" y="335" fill="#FFFFFF" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">UUIDv4 column headers survive renames and reordering</text>
+  <circle cx="695" cy="380" r="3.5" fill="#FFFFFF"/>
+  <text x="715" y="385" fill="#FFFFFF" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">Reserved column 0 for immutable row record_uuid</text>
+  <circle cx="695" cy="430" r="3.5" fill="#FFFFFF"/>
+  <text x="715" y="435" fill="#FFFFFF" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="400" letter-spacing="0.5">O(1) cached field-map positional lookup</text>
+  <line x1="64" y1="655" x2="1216" y2="655" stroke="#DE2626" stroke-width="2"/>
+  <g transform="translate(1050, 660)">
+    <text x="0" y="22" fill="#FFFFFF" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="900" letter-spacing="1.5">BEJSON</text>
+    <g transform="translate(112, 0)">
+      <polygon points="14,2 26,8 14,14 2,8" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1" stroke-linejoin="round"/>
+      <polygon points="14,5 22,9 14,13 6,9" fill="#0C0C10" opacity="0.9"/>
+      <polygon points="2,8 14,14 14,28 2,22" fill="#1C1C24" stroke="#FFFFFF" stroke-width="1" stroke-linejoin="round"/>
+      <polygon points="14,14 26,8 26,22 14,28" fill="#DE2626" stroke="#FFFFFF" stroke-width="1" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>

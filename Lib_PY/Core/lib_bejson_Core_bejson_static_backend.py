@@ -18,12 +18,14 @@ RELATIONAL_ID:   09f40ba6-9cbf-4922-a465-f3ffa512a12f
 import os
 import json
 import datetime
+import logging
+
+logger = logging.getLogger("lib_bejson_Core_bejson_static_backend")
 
 class BEJSONBackend:
-    # Sets the root path (default is the {ADMIN_ROOT} placeholder).
+    # Sets the root path (default is current working directory).
     def __init__(self, root_path=None):
-        # Default root is the {ADMIN_ROOT} placeholder
-        self.root = root_path or "{ADMIN_ROOT}"
+        self.root = root_path or os.getcwd()
 
     # Reads a JSON file; None if it does not exist. A persisted _bejson_field_map key is discarded (untrusted cache).
     def _load_json(self, path):
@@ -53,7 +55,7 @@ class BEJSONBackend:
 
     # Reads each entity listed in the MFDB manifest (file_path relative to the manifest directory) and returns {entity_name: document}.
     def _load_mfdb(self, manifest_path, manifest_data):
-        mfdb_root = os.path.dirname(manifest_path)
+        mfdb_root = os.path.realpath(os.path.dirname(os.path.abspath(manifest_path)))
         entities = {}
         headers = [f['name'] for f in manifest_data['Fields']]
         
@@ -66,13 +68,19 @@ class BEJSONBackend:
                 idx_name = headers.index("Entity_Name")
                 idx_path = headers.index("Entity_File_Path")
             except ValueError:
-                print(f"Error: Invalid MFDB Manifest structure at {manifest_path}")
+                logger.error("Invalid MFDB Manifest structure at %s", manifest_path)
                 return {}
 
         for row in manifest_data['Values']:
             e_name = row[idx_name]
             e_rel_path = row[idx_path]
-            e_abs_path = os.path.join(mfdb_root, e_rel_path)
+            if not isinstance(e_rel_path, str) or os.path.isabs(e_rel_path):
+                logger.error("Refusing absolute or non-string entity file_path: %r", e_rel_path)
+                continue
+            e_abs_path = os.path.realpath(os.path.join(mfdb_root, e_rel_path))
+            if not (e_abs_path == mfdb_root or e_abs_path.startswith(mfdb_root + os.sep)):
+                logger.error("Refusing path traversal outside MFDB root: %r", e_rel_path)
+                continue
             e_data = self._load_json(e_abs_path)
             if e_data:
                 entities[e_name] = {
