@@ -1,0 +1,148 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Schema_Name": "BEJSON_105_Stress_And_Comparative_Benchmarks",
+  "Records_Type": [
+    "MetricRunRecord"
+  ],
+  "Fields": [
+    {
+      "name": "series_id",
+      "type": "string",
+      "field_uuid": "4faa260f-3f05-4084-88e2-e127ff90be58"
+    },
+    {
+      "name": "suite_name",
+      "type": "string",
+      "field_uuid": "e1ff75d6-5d1e-4b19-b6fd-87f77964bcc2"
+    },
+    {
+      "name": "metric_name",
+      "type": "string",
+      "field_uuid": "1d274de6-e587-4dac-bc84-ef524c8e2ed1"
+    },
+    {
+      "name": "metric_category",
+      "type": "string",
+      "field_uuid": "3d33bf7c-677e-44b1-8ef8-ed621e404e4e"
+    },
+    {
+      "name": "primary_value",
+      "type": "number",
+      "field_uuid": "98ac79a3-ad8c-4ea5-b181-44013a3d4366"
+    },
+    {
+      "name": "baseline_value",
+      "type": "number",
+      "field_uuid": "c85673a0-30bb-47e2-ab53-d0bf060ffeb8"
+    },
+    {
+      "name": "unit",
+      "type": "string",
+      "field_uuid": "31377041-0ec2-4573-8fc6-b2abe8ab53da"
+    },
+    {
+      "name": "reduction_pct",
+      "type": "number",
+      "field_uuid": "f1215c09-36b1-4d34-8c24-2845c3d1e7b7"
+    },
+    {
+      "name": "speedup_factor",
+      "type": "number",
+      "field_uuid": "d18989b5-f885-4567-8e30-b4844285c00e"
+    },
+    {
+      "name": "peak_rss_mb",
+      "type": "number",
+      "field_uuid": "bb7da4e4-4d66-46f0-8239-3c74ffbf7e9d"
+    },
+    {
+      "name": "passed",
+      "type": "boolean",
+      "field_uuid": "d3e20d75-2d6e-4b61-aacf-152b5fe0cc0a"
+    },
+    {
+      "name": "recorded_at",
+      "type": "string",
+      "field_uuid": "1d946151-6657-484b-9353-524d944e95f2"
+    }
+  ],
+  "Values": [
+    [
+      "df589029-34d9-456a-aca0-61f8fb60ac9d",
+      "stress_15k",
+      "bulk_tx_15k",
+      "bulk_ingestion_rate",
+      "throughput",
+      68677.1946,
+      0.0,
+      "rec/sec",
+      0.0,
+      1.0,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ],
+    [
+      "4f0e252b-c449-4c51-b362-0fcb0743cfed",
+      "stress_15k",
+      "bulk_tx_15k",
+      "verify_15k_latency",
+      "latency",
+      129.456,
+      0.0,
+      "ms",
+      0.0,
+      1.0,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ],
+    [
+      "a1baa02c-eb43-452e-b0c4-34ec4a556c8e",
+      "json_compare_10k",
+      "bejson_vs_json",
+      "token_footprint_10k",
+      "tokens",
+      287886.0,
+      854722.0,
+      "tokens",
+      66.3182,
+      1.0,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ],
+    [
+      "6bd41bd7-7352-4565-aa3d-a876f78e34c6",
+      "sql_compare",
+      "bejson_vs_sqlite_500k",
+      "point_lookup_ops_sec",
+      "throughput",
+      1757609.9087,
+      215164.2838,
+      "ops/sec",
+      0.0,
+      8.1687,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ],
+    [
+      "854f72ad-5489-4c78-a598-87e8deb69103",
+      "wide_64col",
+      "wide_matrix_96k_cells",
+      "wide_cell_access_rate",
+      "throughput",
+      24646029.6082,
+      0.0,
+      "ops/sec",
+      0.0,
+      1.0,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ]
+  ]
+}

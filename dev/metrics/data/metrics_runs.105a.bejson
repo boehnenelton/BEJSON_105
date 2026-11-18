@@ -1,0 +1,268 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Schema_Name": "BEJSON_105_Metrics_Ledger",
+  "Records_Type": [
+    "MetricRunRecord"
+  ],
+  "Fields": [
+    {
+      "name": "series_id",
+      "type": "string",
+      "field_uuid": "cd63218c-e5ee-4e91-8d16-b69161db9681"
+    },
+    {
+      "name": "suite_name",
+      "type": "string",
+      "field_uuid": "48c657c0-28eb-47ac-b3b9-b0e9dbdd08fa"
+    },
+    {
+      "name": "metric_name",
+      "type": "string",
+      "field_uuid": "04e66f26-a39b-42a0-8acb-844eb778b152"
+    },
+    {
+      "name": "metric_category",
+      "type": "string",
+      "field_uuid": "7e70f7c6-e609-4893-b942-af229b3d5d23"
+    },
+    {
+      "name": "primary_value",
+      "type": "number",
+      "field_uuid": "d25b0600-3d7a-4d2e-9ddd-54e927abc15c"
+    },
+    {
+      "name": "baseline_value",
+      "type": "number",
+      "field_uuid": "9821c7ba-ad6a-424b-9a2b-3b1682a612ba"
+    },
+    {
+      "name": "unit",
+      "type": "string",
+      "field_uuid": "77fe38c2-58ce-45c9-b19c-8f0e4f976fff"
+    },
+    {
+      "name": "reduction_pct",
+      "type": "number",
+      "field_uuid": "10d72023-2f23-4897-87c4-eed9db9f381d"
+    },
+    {
+      "name": "speedup_factor",
+      "type": "number",
+      "field_uuid": "3e18c95b-5659-4b89-9261-632d79dd19c4"
+    },
+    {
+      "name": "peak_rss_mb",
+      "type": "number",
+      "field_uuid": "c945925e-a36a-4abb-aaeb-f80d997d5ac8"
+    },
+    {
+      "name": "passed",
+      "type": "boolean",
+      "field_uuid": "056d9f10-945f-4c38-a770-c4bba8c0bf19"
+    },
+    {
+      "name": "recorded_at",
+      "type": "string",
+      "field_uuid": "f3bf3c8f-470f-48b1-b7d7-1c05465b245e"
+    }
+  ],
+  "Values": [
+    [
+      "2f401003-e066-43fa-a1d5-e46a79f4aa40",
+      "test_series_1",
+      "federation_core",
+      "token_consumption",
+      "tokens",
+      186292.0,
+      581766.0,
+      "tokens",
+      67.9781,
+      1.0,
+      26.0078,
+      true,
+      "2026-11-09T19:11:58.477029+00:00"
+    ],
+    [
+      "b6d3cba3-4ee8-43cb-bef1-43973b27554c",
+      "test_series_1",
+      "federation_core",
+      "point_lookup_throughput",
+      "throughput",
+      17327211.7464,
+      0.0,
+      "ops/sec",
+      0.0,
+      1.0,
+      26.0078,
+      true,
+      "2026-11-09T19:11:58.477029+00:00"
+    ],
+    [
+      "98cb6332-5f88-4972-8403-30107238dea0",
+      "test_series_2",
+      "bejson_vs_sqlite",
+      "point_query_throughput",
+      "throughput",
+      3417769.0,
+      42504.0,
+      "ops/sec",
+      0.0,
+      80.41,
+      28.12,
+      true,
+      "2026-11-09 22:24:55 UTC"
+    ],
+    [
+      "ce2eacbc-2ac0-4df3-92a2-0a965a379be3",
+      "test_series_2",
+      "bejson_vs_sqlite",
+      "llm_token_savings",
+      "tokens",
+      226878.0,
+      720726.0,
+      "tokens",
+      68.52,
+      1.0,
+      28.12,
+      true,
+      "2026-11-09 22:24:55 UTC"
+    ],
+    [
+      "2eb26570-c80e-4a2b-a8c5-eeb13aa63b64",
+      "test_series_3",
+      "25k_in_5_entities",
+      "ingestion_throughput",
+      "throughput",
+      53267.0,
+      0.0,
+      "rec/sec",
+      0.0,
+      1.0,
+      26.07,
+      true,
+      "2026-11-09 22:41:51 UTC"
+    ],
+    [
+      "edbf90e3-293c-48aa-8a37-d1cc7a745939",
+      "test_series_3",
+      "25k_in_5_entities",
+      "point_lookup_throughput",
+      "throughput",
+      8297478.0,
+      0.0,
+      "ops/sec",
+      0.0,
+      1.0,
+      26.07,
+      true,
+      "2026-11-09 22:41:51 UTC"
+    ],
+    [
+      "f1045b6c-ebcf-45c2-9bc7-59b559cf246a",
+      "test_series_3",
+      "60k_in_3_entities",
+      "ingestion_throughput",
+      "throughput",
+      47654.0,
+      0.0,
+      "rec/sec",
+      0.0,
+      1.0,
+      35.85,
+      true,
+      "2026-11-09 22:41:51 UTC"
+    ],
+    [
+      "2730dd92-37cd-4931-801d-bb7bbcdd3fb7",
+      "test_series_3",
+      "60k_in_3_entities",
+      "point_lookup_throughput",
+      "throughput",
+      7671864.0,
+      0.0,
+      "ops/sec",
+      0.0,
+      1.0,
+      35.85,
+      true,
+      "2026-11-09 22:41:51 UTC"
+    ],
+    [
+      "47d3bdf7-9a7c-4bca-a5a8-5b671adb45f2",
+      "stress_15k",
+      "bulk_tx_15k",
+      "bulk_ingestion_rate",
+      "throughput",
+      68677.1946,
+      0.0,
+      "rec/sec",
+      0.0,
+      1.0,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ],
+    [
+      "a89b2ecd-bc5d-448d-a8c1-6328f82974fd",
+      "stress_15k",
+      "bulk_tx_15k",
+      "verify_15k_latency",
+      "latency",
+      129.456,
+      0.0,
+      "ms",
+      0.0,
+      1.0,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ],
+    [
+      "296991e6-dfb9-40e9-bd7e-ebfdad94c616",
+      "json_compare_10k",
+      "bejson_vs_json",
+      "token_footprint_10k",
+      "tokens",
+      287886.0,
+      854722.0,
+      "tokens",
+      66.3182,
+      1.0,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ],
+    [
+      "f6639059-e628-438c-9c88-693cd9e8813d",
+      "sql_compare",
+      "bejson_vs_sqlite_500k",
+      "point_lookup_ops_sec",
+      "throughput",
+      1757609.9087,
+      215164.2838,
+      "ops/sec",
+      0.0,
+      8.1687,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ],
+    [
+      "f1760afc-cb0e-4523-aefa-dca04a6e4734",
+      "wide_64col",
+      "wide_matrix_96k_cells",
+      "wide_cell_access_rate",
+      "throughput",
+      24646029.6082,
+      0.0,
+      "ops/sec",
+      0.0,
+      1.0,
+      28.5,
+      true,
+      "2026-11-18T09:23:13.606129+00:00"
+    ]
+  ]
+}

@@ -10,6 +10,30 @@
 
 ---
 
+## Verified Benchmark & Stress Test Results (`Lib_PY/Metrics` · `10/10 PASS`)
+
+Full interactive metrics showcase: [`dev/metrics/index.html`](dev/metrics/index.html) · Full consolidated report: [`dev/metrics/results.md`](dev/metrics/results.md) · Automated pipeline: [`Lib_PY/Metrics/lib_bejson_Metrics_pipeline.py`](Lib_PY/Metrics/lib_bejson_Metrics_pipeline.py)
+
+| Comparison / Workload | Measured Result | Detail |
+|---|---|---|
+| **BEJSON 105 vs SQLite (Disk Point Queries)** | **BEJSON 105 was 80.41x faster than SQLite** | BEJSON 105 executed `3,417,769 ops/sec` (`0.29 µs/query`) vs SQLite disk B-tree at `42,504 ops/sec` (`23.53 µs/query`). |
+| **BEJSON 105 vs SQLite (`:memory:` 500k Queries)** | **BEJSON 105 was 8.24x faster than in-memory SQLite** | BEJSON 105 completed 500,000 lookups at `1.76 M ops/sec` (`~285 ms`) vs SQLite `:memory:` at `0.22 M ops/sec` (`~2,380 ms`). |
+| **BEJSON 105 vs Standard JSON (LLM Tokens)** | **BEJSON 105 used 68.52% fewer tokens than JSON** | On 5,000 rows, BEJSON 105 used `226,878 tokens` (`873 KB`) vs `720,726 tokens` (`2.77 MB`) for Standard JSON (`493,847` fewer tokens). On 10,000 rows, BEJSON 105 used `287,886 tokens` vs `854,722 tokens` (`-66.32%`). |
+| **BEJSON 105 Wide-Matrix Access (96,000 Cells)** | **BEJSON 105: `24.40 M ops/sec`** | Across 64 columns × 1,500 rows, O(1) Field-Map lookups sustained `24.40 M ops/sec` with `0%` positional slowdown between column 0 and column 63. |
+| **BEJSON 105 High-Scale Bulk Writes** | **BEJSON 105 wrote `68.25k rows/sec`** | Wrote `15,000` UUID-stamped rows in `220 ms` + validated schema and 105 integrity in `130 ms`. Retained `89%` write throughput scaling from `25,000` (`53.27k rec/s`) to `60,000` (`47.65k rec/s`) records at `35.85 MB` peak RSS. |
+| **Automated Test & Validation Suite** | **`10/10 PASS` (`1,582.92 ms` total)** | 100% passing across `TestMetricsFamily` (4), `TestStandardizedBEJSONAndMFDB` (2), and `TestBEJSONStressAndComparisons` (4). |
+
+![BEJSON 105 vs SQLite Point Lookup Throughput](dev/metrics/visual_audit/svgs/01_ops_throughput.svg)
+*_Figure 1a: BEJSON 105 O(1) Field-Map Point Lookup Throughput vs SQLite Baseline_*
+
+![BEJSON 105 vs Standard JSON LLM Token Footprint](dev/metrics/visual_audit/svgs/02_token_savings.svg)
+*_Figure 1b: BEJSON 105 vs Standard JSON LLM Token Footprint Across 254-Entity, 5k-Row, and 10k-Row Workloads_*
+
+![BEJSON 105 Metrics Visual Showcase (Desktop)](dev/metrics/visual_audit/screenshots/index_desktop.png)
+*_Figure 1c: Full Playwright-Verified Metrics Visual Showcase (`dev/metrics/index.html`)*
+
+---
+
 ## The BEJSON Manifesto: Debunk Me If You Can
 
 ![Debunk Challenge](images/manifesto/slide_01_debunk_challenge.png)  

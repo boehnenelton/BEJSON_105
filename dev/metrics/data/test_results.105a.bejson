@@ -1,0 +1,163 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Schema_Name": "BEJSON_MFDB_Test_Results",
+  "Records_Type": [
+    "TestExecutionRecord"
+  ],
+  "Fields": [
+    {
+      "name": "suite_name",
+      "type": "string",
+      "field_uuid": "94ca1965-66ef-46a3-96c9-f6be12158361"
+    },
+    {
+      "name": "test_name",
+      "type": "string",
+      "field_uuid": "a656e94c-595d-4c08-ab28-91e26279857f"
+    },
+    {
+      "name": "category",
+      "type": "string",
+      "field_uuid": "7ba6f8c1-57b5-48bd-9745-1456cc61a56e"
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "field_uuid": "8580a89c-89a7-4baf-b489-cc02dbb75625"
+    },
+    {
+      "name": "duration_ms",
+      "type": "number",
+      "field_uuid": "239dfaa0-0961-4757-9ef2-2f50c21fa943"
+    },
+    {
+      "name": "assertions_count",
+      "type": "integer",
+      "field_uuid": "eb74816f-e45c-4b77-b687-6251866f8c80"
+    },
+    {
+      "name": "error_message",
+      "type": "string",
+      "field_uuid": "e10e63c6-9036-4e57-a053-4d0e2e516660"
+    },
+    {
+      "name": "executed_at",
+      "type": "string",
+      "field_uuid": "39835d28-1dd0-4a4e-afaa-762bd421153a"
+    }
+  ],
+  "Values": [
+    [
+      "a5226582-9d7a-4ad8-ac63-e7ff500da950",
+      "TestMetricsFamily",
+      "test_live_metrics_ledger_persisted_and_valid",
+      "bejson",
+      "pass",
+      286.83,
+      1,
+      "",
+      "2026-11-18T09:23:13.469252+00:00"
+    ],
+    [
+      "cddf321c-e9b3-4665-9430-f80f58577a79",
+      "TestMetricsFamily",
+      "test_negative_metric_rejected",
+      "bejson",
+      "pass",
+      45.081,
+      1,
+      "",
+      "2026-11-18T09:23:13.514990+00:00"
+    ],
+    [
+      "5442ab81-ff7c-469e-9eb0-b17aed5ff6c7",
+      "TestMetricsFamily",
+      "test_round_trip_collect_and_render",
+      "bejson",
+      "pass",
+      44.84,
+      1,
+      "",
+      "2026-11-18T09:23:13.560106+00:00"
+    ],
+    [
+      "64c1e791-eb43-462f-b5e1-8cc6fb4f5028",
+      "TestMetricsFamily",
+      "test_schema_creation_and_validation",
+      "bejson",
+      "pass",
+      0.885,
+      1,
+      "",
+      "2026-11-18T09:23:13.561065+00:00"
+    ],
+    [
+      "f8281cd7-a464-48cb-a9a7-141ac4f23755",
+      "TestStandardizedBEJSONAndMFDB",
+      "test_bejson_105_atomic_write_and_o1_lookup",
+      "mfdb",
+      "pass",
+      12.747,
+      1,
+      "",
+      "2026-11-18T09:23:13.573929+00:00"
+    ],
+    [
+      "8c03bdbc-30d0-4a4c-b5a5-1034a3d3bfb4",
+      "TestStandardizedBEJSONAndMFDB",
+      "test_mfdb_v140_manifest_and_fk_integrity",
+      "mfdb",
+      "pass",
+      31.127,
+      1,
+      "",
+      "2026-11-18T09:23:13.605145+00:00"
+    ],
+    [
+      "321ae17c-6942-4778-b282-ea2c98e8066e",
+      "TestBEJSONStressAndComparisons",
+      "test_01_high_volume_bulk_transaction_stress_15k_rows",
+      "bejson",
+      "pass",
+      351.449,
+      1,
+      "",
+      "2026-11-18T09:23:13.957654+00:00"
+    ],
+    [
+      "5927c293-c43e-4b82-a934-36aee9251a13",
+      "TestBEJSONStressAndComparisons",
+      "test_02_bejson_vs_json_token_and_storage_compression_10k_rows",
+      "bejson",
+      "pass",
+      243.555,
+      1,
+      "",
+      "2026-11-18T09:23:14.201309+00:00"
+    ],
+    [
+      "58878905-ccd9-4cca-9f6d-5421ffd45e24",
+      "TestBEJSONStressAndComparisons",
+      "test_03_bejson_o1_field_map_vs_sqlite_point_queries_500k",
+      "bejson",
+      "pass",
+      397.252,
+      1,
+      "",
+      "2026-11-18T09:23:14.598671+00:00"
+    ],
+    [
+      "103a2122-392f-4eda-8150-eb5af3cb3288",
+      "TestBEJSONStressAndComparisons",
+      "test_04_wide_table_64_columns_invariance_stress",
+      "bejson",
+      "pass",
+      169.152,
+      1,
+      "",
+      "2026-11-18T09:23:14.767915+00:00"
+    ]
+  ]
+}

@@ -1,0 +1,6 @@
+<svg id="svg-test-status" xmlns="http://www.w3.org/2000/svg" width="840" height="260" viewBox="0 0 840 260">
+  <rect id="svg-test-status-bg" width="840" height="260" fill="#000000"/>
+  <text id="svg-test-status-title" x="24" y="40" fill="#FFFFFF" font-family="monospace" font-size="18" font-weight="bold">Test Suite Status Breakdown</text>
+  <line id="svg-test-status-divider" x1="24" y1="54" x2="816" y2="54" stroke="#DE2626" stroke-width="2"/>
+  <g id="svg-test-status-row-0"><text id="svg-test-status-row-0-label" x="24" y="96" fill="#FFFFFF" font-family="monospace" font-size="13">PASS</text><rect id="svg-test-status-row-0-track" x="230" y="80" width="450" height="22" fill="#161618"/><rect id="svg-test-status-row-0-bar" x="230" y="80" width="450" height="22" fill="#DE2626"/><text id="svg-test-status-row-0-value" x="692" y="96" fill="#FFFFFF" font-family="monospace" font-size="13">10.00 tests</text></g>
+</svg>

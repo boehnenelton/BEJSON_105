@@ -1,0 +1,13 @@
+{
+  "default_scale": 1000,
+  "default_iterations": 500,
+  "tokenizer_mode": "cl100k",
+  "token_multipliers": {
+    "cl100k": 3.6,
+    "llama3": 3.4,
+    "standard": 4.0
+  },
+  "token_prompt_price_per_million": 3.0,
+  "log_level": "INFO",
+  "bejson_version_target": "105"
+}
