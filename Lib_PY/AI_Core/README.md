@@ -52,6 +52,54 @@
 
 Renamed family from `AI` to `AI_Core` with zero-violation validator gate, Core bridge encapsulation, plugin architecture, and sibling `AI_Extensions` family. Rules for future changes: [AGENTS.md](./AGENTS.md).
 
+## Extension Plugins Outside `AI_Extensions`
+
+**Can any script or tool act as an extension plugin outside `AI_Extensions`?**
+
+**Yes.** Any Python script, CLI tool, or external repository can implement and run as an AI extension plugin or parser in one of three ways:
+
+### 1. Direct In-Memory Registration (Programmatic)
+Any external script can subclass `BasePlugin` (or `Base_Plugin`) from `lib_bejson_AI_Core_plugin_base.py`, implement `process(payload) -> payload`, and register the instance directly into `PluginRegistry`:
+```python
+from lib_bejson_AI_Core_plugin_base import BasePlugin
+from lib_bejson_AI_Core_plugin_registry import PluginRegistry
+
+class MyCustomToolPlugin(BasePlugin):
+    plugin_id = "my_custom_tool"
+    stage = "post"  # "pre" | "post" | "render"
+
+    def process(self, payload: dict) -> dict:
+        # Inspect or transform payload in-place
+        return payload
+
+registry = PluginRegistry()
+registry.register_plugin(MyCustomToolPlugin(), priority=50)
+```
+This bypasses file scanning and requires no manifest, allowing any script to hook directly into the AI pipeline.
+
+### 2. External Directory Manifest Discovery
+Any folder outside `Lib_PY/AI_Extensions` can serve as a plugin directory if it contains an `extension.105a.bejson` manifest conforming to `PluginManifest`:
+```python
+registry = PluginRegistry()
+# allow_external_directory=True is required for any path outside the trusted root
+registered_ids = registry.discover_plugins(
+    directory=Path("/path/to/my_tool_plugins"),
+    allow_external_directory=True,
+)
+```
+- **Trust Boundary Policy**: Because discovering a plugin imports and executes Python code, passing an external directory without `allow_external_directory=True` raises `AIException(ERR_AI_PLUGIN_UNTRUSTED_DIRECTORY)` (Error code `242`).
+- **Integrity Pinning**: Manifests may specify `module_sha256` to ensure external scripts cannot be altered without detection.
+
+### 3. Environment Variable Override (`BEJSON_AI_EXTENSIONS_DIR`)
+Setting the environment variable:
+```bash
+export BEJSON_AI_EXTENSIONS_DIR="/path/to/my_custom_plugins"
+```
+replaces the default sibling `AI_Extensions` folder as the primary trusted root. `PluginRegistry.discover_plugins()` will scan this folder directly without needing `allow_external_directory=True`.
+
+### 4. Downstream Extension Parsers (`ExtensionParserRegistry`)
+External scripts can also attach domain-specific AST or text parsers into the pre/post pipeline via `ExtensionParserRegistry` by subclassing `BaseExtensionModuleParser` from `lib_bejson_AI_Core_extension_parser.py`.
+
 ## Running Tests
 
 ```bash
