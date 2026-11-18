@@ -69,7 +69,7 @@ If a task lands on `—`/`none`, tell the user and state the fallback. Do not fa
 6. Manifest is `104a.mfdb.bejson`; entities are Format `105`; pass `mfdb_version="1.40"` (default is `"1.31"`).
 7. Enable FK enforcement explicitly: `mfdb_core_enable_ref_integrity`. FK fields declare `fk_target_entity` and `fk_on_delete` (`restrict|cascade|null`).
 8. Python logging via `logging` + Standards handler; no `print()`.
-9. Pick error codes from free ranges only: **free = 190–199, 236–249, 390–419, 520+** (520–579 reserved for Agent Core). Owned ranges: Core 1–99, Nesting 130–159, Extension 160–189, AI 200–235, Standards 250–269, Cognition 270–289, BEHTML 300–359, Terminal_Menus 360–389, Diagrams 420–449, Bookmaker 450–479, Lists 480–499, Graphics 500–519.
+9. Pick error codes from free ranges only: **free = 190–199, 390–419, 520+** (520–579 reserved for Agent Core). Owned ranges: Core 1–99, Nesting 130–159, Extension 160–189, AI 200–249, Standards 250–269, Cognition 270–289, BEHTML 300–359, Terminal_Menus 360–389, Diagrams 420–449, Bookmaker 450–479, Lists 480–499, Graphics 500–519.
 10. Env paths come from config/secure stores. Deprecated vars (`ADMIN_ROOT`, `BEJSON_STORAGE_ROOT`, `BEJSON_LIB_ROOT`) must not appear in new config.
 
 ## 7. If you are modifying this repo (only when asked)

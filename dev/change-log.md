@@ -1,5 +1,21 @@
 # libraries_105 Change Log (Unified 104 + 105 Parity Build)
 
+## 2026-11-17 - V5.9.11 PKG123: AI_Extensions profile tests
+- NEW `Lib_PY/AI_Extensions/tests/test_ai_extensions_profiles.py` (21 tests): temper engine, payload block order/invisibility invariant, null-cell tolerance, v1 rejection; model-class detection, instruction adaptation, output sanitizing, approval-gated parser dispatch; runtime static validation, fingerprinting, sandboxed run, timeout, sandbox approval gate. Mutation-checked (changed multiplier and cloud pass-through each fail tests).
+- `profile_runtime` 1.0.1 -> 1.0.2: stale docstring reference fixed.
+- Still open: `Test_Clients/Chat`, AI_Core README/ARCHITECTURE refresh, BEJSON/ ledger rows, AI_Core freeze.
+---
+
+## 2026-11-17 - V5.9.10 PKG122 (PARTIAL): AI_Core rename, validator, plugin registry, AI_Extensions, 105 profiles
+- **`Lib_PY/AI` -> `Lib_PY/AI_Core`**, modules `lib_bejson_AI_Core_<module>.py`; BEJSON I/O only through `lib_bejson_AI_Core_core_bridge.py` (Core is the sole data layer).
+- **Validator 2.1.0:** `# ai-core: allow <rule> -- <reason>` pragma (reason mandatory); fixed gap where any `.py` not named `lib_bejson_*` was skipped instead of flagged. Freeze manifest exists, AI_Core NOT frozen.
+- **Plugins:** plugin_schema/base/registry (pre, post, render; `plugins_enabled` gate; SHA-pinned manifests; trusted-directory rule). Error codes 236-244; AI now owns 200-249.
+- **`Lib_PY/AI_Extensions`:** 3 sample plugins, manifest tool, `profile_runtime` 1.0.1, NEW `profile_compiler` 1.0.0 (from 104 profile_2_compiler) and `profile_abstraction` 1.0.0 (from 104 profiles_abstraction).
+- **105 profiles `lib_bejson_AI_Core_profiles` 2.0.1:** fixed `ai_profiles_convert_104_to_105` mutating the caller's 104 doc (Core field-map cache); never overwrites source file.
+- **Tests:** AI_Core 82/82 (new: test_ai_profiles, test_ai_core_plugins_validator_bridge). Removed `chunked5/`.
+- **NOT DONE:** AI_Extensions tests (compiler/abstraction/runtime), `Test_Clients/Chat` + Config, AI_Core README/ARCHITECTURE refresh, BEJSON/ ledger rows, AI_Core freeze.
+---
+
 ## 2026-11-14 - V5.9.8 PKG121: Multi-AI Provider Gateway (`Lib_PY/AI` v1.5.0), Config-Gated Tooling/Parser/Extension Layers, Canvas/JS Test Suites & Architecture Documentation
 - **NEW `Lib_PY/AI/` (`v1.5.0` 3-Tier Multi-AI Provider Gateway):**
   - **Tier 1 (`lib_bejson_ai_dispatcher.py`, `lib_bejson_ai_translator.py`, `lib_bejson_ai_models.py`):** Implemented `AIDispatcher` (`AI_Dispatcher`), `AI_Dispatch`, `AI_Dispatch_Async`, `AITranslator` (`AI_Translator`), and modern Gemini model catalog (`Gemini_3_1_Flash_Lite`, `Gemini_3_5_Flash_Lite`, `Gemini_3_8_Flash`, `Gemini_4_Argon`, `Gemini_4_Hydrogen`, `Resolve_Model_Identifier`, `List_Active_Gemini_Models`, `Query_Live_Gemini_Models`) with response extractors (`Get_Response_Text`, `Get_Response_JSON`, `Get_Response_Usage`, `Get_Interaction_ID`, `Get_Tool_Calls`, `Get_Turn_Continuation_Command`).

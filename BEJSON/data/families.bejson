@@ -121,11 +121,18 @@
       "Format 105 Taxonomy-Driven MTV Scaffolding Engine & Admin Dashboard (Model, Template, View with MFDB v1.40 and 13 canonical BEHTML 8-lane templates)."
     ],
     [
-      "AI",
+      "AI_Core",
       "PY",
       "true",
-      "Lib_PY/AI",
-      "3-Tier Multi-AI Provider Gateway (Gemini REST & Interactions, model catalog, config-gated tooling & parsers). Error block 200-235 in lib_bejson_AI_bejson_errors.py."
+      "Lib_PY/AI_Core",
+      "3-Tier Multi-AI Provider Gateway (Gemini REST & Interactions, model catalog, config-gated tooling, plugin registry, validator, profiles). Error block 200-249 in lib_bejson_AI_Core_errors.py."
+    ],
+    [
+      "AI_Extensions",
+      "PY",
+      "false",
+      "Lib_PY/AI_Extensions",
+      "AI Extension plugins, extension manifests, manifest tool, and profiles runtime, compiler, and abstraction."
     ]
   ]
 }

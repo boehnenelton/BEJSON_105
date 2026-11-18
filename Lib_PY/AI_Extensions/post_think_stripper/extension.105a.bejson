@@ -1,0 +1,94 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Records_Type": [
+    "AIPluginManifest"
+  ],
+  "Plugin_API_Version": "1.0",
+  "Fields": [
+    {
+      "name": "plugin_id",
+      "type": "string",
+      "field_uuid": "5809ecd7-2001-4142-892d-e2024ed64a88"
+    },
+    {
+      "name": "plugin_name",
+      "type": "string",
+      "field_uuid": "66210c46-9e60-455d-bfd9-ae1ad8e0b16d"
+    },
+    {
+      "name": "plugin_version",
+      "type": "string",
+      "field_uuid": "a4b4e9f5-a398-4a37-9474-f2060e53ebde"
+    },
+    {
+      "name": "stage",
+      "type": "string",
+      "field_uuid": "f3dd89bf-25ec-4e1a-bb23-334dc1d1e53e"
+    },
+    {
+      "name": "priority",
+      "type": "integer",
+      "field_uuid": "0f5dcb0f-2d8a-4de4-a4ce-1d009d0b53ce"
+    },
+    {
+      "name": "module_file",
+      "type": "string",
+      "field_uuid": "9e74b306-2b32-4752-b57e-738f2d97f9f2"
+    },
+    {
+      "name": "entry_class",
+      "type": "string",
+      "field_uuid": "9d6170d7-738d-41cc-b672-81a3399f9386"
+    },
+    {
+      "name": "requires_plugin_api",
+      "type": "string",
+      "field_uuid": "c912eff1-59db-4a84-bbe7-b16b025446ea"
+    },
+    {
+      "name": "enabled_default",
+      "type": "boolean",
+      "field_uuid": "73d3d5ec-17e7-4893-98fa-bb866d249f6d"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "field_uuid": "8147a58f-4e49-4d0f-85a0-7debb320c3db"
+    },
+    {
+      "name": "author",
+      "type": "string",
+      "field_uuid": "4b250dab-a792-4d08-8895-81a53d7de9ad"
+    },
+    {
+      "name": "module_sha256",
+      "type": "string",
+      "field_uuid": "992c24d6-5bb3-4d35-8942-d45c66a073c0"
+    },
+    {
+      "name": "config_json",
+      "type": "string",
+      "field_uuid": "245e2755-f810-4b2f-87f7-a4571a1ed942"
+    }
+  ],
+  "Values": [
+    [
+      "9dcda363-9963-45f1-ad86-2b8bf47efe8e",
+      "post_think_stripper",
+      "Think Block Stripper",
+      "1.0.0",
+      "post",
+      50,
+      "lib_bejson_AI_Extensions_post_think_stripper.py",
+      "ThinkStripper",
+      "1.0",
+      true,
+      "Remove think blocks from response text.",
+      "Elton Boehnen",
+      "8bfedc8d57305c548c7d39b9b7b234d7125172e71ecba0835258bbe92d41762d",
+      "{}"
+    ]
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Records_Type": [
+    "AIPluginManifest"
+  ],
+  "Plugin_API_Version": "1.0",
+  "Fields": [
+    {
+      "name": "plugin_id",
+      "type": "string",
+      "field_uuid": "120378e6-b92d-45a8-82af-bced9a177ec0"
+    },
+    {
+      "name": "plugin_name",
+      "type": "string",
+      "field_uuid": "8a8204a8-819c-4545-97ab-b18a24a4bf91"
+    },
+    {
+      "name": "plugin_version",
+      "type": "string",
+      "field_uuid": "3a8022c7-1a5e-4837-94de-cc23194ac160"
+    },
+    {
+      "name": "stage",
+      "type": "string",
+      "field_uuid": "e60265d4-11e7-4d51-9693-293e2a449cbd"
+    },
+    {
+      "name": "priority",
+      "type": "integer",
+      "field_uuid": "35436527-4a92-4402-8cbc-ab3c215f3ceb"
+    },
+    {
+      "name": "module_file",
+      "type": "string",
+      "field_uuid": "3997ccc1-9d61-47a1-a5be-8e8c58aae1ea"
+    },
+    {
+      "name": "entry_class",
+      "type": "string",
+      "field_uuid": "efb8e009-d4c4-48b1-adb1-ae43dceb5b7e"
+    },
+    {
+      "name": "requires_plugin_api",
+      "type": "string",
+      "field_uuid": "0db58339-153d-4d9f-b2b5-cad641098fe2"
+    },
+    {
+      "name": "enabled_default",
+      "type": "boolean",
+      "field_uuid": "4b8c9246-ce87-48bd-954e-e4a49a0bfb66"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "field_uuid": "b7a27bfa-434c-4c9f-ad3d-66d79fcbab7e"
+    },
+    {
+      "name": "author",
+      "type": "string",
+      "field_uuid": "0d2d880c-6848-4b21-a3a3-0f9d83e4d697"
+    },
+    {
+      "name": "module_sha256",
+      "type": "string",
+      "field_uuid": "e7832560-5bdf-44c3-a56e-46e669b6e950"
+    },
+    {
+      "name": "config_json",
+      "type": "string",
+      "field_uuid": "ff44bcb2-2c17-426f-8a71-59513deb576a"
+    }
+  ],
+  "Values": [
+    [
+      "db2e7899-ea90-48f0-8d7e-713fcb6b5ffe",
+      "pre_whitespace_normalizer",
+      "Whitespace Normalizer",
+      "1.0.0",
+      "pre",
+      50,
+      "lib_bejson_AI_Extensions_pre_whitespace_normalizer.py",
+      "WhitespaceNormalizer",
+      "1.0",
+      true,
+      "Collapse blank lines and trailing spaces in the prompt.",
+      "Elton Boehnen",
+      "069e22ce15ead05dd4c52cb94db36153a526abb1687b038850bbd5f2acf4e98b",
+      "{}"
+    ]
+  ]
+}

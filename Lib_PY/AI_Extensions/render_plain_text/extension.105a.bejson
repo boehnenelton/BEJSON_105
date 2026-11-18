@@ -1,0 +1,94 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "105a",
+  "Format_Creator": "Elton Boehnen",
+  "Records_Type": [
+    "AIPluginManifest"
+  ],
+  "Plugin_API_Version": "1.0",
+  "Fields": [
+    {
+      "name": "plugin_id",
+      "type": "string",
+      "field_uuid": "647074fb-c43b-4f3f-b5d5-724af4ea30ec"
+    },
+    {
+      "name": "plugin_name",
+      "type": "string",
+      "field_uuid": "32c44cec-ace6-42bf-af6d-aa6b48c8a1d0"
+    },
+    {
+      "name": "plugin_version",
+      "type": "string",
+      "field_uuid": "f429ed4b-7ab1-4d55-9865-d22a8ce74cf7"
+    },
+    {
+      "name": "stage",
+      "type": "string",
+      "field_uuid": "bd3520c1-89fc-4af7-8f66-d41b17de338f"
+    },
+    {
+      "name": "priority",
+      "type": "integer",
+      "field_uuid": "6b0f6a20-afc4-4acb-aabd-3ab2841c3139"
+    },
+    {
+      "name": "module_file",
+      "type": "string",
+      "field_uuid": "dbcfef71-9f62-47df-aefd-117763bc9fa7"
+    },
+    {
+      "name": "entry_class",
+      "type": "string",
+      "field_uuid": "7fb04c01-bc2a-4951-9eb7-e3d2dc110b66"
+    },
+    {
+      "name": "requires_plugin_api",
+      "type": "string",
+      "field_uuid": "d6c7c8dd-dbf0-4bd1-8d62-122e5136e2d7"
+    },
+    {
+      "name": "enabled_default",
+      "type": "boolean",
+      "field_uuid": "4e68b713-5692-4336-91de-512ea7a18901"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "field_uuid": "10e57bbb-6bab-44bb-9980-3bb6a37659c8"
+    },
+    {
+      "name": "author",
+      "type": "string",
+      "field_uuid": "f5ecd695-85d6-44bb-97bf-8fc49b8bffc2"
+    },
+    {
+      "name": "module_sha256",
+      "type": "string",
+      "field_uuid": "f3741ffb-a4b7-4aad-9179-ea2b5a10b29c"
+    },
+    {
+      "name": "config_json",
+      "type": "string",
+      "field_uuid": "510b091e-b588-4bab-aadc-9381a4dd1f34"
+    }
+  ],
+  "Values": [
+    [
+      "352dd7fc-c0a3-4bc7-84f2-73b5b08ff0dd",
+      "render_plain_text",
+      "Plain Text Renderer",
+      "1.0.0",
+      "render",
+      100,
+      "lib_bejson_AI_Extensions_render_plain_text.py",
+      "PlainTextRenderer",
+      "1.0",
+      true,
+      "Markdown to terminal plain text.",
+      "Elton Boehnen",
+      "66c0f424dd2e392bee4371b682808120306adaadcdf11da7b9890983ff941dff",
+      "{}"
+    ]
+  ]
+}

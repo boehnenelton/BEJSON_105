@@ -1134,6 +1134,20 @@
       "lib_bejson_Graphics_graphics_validator.js",
       "2026-11-17",
       "1.0.1: Extended palette inspection to hex colors inside svg_markup."
+    ],
+    [
+      "AI_Core",
+      "PY",
+      "Lib_PY/AI_Core",
+      "2026-11-17",
+      "2.0.0: Renamed from AI to AI_Core; added validator, Core bridge, plugin subsystem, 105 profiles, and error range 200-249."
+    ],
+    [
+      "AI_Extensions",
+      "PY",
+      "Lib_PY/AI_Extensions",
+      "2026-11-17",
+      "1.0.0: New family for AI extension plugins, manifests, and profiles runtime/compiler/abstraction."
     ]
   ]
 }
