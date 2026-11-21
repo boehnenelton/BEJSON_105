@@ -1,4 +1,4 @@
-# Full System Architecture Map (Art Specialist Reference — `v1.6.0`)
+# Full System Architecture Map (Art Specialist Reference — `v2.1.0`)
 
 ## Tri-Color Styling Spec
 - **Background:** `#000000`
@@ -8,7 +8,7 @@
 
 ## Nodes by Tier
 - **Client:** `Client [BEJSON 105 / AI_Dispatch / AI_Dispatch_Async]`
-- **Global Config Store:** `Lib_PY/AI_Core/config/ai_global_config.105a.bejson` *(auto-exported on first use; persistently stores `tooling_enabled`, `active_tooling_system`, `default_provider`, `default_model`, `max_tool_roundtrips`, `stdout_routing`, `global_pre_parser_enabled`, `global_post_parser_enabled`, `extension_parser_enabled`, `renderer_enabled`, `active_renderer`)*
+- **Global Config Store:** `Lib_PY/AI_Core/config/ai_global_config.105a.bejson` *(auto-exported on first use; persistently stores `plugins_enabled`, `tooling_enabled`, `active_tooling_system`, `default_provider`, `default_model`, `max_tool_roundtrips`, `stdout_routing`, `global_pre_parser_enabled`, `global_post_parser_enabled`, `extension_parser_enabled`, `renderer_enabled`, `active_renderer`)*
 - **Tier 1 — Abstraction Layers:**
   - `Dispatch Abstractor` (`lib_bejson_AI_Core_dispatcher.py` — `AIDispatcher` / `AI_Dispatcher`)
   - `Model Catalog` (`lib_bejson_AI_Core_models.py` — `Resolve_Model_Identifier`)
@@ -24,6 +24,10 @@
   - `Key Rotator & Tracker` (`lib_bejson_AI_Core_key_rotator.py` — `KeyRotator`)
   - `JIT Key Handler` (`lib_bejson_AI_Core_jit_key_handler.py` — `JITKeyHandler`)
   - `Provider Clients` (`GeminiRestClient` / `Gemini_Rest_Client` + `GeminiInteractionsClient` / `Gemini_Interactions_Client`)
-  - `Error Registry` (`lib_bejson_AI_Core_errors.py` — Codes `200–235`)
+  - `Error Registry` (`lib_bejson_AI_Core_errors.py` — Codes `200–249`)
+- **Core Bridge (Tier 3 edge to Core):** `lib_bejson_AI_Core_core_bridge.py` — the only importer of `lib_bejson_Core_*`; every BEJSON read/write goes through it
+- **Plugin Layer (Tier 2):** `PluginRegistry` / `BasePlugin` / `plugin_schema` — stages `pre`, `post`, `render`; gate `plugins_enabled`; plugins come from `Lib_PY/AI_Extensions` (SHA-pinned manifests)
+- **Profiles:** `lib_bejson_AI_Core_profiles.py` — AI Profile 1.0/2.0 on 105; runtime/compiler/abstraction in `Lib_PY/AI_Extensions`
+- **Governance:** `lib_bejson_AI_Core_validator.py` — family rules + freeze manifest
 - **External Target:** `External AI Model (Gemini REST / Interactions API)`
 

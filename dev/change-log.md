@@ -1,5 +1,21 @@
 # libraries_105 Change Log (Unified 104 + 105 Parity Build)
 
+## 2026-11-21 - V5.9.15 PKG127: Universal Canvas Core Framework Baseline & Lib_JS/Canvas Family
+- **NEW `Lib_JS/Canvas/lib_bejson_canvas_core.js`:** Domain-agnostic universal reactive canvas engine, 8-lane Ry=32px spatial quantization, sub-pixel bounds, and Minimum Translation Vector (MTV) collision geometry. Decoupled from DOM UI; operates headlessly in Node.js, Web Workers, or browser stages.
+- **MFDB-132 Packaging & Persistence:** Maps 1 canvas object to 1 dense BEJSON 104 entity (`obj_<type>_<id>.bejson`) linked in `104a.mfdb.bejson`. Live schema generation (`buildLivePositionSchema`, `buildMfdbManifest`, `buildMfdb132Package`) and deterministic round-trip single-file import (`importMfdb132`).
+- **Tests & Re-Exports:** Added comprehensive unit test suite `Lib_JS/Canvas/tests/test_canvas_core.js` (store lifecycle, MTV collision, MFDB-132 round-trip import/export). Re-exported `lib_bejson_canvas_core.js` in `Lib_JS/Canvas/index.js`.
+- **Documentation:** Added comprehensive `Lib_JS/Canvas/README.md` and `Canvas_Core_Framework` repository documentation with extension hierarchy (`Canvas_Drawing`, `Canvas_Diagram`, `Canvas_Flow`, `Canvas_MFDB_Spatial`).
+---
+
+## 2026-11-20 - V5.9.14 PKG126: merge onto the newer 5.9.13 tree; AI_Core docs, ledger, version hygiene
+- Base is the uploaded 5.9.13 PKG125 tree (newer code kept: Release 301 `geminirest` tools + `tool_loop_enabled`, affective-feature switch, `Mode` forbidden, env_vault fallback roots, 107 AI_Core tests). Every earlier fix of mine was confirmed present (validator allow pragma and file scan, profiles deep-copy converter, runtime pragma, null-safe compiler).
+- `lib_bejson_AI_Core_profiles` 2.0.1 -> 2.0.2 and `profile_compiler` 1.0.0 -> 1.0.1: both had been edited after release with no version bump; bumped with fresh RELATIONAL_ID.
+- Docs: AI_Core `ARCHITECTURE.md` / `ARCHITECTURE_MAP.md` / `NEXT_STEP_PLAN.md` / `AGENTS.md` updated (Core bridge, plugin stages, profiles, governance, error block 200-249); AI_Core README gains an executed quickstart, profiles and validator-rules sections; `AI_Extensions/README.md` now lists all three plugins; root README sections 12 and 15 and the directive range table corrected (200-249 AI_Core).
+- BEJSON/ MFDB ledger: Errors +49 (AI_Core 200-248), Dependencies +6, Library_Changes +6, Metadata (AI_Core, AI_Extensions, ecosystem 5.9.14); `mfdb_validator_validate_database` passes.
+- Removed `chunked5/`. Note: `dev/change-log.md` has no entries for 5.9.12 or 5.9.13; the `Values` rows for them in `bejson_project.json` are also absent.
+- Not touched: Core, other families, the AI_Core Release tree and Modern Agent vendored copy (not in this upload); their 2026-11-19 checklist items remain theirs.
+---
+
 ## 2026-11-17 - V5.9.11 PKG123: AI_Extensions profile tests
 - NEW `Lib_PY/AI_Extensions/tests/test_ai_extensions_profiles.py` (21 tests): temper engine, payload block order/invisibility invariant, null-cell tolerance, v1 rejection; model-class detection, instruction adaptation, output sanitizing, approval-gated parser dispatch; runtime static validation, fingerprinting, sandboxed run, timeout, sandbox approval gate. Mutation-checked (changed multiplier and cloud pass-through each fail tests).
 - `profile_runtime` 1.0.1 -> 1.0.2: stale docstring reference fixed.

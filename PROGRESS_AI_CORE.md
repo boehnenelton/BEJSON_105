@@ -10,8 +10,10 @@ DONE
 
 DONE (Continued)
 - AI_Extensions profile_compiler and profile_abstraction ported and verified.
-- AI_Core and AI_Extensions test suites (103 total tests: 82 AI_Core + 21 AI_Extensions) passing 100%.
+- AI_Core and AI_Extensions test suites (128 total tests: 107 AI_Core + 21 AI_Extensions) passing 100%.
 - BEJSON/ self-tracking MFDB ledger synchronized: families.bejson (AI_Core + AI_Extensions), metadata.bejson (5.9.11), library_changes.bejson, and 104a.mfdb.bejson validated clean.
 - AI_Core and AI_Extensions README.md documentation refreshed.
 - Both families verified with 0 violations via lib_bejson_AI_Core_validator.py.
 
+
+UPDATE 2026-11-20 (V5.9.14 PKG126): merged onto the newer 5.9.13 tree; added AI_Core errors/dependencies/versions to the BEJSON/ ledger, architecture docs (bridge, plugin stages, profiles, governance), range 200-249 in root README and directive, verified quickstart. Still open: Test_Clients/Chat (+ Config), AI_Core freeze, JPG diagrams predate plugin layer/bridge.

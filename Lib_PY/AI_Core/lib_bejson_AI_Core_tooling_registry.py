@@ -3,14 +3,15 @@ Library:         lib_bejson_AI_Core_tooling_registry.py
 Family:          AI_Core
 Module Purpose:  Tier 2 Configuration Gate & Persistent Registry for AI Tooling Systems
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 2: Model Features & Gates)
-Version:         2.0.0
+Version:         2.0.1
 Release_Version: 300
-Date:            2026-11-17
+Date:            2026-11-19
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   e310608f-e36a-4d22-b1e6-b30bab43606e
+RELATIONAL_ID:   f57d0081-a456-425d-ad2c-a60309c52d5e
 
 Changelog:
+  2.0.1 (2026-11-19) -- Single default-model constant DEFAULT_TEXT_MODEL_ID (gemini-3.8-flash, registry-verified); merged newest Nov-18 agent-side changes.
   2.0.0 (2026-11-17) -- AI family renamed to AI_Core (was lib_bejson_ai_*). BEJSON read/write now via Core bridge where applicable.
 """
 from __future__ import annotations
@@ -40,10 +41,11 @@ from lib_bejson_AI_Core_core_bridge import (  # noqa: E402
     core_save,
 )
 from lib_bejson_AI_Core_tooling_base import BaseToolingSystem  # noqa: E402
+from lib_bejson_AI_Core_features_common import DEFAULT_TEXT_MODEL_ID  # noqa: E402
 
 _LOGGER_INSTANCE = logging.getLogger("lib_bejson_AI_Core_tooling_registry")
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 
 DEFAULT_GLOBAL_CONFIG_FILENAME = "ai_global_config.105a.bejson"
 
@@ -51,7 +53,7 @@ DEFAULT_SETTINGS_INITIAL_VALUES: Dict[str, Any] = {
     "tooling_enabled": False,
     "active_tooling_system": "interactions_tools",
     "default_provider": "geminirest",
-    "default_model": "gemini-3.1-flash-lite",
+    "default_model": DEFAULT_TEXT_MODEL_ID,
     "max_tool_roundtrips": 5,
     "stdout_routing": False,
     "global_pre_parser_enabled": False,

@@ -3,14 +3,15 @@ Library:         lib_bejson_AI_Core_env_vault.py
 Family:          AI_Core
 Module Purpose:  Tier 3 Configurable Path & Vault Resolver (definitions.json/.py + secureenv_file.json)
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 3: Service Callers & Security)
-Version:         2.0.0
+Version:         2.0.1
 Release_Version: 300
-Date:            2026-11-17
+Date:            2026-11-19
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   7e71c3a0-319b-4a5e-951e-3786921a3667
+RELATIONAL_ID:   5427cbf2-27ee-470c-a2f7-95bb45ccdc14
 
 Changelog:
+  2.0.1 (2026-11-19) -- Adopted Nov-18 fallback env roots (EXTERNAL_STORAGE, ~/storage/shared/.env) in definitions/secureenv lookup.
   2.0.0 (2026-11-17) -- AI family renamed to AI_Core (was lib_bejson_ai_*). BEJSON read/write now via Core bridge where applicable.
 """
 from __future__ import annotations
@@ -34,7 +35,7 @@ from lib_bejson_AI_Core_errors import (  # noqa: E402
     ERR_AI_VAULT_PARSE_FAILED,
 )
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 _LOGGER_INSTANCE = logging.getLogger("lib_bejson_AI_Core_env_vault")
 
 _ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
@@ -48,6 +49,15 @@ def _canonical_env_root() -> Path:
         return Path(override).expanduser()
     storage_root = os.environ.get("BEJSON_STORAGE_ROOT") or os.environ.get("HOME") or str(Path.home())
     return Path(storage_root) / ".env"
+
+
+def _fallback_env_roots() -> List[Path]:
+    roots: List[Path] = [_canonical_env_root()]
+    external_storage = os.environ.get("EXTERNAL_STORAGE")
+    if external_storage:
+        roots.append(Path(external_storage).expanduser() / ".env")
+    roots.append(Path.home() / "storage" / "shared" / ".env")
+    return roots
 
 
 def _canonical_definitions_json() -> Path:
@@ -200,9 +210,10 @@ class AIEnvVault:
             self.script_path / "config" / "definitions.json",
             self.script_path / "config" / "definitions.py",
             self.script_path.parent / "config" / "definitions.json",
-            _canonical_definitions_json(),
-            _canonical_definitions_py(),
         ])
+        for env_root in _fallback_env_roots():
+            candidates.append(env_root / "user" / "definitions.json")
+            candidates.append(env_root / "user" / "definitions.py")
         return candidates
 
     def get_secureenv_search_paths(self) -> List[Path]:
@@ -219,8 +230,9 @@ class AIEnvVault:
             self.script_path / "config" / "secureenv_file.json",
             self.script_path.parent / "config" / "secureenv_file.json",
             self.script_path / ".env",
-            _canonical_secureenv_json(),
         ])
+        for env_root in _fallback_env_roots():
+            candidates.append(env_root / "secure" / "secureenv_file.json")
         return candidates
 
     def load_vault(

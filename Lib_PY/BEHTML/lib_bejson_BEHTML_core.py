@@ -67,6 +67,8 @@ class BEHTMLError(Exception):
 BEHTML_RY_PX = 32                     # Y quantum
 BEHTML_RZ_PX = 32                     # Z quantum (one full layer)
 BEHTML_RZ_HALF_PX = 16                # half-layer offset above a full layer
+BEHTML_VOXEL_CUBE_PX = 32             # 3D cubic voxel (32x32x32px unit)
+BEHTML_VOID_TRANSPARENT_DEFAULT = True # Unplaced space / interstitial void is transparent by default
 BEHTML_X_LANES = 8
 BEHTML_X_QUANTUM_PCT = 12.5
 BEHTML_QUANTIZATION_TOLERANCE = 0.001

@@ -3,9 +3,9 @@
   "Format_Version": "104a",
   "Format_Creator": "Elton Boehnen",
   "Project_Name": "libraries_105",
-  "Project_Version": "5.9.12",
-  "Package_Version": "124",
-  "Versioned_UUID": "94c8e2a1-7d34-4b19-8f62-3e109a5c7b48",
+  "Project_Version": "5.9.15",
+  "Package_Version": "127",
+  "Versioned_UUID": "de85d586-ac3e-40d1-bf65-b15dd2ab6ffa",
   "Project_GUID": "1952586a-42b4-44ce-9471-40831d0bf46b",
   "Type": "library",
   "Status": "Active",
@@ -19,6 +19,9 @@
     }
   ],
   "Values": [
+    [
+      "5.9.13 | 2026-11-19 | AI_Core 2.1.1 / AI_Extensions reconciled across libraries_105, Release tree and agent vendored lib: single DEFAULT_TEXT_MODEL_ID (gemini-3.8-flash), env_vault fallback roots, stale compiler tests aligned, invariant tests (107 AI_Core, 21 AI_Extensions). NOT DONE: BEJSON/ ledger refresh (8 families unregistered, errors.bejson covers 4 of 14), AI_Core freeze."
+    ],
     [
       "5.9.12 | 2026-11-18 | Add Lib_PY/Metrics family (errors 580-584, 105a schemas, collector, validator, stacked-bar Canvas/SVG renderer, automated test runner & pipeline), consolidate benchmark/stress suites into dev/metrics/, compile index.html + results.md + Playwright visual audit screenshots, and add headline benchmark results section to README.md."
     ],
@@ -48,6 +51,13 @@
     ],
     [
       "5.9.11 | 2026-11-17 | AI_Extensions tests added (tests/test_ai_extensions_profiles.py, 21 tests: compiler, abstraction, runtime); profile_runtime 1.0.2 docstring fix. Still open: Test_Clients/Chat, AI_Core README refresh, BEJSON/ ledger rows, AI_Core freeze."
+    ],
+    [
+      "5.9.14 | 2026-11-20 | Merge onto the newer 5.9.13 PKG125 tree (kept all its code: Release 301 geminirest tools, affective-feature switch, 107 AI_Core tests). Added: profiles 2.0.2 / profile_compiler 1.0.1 version bumps for earlier unbumped edits; AI_Core ARCHITECTURE/MAP/PLAN/AGENTS updates (Core bridge, plugin stages, profiles, governance, range 200-249); verified README quickstart; AI_Extensions README listing all 3 plugins; root README sections 12/15 + directive range table; BEJSON/ ledger (Errors +49 AI_Core, Dependencies +6, Library_Changes +6, Metadata AI_Core/AI_Extensions, ecosystem 5.9.14). Removed chunked5/."
+    ],
+    [
+      "5.9.15 | 2026-11-21 | Establish Universal Canvas Core Framework Baseline: Lib_JS/Canvas/lib_bejson_canvas_core.js (domain-agnostic spatial store, 8-lane Ry=32px quantization, MTV collision engine, 1-object-to-1-dense-BEJSON-104 entity mapping, MFDB-132 single-file packaging and round-trip import), Lib_JS/Canvas/tests/test_canvas_core.js unit suite, index.js re-exports, comprehensive README.md, and standalone Canvas_Core_Framework application repo."
     ]
-  ]
+  ],
+  "Project_Modified_Date": "2026-11-21"
 }

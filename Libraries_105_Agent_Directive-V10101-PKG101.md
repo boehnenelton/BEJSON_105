@@ -333,7 +333,7 @@ Ranges claimed across the ecosystem (from the library's own registries):
 | 90–114 | **Removed** (old 105 schema constraints). Not in use |
 | 130–159 | Core Nesting |
 | 160–189 | Core Extension |
-| 200–235 | AI |
+| 200–249 | AI_Core (236–244 plugins, 246–248 profiles; AI_Extensions has none) |
 | 250–269 | Standards (250–261 assigned) |
 | 270–289 | Cognition |
 | 300–329 | BEHTML |

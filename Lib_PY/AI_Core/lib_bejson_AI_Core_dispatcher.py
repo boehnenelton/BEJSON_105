@@ -3,14 +3,15 @@ Library:         lib_bejson_AI_Core_dispatcher.py
 Family:          AI_Core
 Module Purpose:  Tier 1 Master Ingress & Universal Router for the Multi-AI Provider Gateway
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 1: Abstraction Layers)
-Version:         2.0.0
-Release_Version: 300
+Version:         2.1.0
+Release_Version: 301
 Date:            2026-11-17
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   9779b3d2-968c-4417-bf9f-147d7b5406d9
+RELATIONAL_ID:   b1db7ab7-9c4a-4532-a126-3876e8283f03
 
 Changelog:
+  2.1.0 (2026-11-17) -- Release 301: per-call tool_loop_enabled switch (False skips tooling injection and the internal tool loop, so a caller that executes tools itself never has AI_Core run them).
   2.0.0 (2026-11-17) -- AI family renamed to AI_Core (was lib_bejson_ai_*). BEJSON read/write now via Core bridge where applicable.
 """
 from __future__ import annotations
@@ -50,7 +51,7 @@ from lib_bejson_AI_Core_translator import AITranslator  # noqa: E402
 
 _LOGGER_INSTANCE = logging.getLogger("lib_bejson_AI_Core_dispatcher")
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 
 
 class AIDispatcher:
@@ -222,6 +223,7 @@ class AIDispatcher:
         stdout_routing: Optional[bool] = None,
         output_sink: Optional[Any] = None,
         max_key_retries: int = 2,
+        tool_loop_enabled: bool = True,
         **extra_keyword_arguments: Any,
     ) -> Dict[str, Any]:
         """
@@ -289,7 +291,8 @@ class AIDispatcher:
         preprocessed_request_payload = self.plugin_registry.run_stage("pre", preprocessed_request_payload)
 
         # Tier 2 Tooling Gate & Injection
-        active_tooling_subsystem = self.tooling_registry.get_active_system()
+        # tool_loop_enabled=False: the caller executes tools itself; AI_Core must neither inject nor run any.
+        active_tooling_subsystem = self.tooling_registry.get_active_system() if tool_loop_enabled else None
         if active_tooling_subsystem is not None and "tools" not in preprocessed_request_payload:
             compiled_provider_tools_list = active_tooling_subsystem.build_provider_tools()
             if compiled_provider_tools_list:
@@ -423,6 +426,7 @@ class AIDispatcher:
         stdout_routing: Optional[bool] = None,
         output_sink: Optional[Any] = None,
         max_key_retries: int = 2,
+        tool_loop_enabled: bool = True,
         **extra_keyword_arguments: Any,
     ) -> Dict[str, Any]:
         """Asynchronous non-blocking wrapper around dispatch()."""
@@ -439,6 +443,7 @@ class AIDispatcher:
             stdout_routing=stdout_routing,
             output_sink=output_sink,
             max_key_retries=max_key_retries,
+            tool_loop_enabled=tool_loop_enabled,
             **extra_keyword_arguments,
         )
 

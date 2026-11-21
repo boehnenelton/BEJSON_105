@@ -504,6 +504,54 @@
       "Lib_TS/Core/lib_bejson_Core_bejson_validators.ts",
       "import",
       false
+    ],
+    [
+      "AI_Core",
+      "PY",
+      "Lib_PY/AI_Core/lib_bejson_AI_Core_core_bridge.py",
+      "Lib_PY/Core/lib_bejson_Core_bejson_core.py",
+      "import",
+      true
+    ],
+    [
+      "AI_Core",
+      "PY",
+      "Lib_PY/AI_Core/lib_bejson_AI_Core_core_bridge.py",
+      "Lib_PY/Core/lib_bejson_Core_bejson_validator.py",
+      "import",
+      true
+    ],
+    [
+      "AI_Extensions",
+      "PY",
+      "Lib_PY/AI_Extensions/lib_bejson_AI_Extensions_profile_runtime.py",
+      "Lib_PY/AI_Core/lib_bejson_AI_Core_profiles.py",
+      "import",
+      true
+    ],
+    [
+      "AI_Extensions",
+      "PY",
+      "Lib_PY/AI_Extensions/lib_bejson_AI_Extensions_profile_compiler.py",
+      "Lib_PY/AI_Core/lib_bejson_AI_Core_profiles.py",
+      "import",
+      true
+    ],
+    [
+      "AI_Extensions",
+      "PY",
+      "Lib_PY/AI_Extensions/lib_bejson_AI_Extensions_profile_abstraction.py",
+      "Lib_PY/AI_Extensions/lib_bejson_AI_Extensions_profile_runtime.py",
+      "import",
+      false
+    ],
+    [
+      "AI_Extensions",
+      "PY",
+      "Lib_PY/AI_Extensions/lib_bejson_AI_Extensions_manifest_tool.py",
+      "Lib_PY/AI_Core/lib_bejson_AI_Core_plugin_schema.py",
+      "import",
+      true
     ]
   ]
 }

@@ -35,7 +35,7 @@ def _doc104(v2: bool = False, extra: bool = False) -> dict:
     if extra:
         fields += [{"name": "Parser_Language", "type": "string"}, {"name": "Parser", "type": "string"}]
     values = {n: P.PROFILE_DEFAULTS.get(n) for n, _ in schema}
-    values.update({"Name": "Legacy", "Archetype": "Old", "Persona": "p", "System_Instruction": "si", "Job": "Chat"})
+    values.update({"Name": "Legacy", "Archetype": "Old", "Persona": "p", "System_Instruction": "si", "Job": "Chat", "Max_Response_Tokens": 16384})
     row = ["AI_Profile_v2" if v2 else "AI_Profile"] + [values[n] for n, _ in schema]
     if extra:
         row += ["python", "def parse(t):\n    return t"]
@@ -169,6 +169,48 @@ class PersistenceTests(unittest.TestCase):
             old.write_text(json.dumps(_doc104()), encoding="utf-8")
             with self.assertRaises(AIException):
                 P.ai_profiles_load(old)
+
+
+class AffectiveBypassTests(unittest.TestCase):
+    def tearDown(self):
+        P.ai_profiles_set_affective_features_disabled(False)
+
+    def test_bypass_affective_features_rules_entries_null(self):
+        doc = P.ai_profiles_create(
+            "V2Agent", "Arch", "persona", "instr", v2=True,
+            Starting_Temper=25, Stability=3, Irritations=["bugs"], Pleasures=["tea"]
+        )
+        bypassed = P.ai_profiles_bypass_affective_features(doc)
+        row = P.ai_profiles_row(bypassed)
+        self.assertIsNone(row["Starting_Temper"])
+        self.assertIsNone(row["Stability"])
+        self.assertIsNone(row["Irritations"])
+        self.assertIsNone(row["Pleasures"])
+        self.assertFalse(row["Emotional_Expression_Enabled"])
+
+    def test_global_disable_affective_features(self):
+        doc = P.ai_profiles_create(
+            "V2Agent", "Arch", "persona", "instr", v2=True,
+            Starting_Temper=25, Stability=3, Irritations=["bugs"], Pleasures=["tea"]
+        )
+        # Normally present
+        self.assertEqual(P.ai_profiles_row(doc)["Starting_Temper"], 25)
+        # Globally disabled
+        P.ai_profiles_set_affective_features_disabled(True)
+        self.assertTrue(P.ai_profiles_get_affective_features_disabled())
+        row = P.ai_profiles_row(doc)
+        self.assertIsNone(row["Starting_Temper"])
+        self.assertIsNone(row["Stability"])
+        self.assertIsNone(row["Irritations"])
+        self.assertIsNone(row["Pleasures"])
+
+    def test_mode_field_strictly_forbidden(self):
+        doc = P.ai_profiles_create("A", "B", "C", "D")
+        doc["Fields"].append({"name": "Mode", "type": "string"})
+        doc["Values"][0].append("chat")
+        problems = P.ai_profiles_problems(doc)
+        self.assertTrue(any("Mode is deprecated and forbidden" in p for p in problems))
+        self.assertFalse(P.ai_profiles_validate(doc))
 
 
 if __name__ == "__main__":

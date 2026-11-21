@@ -2359,6 +2359,349 @@
       "Graphics",
       "PY",
       "Graphics Domain"
+    ],
+    [
+      0,
+      "E_AI_SUCCESS",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      200,
+      "E_AI_BASE",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      201,
+      "E_AI_INVALID_PAYLOAD",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      202,
+      "E_AI_SCHEMA_MISMATCH",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      203,
+      "E_AI_UNKNOWN_PROVIDER",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      204,
+      "E_AI_PROVIDER_NOT_REGISTERED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      205,
+      "E_AI_DISPATCH_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      206,
+      "E_AI_INTENT_UNRESOLVED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      210,
+      "E_AI_TRANSLATION_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      211,
+      "E_AI_PREPROCESS_REJECTED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      212,
+      "E_AI_TOKEN_LIMIT_EXCEEDED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      213,
+      "E_AI_XML_PARSE_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      214,
+      "E_AI_POSTPROCESS_REJECTED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      215,
+      "E_AI_OUTPUT_VALIDATION_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      216,
+      "E_AI_SANITIZER_BLOCKED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      217,
+      "E_AI_TOOLING_DISABLED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      218,
+      "E_AI_TOOLING_SYSTEM_NOT_FOUND",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      219,
+      "E_AI_TOOL_EXECUTION_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      220,
+      "E_AI_VAULT_NOT_FOUND",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      221,
+      "E_AI_VAULT_PARSE_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      222,
+      "E_AI_KEY_MISSING",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      223,
+      "E_AI_KEY_EXHAUSTED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      224,
+      "E_AI_KEY_INJECTION_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      207,
+      "E_AI_CORE_DEP_UNAVAILABLE",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      208,
+      "E_AI_FAMILY_VALIDATION_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      209,
+      "E_AI_DOCUMENT_INVALID",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      225,
+      "E_AI_DOCUMENT_WRITE_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      226,
+      "E_AI_FREEZE_MANIFEST_MISMATCH",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      236,
+      "E_AI_PLUGIN_BASE",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      237,
+      "E_AI_PLUGIN_MANIFEST_INVALID",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      238,
+      "E_AI_PLUGIN_DUPLICATE",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      239,
+      "E_AI_PLUGIN_NOT_FOUND",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      240,
+      "E_AI_PLUGIN_STAGE_INVALID",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      241,
+      "E_AI_PLUGIN_LOAD_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      242,
+      "E_AI_PLUGIN_UNTRUSTED_DIRECTORY",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      243,
+      "E_AI_PLUGIN_CORE_VERSION_INCOMPATIBLE",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      244,
+      "E_AI_PLUGIN_EXECUTION_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core Plugins (236-244)"
+    ],
+    [
+      246,
+      "E_AI_PROFILE_INVALID",
+      "AI_Core",
+      "PY",
+      "AI Core Profiles (246-248)"
+    ],
+    [
+      247,
+      "E_AI_PROFILE_NOT_FOUND",
+      "AI_Core",
+      "PY",
+      "AI Core Profiles (246-248)"
+    ],
+    [
+      248,
+      "E_AI_PROFILE_MIGRATION_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core Profiles (246-248)"
+    ],
+    [
+      227,
+      "E_AI_HTTP_TIMEOUT",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      228,
+      "E_AI_HTTP_AUTH_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      229,
+      "E_AI_HTTP_RATE_LIMITED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      230,
+      "E_AI_HTTP_BAD_RESPONSE",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      231,
+      "E_AI_HTTP_NETWORK_ERROR",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      232,
+      "E_AI_PROVIDER_ERROR",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      233,
+      "E_AI_INTERACTION_STATE_INVALID",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      234,
+      "E_AI_RENDERER_NOT_FOUND",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
+    ],
+    [
+      235,
+      "E_AI_RENDERER_FAILED",
+      "AI_Core",
+      "PY",
+      "AI Core (200-235)"
     ]
   ]
 }

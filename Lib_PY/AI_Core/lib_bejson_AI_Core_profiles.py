@@ -8,14 +8,17 @@ Module Purpose:  AI Profile data layer on BEJSON 105. Replaces lib_bejson_AI_gem
                  Parser / Renderer string columns are stored here as data only; validating and running
                  embedded code is AI_Extensions' job (lib_bejson_AI_Extensions_profile_runtime).
                  104 -> 105 conversion: ai_profiles_convert_104_to_105 / ai_profiles_convert_file.
-Version:         2.0.1
+Version:         2.0.2
 Release_Version: 300
 Date:            2026-11-17
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   682cc089-020f-457b-8415-73ef18b67f4f
+RELATIONAL_ID:   35d69430-efec-4014-a179-df009567b0f7
 
 Changelog:
+  2.0.2 (2026-11-20) -- Version bump for changes made after 2.0.1 without one: Mode column forbidden (ai_profiles_problems), defaults
+          Max_Response_Tokens 42000 / Creativity 1.0 / Tone [Concise, Helpful] / Verbosity Formal, affective-feature global switch
+          (ai_profiles_set/get_affective_features_disabled, ai_profiles_bypass_affective_features, honored by ai_profiles_row).
   2.0.1 (2026-11-17) -- ai_profiles_convert_104_to_105 works on a deep copy: core_field_map writes a _bejson_field_map cache
           into the document, so the "source is not modified" guarantee did not hold (found by test_ai_profiles).
   2.0.0 (2026-11-17) -- New. Ported from lib_bejson_AI_gemini_standard_profiles 4.1.0 (104). Changes:
@@ -51,13 +54,12 @@ from lib_bejson_AI_Core_errors import (
     ERR_AI_PROFILE_NOT_FOUND,
 )
 
-VERSION = "2.0.1"
+VERSION = "2.0.2"
 _LOGGER = logging.getLogger("lib_bejson_AI_Core_profiles")
 
 RECORDS_TYPE_V1 = "AI_Profile"
 RECORDS_TYPE_V2 = "AI_Profile_v2"
 LEGACY_PARENT_FIELD = "Record_Type_Parent"
-LEGACY_MODE_FIELD = "Mode"
 
 _SHARED_TAIL: Tuple[Tuple[str, str], ...] = (
     ("Max_Response_Tokens", "integer"), ("Creativity", "number"), ("Tone", "array"),
@@ -98,8 +100,8 @@ OPTIONAL_FIELDS: Tuple[Tuple[str, str], ...] = (
 
 PROFILE_DEFAULTS: Dict[str, Any] = {
     "Forbidden_Topics": [], "Avatar_Type": "Emoji", "Avatar_Source_Url": "", "Avatar_Data": "🤖",
-    "Max_Response_Tokens": 16384, "Creativity": 0.7, "Tone": ["Professional", "Helpful"],
-    "Formality": "Formal", "Verbosity": "Balanced", "Emotional_Expression_Enabled": False,
+    "Max_Response_Tokens": 42000, "Creativity": 1.0, "Tone": ["Concise", "Helpful"],
+    "Formality": "Formal", "Verbosity": "Formal", "Emotional_Expression_Enabled": False,
     "Emotional_Expression_Intensity": 0.0, "Code_Interpreter_Enabled": True, "Ephemeral_Memory": True,
     "Code_Parsing_Mode": "complete", "Code_Parsing_Languages": [],
     "Code_Parsing_Structure_Validation": True, "Code_Parsing_Version_Control": False,
@@ -145,6 +147,8 @@ def ai_profiles_problems(doc: Dict[str, Any]) -> List[str]:
             problems.append(f"optional field {name} must be {ftype}, is {declared[name]}")
     if LEGACY_PARENT_FIELD in declared:
         problems.append(f"{LEGACY_PARENT_FIELD} is a 104-only column and must not appear in a 105 profile")
+    if "Mode" in declared:
+        problems.append("Mode is deprecated and forbidden in profiles")
     if not doc.get("Values"):
         problems.append("profile has no record")
     return problems
@@ -180,6 +184,43 @@ def ai_profiles_create(
     return doc
 
 
+_CONFIG_DISABLE_AFFECTIVE_FEATURES: bool = False
+
+
+def ai_profiles_set_affective_features_disabled(disabled: bool) -> None:
+    """Configures whether v2 mood, temper, irritation, and pleasure features are bypassed."""
+    global _CONFIG_DISABLE_AFFECTIVE_FEATURES
+    _CONFIG_DISABLE_AFFECTIVE_FEATURES = bool(disabled)
+
+
+def ai_profiles_get_affective_features_disabled() -> bool:
+    """Returns True if v2 affective mood/temper features are globally bypassed."""
+    return _CONFIG_DISABLE_AFFECTIVE_FEATURES
+
+
+def ai_profiles_bypass_affective_features(doc: Dict[str, Any]) -> Dict[str, Any]:
+    """Rules v2 mood, temper, irritation, and pleasure entries null so they are completely bypassed."""
+    out = copy.deepcopy(doc)
+    fmap = core_field_map(out)
+    affective_fields = [
+        "Starting_Temper", "Stability", "Irritations", "Pleasures",
+        "Emotional_Expression_Enabled", "Emotional_Expression_Intensity"
+    ]
+    for row in out.get("Values", []):
+        for field in affective_fields:
+            idx = fmap.get(field)
+            if idx is not None and idx < len(row):
+                if field == "Emotional_Expression_Enabled":
+                    row[idx] = False
+                elif field == "Emotional_Expression_Intensity":
+                    row[idx] = 0.0
+                elif field in ("Irritations", "Pleasures"):
+                    row[idx] = None
+                else:
+                    row[idx] = None
+    return out
+
+
 def ai_profiles_get_field_map(profile: Dict[str, Any]) -> Dict[str, int]:
     return core_field_map(profile)
 
@@ -189,7 +230,16 @@ def ai_profiles_row(profile: Dict[str, Any], record_index: int = 0) -> Dict[str,
     rows = core_rows_as_dicts(profile)
     if record_index >= len(rows):
         raise AIException(ERR_AI_PROFILE_NOT_FOUND, f"record {record_index}")
-    return rows[record_index]
+    row = dict(rows[record_index])
+    if _CONFIG_DISABLE_AFFECTIVE_FEATURES or profile.get("Affective_Features_Disabled") is True:
+        for f in ("Starting_Temper", "Stability", "Irritations", "Pleasures"):
+            if f in row:
+                row[f] = None
+        if "Emotional_Expression_Enabled" in row:
+            row["Emotional_Expression_Enabled"] = False
+        if "Emotional_Expression_Intensity" in row:
+            row["Emotional_Expression_Intensity"] = 0.0
+    return row
 
 
 def ai_profiles_get_value(profile: Dict[str, Any], field_name: str, record_index: int = 0) -> Any:

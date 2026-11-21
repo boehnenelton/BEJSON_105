@@ -175,10 +175,10 @@ Standard JSON forces every single record in an array of objects to repeat its ke
 - [Section 9: 4-Language Polyglot SDK](#section-9-4-language-polyglot-sdk)
 - [Section 10: Platform I: BEJSON_CMS](#section-10-platform-i-bejson_cms)
 - [Section 11: Platform II: BKS-1 AI Writer](#section-11-platform-ii-bks-1-ai-writer)
-- [Section 12: Platform III: Multi-AI Provider Gateway (`Lib_PY/AI` v1.5.0) & Edge Inference](#section-12-platform-iii-multi-ai-provider-gateway-lib_pyai-v150--edge-inference)
+- [Section 12: Platform III: Multi-AI Provider Gateway (`Lib_PY/AI_Core` v2.1.0) & Edge Inference](#section-12-platform-iii-multi-ai-provider-gateway-lib_pyai_core-v210--edge-inference)
 - [Section 13: Platform IV: Project Chunker](#section-13-platform-iv-project-chunker)
 - [Section 14: Visual Systems & 57-Col TUI](#section-14-visual-systems--57-col-tui)
-- [Section 15: Validation & Security (E01–E95 & 200–235)](#section-15-validation--security-e01e95--200235)
+- [Section 15: Validation & Security (E01–E95 & 200–249)](#section-15-validation--security-e01e95--200249)
 - [Section 16: FAQ & Governance](#section-16-faq--governance)
 
 ---
@@ -434,9 +434,9 @@ An automated technical publication engine:
 
 ---
 
-## Section 12: Platform III: Multi-AI Provider Gateway (`Lib_PY/AI` v1.5.0) & Edge Inference
+## Section 12: Platform III: Multi-AI Provider Gateway (`Lib_PY/AI_Core` v2.1.0) & Edge Inference
 
-`Lib_PY/AI` provides a hardened 3-tier AI gateway with zero external SDK dependencies, supporting **Gemini REST (`generateContent`)**, **Gemini Interactions (`v1beta/interactions`)** with stateful `previous_interaction_id` chaining, `Name_Case` class/method exports, and persistent Format 105a configuration (`Lib_PY/AI/config/ai_global_config.105a.bejson`).
+`Lib_PY/AI_Core` (renamed from `Lib_PY/AI`) provides a hardened 3-tier AI gateway with zero external SDK dependencies, supporting **Gemini REST (`generateContent`)**, **Gemini Interactions (`v1beta/interactions`)** with stateful `previous_interaction_id` chaining, `Name_Case` class/method exports, persistent Format 105a configuration (`Lib_PY/AI_Core/config/ai_global_config.105a.bejson`), a config-gated **plugin registry** (pre/post/render), and **AI Profile 1.0/2.0 on 105**. All BEJSON I/O goes through Core via `lib_bejson_AI_Core_core_bridge.py`. Optional plugins and profile tooling live in `Lib_PY/AI_Extensions`.
 
 ![BEJSON 105 AI Gateway — Part 1: Abstraction, Tooling & Parser Layers (Tiers 1 & 2)](images/ai_gateway/ai_gateway_part1_tiers_1_2.jpg)  
 *_Figure 12: BEJSON 105 AI Gateway — Part 1: Abstraction, Tooling & Parser Layers (Tiers 1 & 2)_*
@@ -454,29 +454,27 @@ An automated technical publication engine:
 ```python
 import os, sys
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-LIBRARIES_105_ROOT = Path(os.environ["ADMIN_LIBRARIES_105"])
-sys.path.insert(0, str(LIBRARIES_105_ROOT / "Lib_PY" / "AI"))
+LIB_PY = Path(os.environ["ADMIN_LIBRARIES_105"]) / "Lib_PY"
+sys.path[:0] = [str(LIB_PY / "AI_Core"), str(LIB_PY / "AI_Extensions")]
 
-from lib_bejson_ai_dispatcher import (
-    AI_Dispatcher, AI_Dispatch, AI_Dispatch_Async,
-    Get_Response_Text, Get_Interaction_ID, Get_Turn_Continuation_Command,
-)
-from lib_bejson_ai_models import Gemini_3_1_Flash_Lite, Resolve_Model_Identifier
-from lib_bejson_ai_tooling_registry import Tooling_Registry
-from lib_bejson_ai_parser_registry import Parser_Registry
-from lib_bejson_ai_extension_parser import Extension_Parser_Registry
+from lib_bejson_AI_Core_dispatcher import AI_Dispatcher
+from lib_bejson_AI_Core_extension_parser import ExtensionParserRegistry
+from lib_bejson_AI_Core_models import Gemini_3_1_Flash_Lite, Resolve_Model_Identifier
+from lib_bejson_AI_Core_parser_registry import ParserRegistry
+from lib_bejson_AI_Core_plugin_registry import PluginRegistry
+from lib_bejson_AI_Core_tooling_registry import AIGlobalConfigManager, ToolingRegistry
 
-resolved_model_id = Resolve_Model_Identifier(Gemini_3_1_Flash_Lite)
-tooling_registry = Tooling_Registry()
-parser_registry = Parser_Registry(config_manager=tooling_registry.config_manager)
-extension_registry = Extension_Parser_Registry(config_manager=tooling_registry.config_manager)
-
+config = AIGlobalConfigManager()   # default: Lib_PY/AI_Core/config/ai_global_config.105a.bejson
+tooling = ToolingRegistry(config_manager_instance=config)
 dispatcher = AI_Dispatcher(
-    tooling_registry=tooling_registry,
-    parser_registry=parser_registry,
-    extension_parser_registry=extension_registry,
+    tooling_registry=tooling,
+    parser_registry=ParserRegistry(config_manager_instance=config),
+    extension_parser_registry=ExtensionParserRegistry(config_manager_instance=config),
 )
+plugins = PluginRegistry(config)
+print(Resolve_Model_Identifier(Gemini_3_1_Flash_Lite), plugins.discover_plugins())
 ```
 
 ---
@@ -497,7 +495,7 @@ Single-file repository containerization:
 
 ---
 
-## Section 15: Validation & Security (E01–E95 & 200–235)
+## Section 15: Validation & Security (E01–E95 & 200–249)
 
 The 20-point validation pipeline rejects malformed datasets at runtime boundaries:
 - `[30]`: Invalid Network Role string.
@@ -507,7 +505,7 @@ The 20-point validation pipeline rejects malformed datasets at runtime boundarie
 - `[39]`: Unresolved foreign key reference.
 - `[43-47]`: Referential integrity constraint violations (`restrict`, `cascade` loop).
 - `[90-95]`: Format 105 migration, UUID schema invalidity, and hash tamper errors.
-- `[200-235]`: Multi-AI Provider Gateway (`Lib_PY/AI`) transport, key rotation, quarantine, and translation errors.
+- `[200-249]`: Multi-AI Provider Gateway (`Lib_PY/AI_Core`) transport, key rotation, quarantine, translation, plugin (236–244) and profile (246–248) errors.
 
 ---
 

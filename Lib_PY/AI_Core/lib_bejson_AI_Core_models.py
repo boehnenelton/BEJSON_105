@@ -3,14 +3,16 @@ Library:         lib_bejson_AI_Core_models.py
 Family:          AI_Core
 Module Purpose:  Modern Gemini and Multi-AI Model Taxonomy Registry (Name_Case Constants and Catalog)
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 1: Service Abstractor & Catalog)
-Version:         2.0.0
+Version:         2.0.2
 Release_Version: 300
-Date:            2026-11-17
+Date:            2026-11-20
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   a39f5195-f6da-493e-93fa-666a1c1b1490
+RELATIONAL_ID:   202c2b3d-0d55-4cd7-ba59-0f0345798b10
 
 Changelog:
+  2.0.2 (2026-11-20) -- Added Gemini_3_6_Flash (gemini-3.6-flash) and Gemini_3_7_Flash (gemini-3.7-flash) to active model registry.
+  2.0.1 (2026-11-19) -- Single default-model constant DEFAULT_TEXT_MODEL_ID (gemini-3.8-flash, registry-verified); merged newest Nov-18 agent-side changes.
   2.0.0 (2026-11-17) -- AI family renamed to AI_Core (was lib_bejson_ai_*). BEJSON read/write now via Core bridge where applicable.
 """
 from __future__ import annotations
@@ -27,9 +29,9 @@ if str(_CURRENT_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_CURRENT_MODULE_DIR))
 
 from lib_bejson_AI_Core_errors import AIException, ERR_AI_PROVIDER_ERROR  # noqa: E402
-from lib_bejson_AI_Core_features_common import redact_provider_error_text  # noqa: E402
+from lib_bejson_AI_Core_features_common import DEFAULT_TEXT_MODEL_ID, redact_provider_error_text  # noqa: E402
 
-VERSION = "2.0.0"
+VERSION = "2.0.2"
 _LOGGER_INSTANCE = logging.getLogger("lib_bejson_AI_Core_models")
 
 # ---------------------------------------------------------------------------
@@ -37,6 +39,8 @@ _LOGGER_INSTANCE = logging.getLogger("lib_bejson_AI_Core_models")
 # ---------------------------------------------------------------------------
 Gemini_3_1_Flash_Lite = "gemini-3.1-flash-lite"
 Gemini_3_5_Flash_Lite = "gemini-3.5-flash-lite"
+Gemini_3_6_Flash = "gemini-3.6-flash"
+Gemini_3_7_Flash = "gemini-3.7-flash"
 Gemini_3_8_Flash = "gemini-3.8-flash"
 Gemini_4_Argon = "gemini-4-argon"
 Gemini_4_Hydrogen = "gemini-4-hydrogen"
@@ -49,6 +53,8 @@ Antigravity_Preview_Latest = "antigravity-preview-latest"
 ACTIVE_TEXT_MODELS_REGISTRY: Dict[str, str] = {
     "Gemini_3_1_Flash_Lite": Gemini_3_1_Flash_Lite,
     "Gemini_3_5_Flash_Lite": Gemini_3_5_Flash_Lite,
+    "Gemini_3_6_Flash": Gemini_3_6_Flash,
+    "Gemini_3_7_Flash": Gemini_3_7_Flash,
     "Gemini_3_8_Flash": Gemini_3_8_Flash,
     "Gemini_4_Argon": Gemini_4_Argon,
     "Gemini_4_Hydrogen": Gemini_4_Hydrogen,
@@ -58,6 +64,8 @@ ACTIVE_TEXT_MODELS_REGISTRY: Dict[str, str] = {
     "Gemma_4_31B": Gemma_4_31B,
     "Antigravity_Preview_Latest": Antigravity_Preview_Latest,
 }
+
+DEFAULT_TEXT_MODEL: str = DEFAULT_TEXT_MODEL_ID  # re-export; verified against the registry by tests
 
 
 def Resolve_Model_Identifier(requested_model_name_token: str) -> str:

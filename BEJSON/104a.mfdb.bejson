@@ -44,7 +44,7 @@
       "Errors",
       "data/errors.bejson",
       "Global cross-family error code map (read-only aggregate; each family's own errors file is the source of truth)",
-      333,
+      382,
       "2.2",
       null
     ],
@@ -52,7 +52,7 @@
       "Metadata",
       "data/metadata.bejson",
       "Library versioning AND governance rules hub (EAV-style: RECORD_TYPE is VERSION or RULE), keyed by LIBRARY_FAMILY + LANGUAGE + KEY. Includes the Core-parity, MFDB-is-part-of-Core, BEJSON acronym, and PMS-deprecation rules.",
-      9,
+      13,
       "3.3",
       null
     ],
@@ -60,7 +60,7 @@
       "Library_Changes",
       "data/library_changes.bejson",
       "Library change log, keyed by LIBRARY_FAMILY + LANGUAGE + LIBRARY_FILE",
-      160,
+      169,
       "2.2",
       null
     ],
@@ -76,7 +76,7 @@
       "Dependencies",
       "data/dependencies.bejson",
       "Import/require/source edges between library files across all four languages, so an AI or tool can check for breakage before deleting, moving, or renaming a file",
-      59,
+      65,
       "1.1",
       null
     ],

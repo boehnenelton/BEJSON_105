@@ -3,14 +3,15 @@ Library:         lib_bejson_AI_Core_translator.py
 Family:          AI_Core
 Module Purpose:  Tier 1 Payload Normalizer (BEJSON 105 <-> Provider-Specific Schemas)
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 1: Abstraction Layers)
-Version:         2.0.0
-Release_Version: 300
+Version:         2.1.0
+Release_Version: 301
 Date:            2026-11-17
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   4f85b77b-0a81-4ac3-a013-6a9eff60e879
+RELATIONAL_ID:   2df2da57-cfd6-44dd-b7c8-11f9aa594e75
 
 Changelog:
+  2.1.0 (2026-11-17) -- Release 301: geminirest now carries tools (tool_declarations -> functionDeclarations), tool_calls/tool results and verbatim wire_parts both directions; tool-role messages become functionResponse parts.
   2.0.0 (2026-11-17) -- AI family renamed to AI_Core (was lib_bejson_ai_*). BEJSON read/write now via Core bridge where applicable.
 """
 from __future__ import annotations
@@ -32,7 +33,7 @@ from lib_bejson_AI_Core_errors import (  # noqa: E402
 )
 from lib_bejson_AI_Core_features_common import build_bejson_105_ai_response  # noqa: E402
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 _LOGGER_INSTANCE = logging.getLogger("lib_bejson_AI_Core_translator")
 
 
@@ -90,6 +91,28 @@ class AITranslator:
             turn_continuation_command=normalized_response_envelope_dict.get("turn_continuation_command"),
         )
 
+    @staticmethod
+    def _gemini_rest_wire_parts_for_model_message(message_entry_record: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Build the parts list for an assistant/model message (verbatim wire_parts win)."""
+        echoed_wire_parts = message_entry_record.get("wire_parts")
+        if isinstance(echoed_wire_parts, (list, tuple)) and echoed_wire_parts:
+            return [dict(part_entry) for part_entry in echoed_wire_parts if isinstance(part_entry, dict)]
+        model_parts_list: List[Dict[str, Any]] = []
+        message_text_value = str(message_entry_record.get("content", "") or "")
+        if message_text_value:
+            model_parts_list.append({"text": message_text_value})
+        for tool_call_record in message_entry_record.get("tool_calls") or []:
+            if not isinstance(tool_call_record, dict):
+                continue
+            arguments_payload = tool_call_record.get("arguments")
+            model_parts_list.append({
+                "functionCall": {
+                    "name": str(tool_call_record.get("name", "")),
+                    "args": dict(arguments_payload) if isinstance(arguments_payload, dict) else {},
+                }
+            })
+        return model_parts_list or [{"text": ""}]
+
     def _to_gemini_rest(
         self,
         standardized_request_payload_dict: Dict[str, Any],
@@ -97,12 +120,37 @@ class AITranslator:
         formatted_contents_list: List[Dict[str, Any]] = []
         if "messages" in standardized_request_payload_dict and isinstance(standardized_request_payload_dict["messages"], list):
             for message_entry_record in standardized_request_payload_dict["messages"]:
-                source_role_label = message_entry_record.get("role", "user")
-                mapped_gemini_role = "model" if source_role_label in ("assistant", "model") else "user"
-                formatted_contents_list.append({
-                    "role": mapped_gemini_role,
-                    "parts": [{"text": str(message_entry_record.get("content", ""))}],
-                })
+                source_role_label = str(message_entry_record.get("role", "user")).lower()
+                if source_role_label == "tool":
+                    function_response_part = {
+                        "functionResponse": {
+                            "name": str(message_entry_record.get("name", "") or "tool"),
+                            "response": {
+                                "call_id": str(message_entry_record.get("call_id", "")),
+                                "output": str(message_entry_record.get("content", "")),
+                            },
+                        }
+                    }
+                    previous_content_record = formatted_contents_list[-1] if formatted_contents_list else None
+                    if (
+                        previous_content_record is not None
+                        and previous_content_record["role"] == "user"
+                        and all("functionResponse" in part_entry for part_entry in previous_content_record["parts"])
+                    ):
+                        # Parallel results for one model turn must share a single user content.
+                        previous_content_record["parts"].append(function_response_part)
+                    else:
+                        formatted_contents_list.append({"role": "user", "parts": [function_response_part]})
+                elif source_role_label in ("assistant", "model"):
+                    formatted_contents_list.append({
+                        "role": "model",
+                        "parts": self._gemini_rest_wire_parts_for_model_message(message_entry_record),
+                    })
+                else:
+                    formatted_contents_list.append({
+                        "role": "user",
+                        "parts": [{"text": str(message_entry_record.get("content", ""))}],
+                    })
         else:
             formatted_contents_list.append({
                 "role": "user",
@@ -114,6 +162,21 @@ class AITranslator:
         system_instruction_text = str(standardized_request_payload_dict.get("system_instruction", "") or "").strip()
         if system_instruction_text:
             outbound_payload_dict["systemInstruction"] = {"parts": [{"text": system_instruction_text}]}
+
+        # Neutral declarations only; the generic "tools" key is Interactions-shaped and is never forwarded here.
+        neutral_tool_declarations = standardized_request_payload_dict.get("tool_declarations")
+        if isinstance(neutral_tool_declarations, (list, tuple)) and neutral_tool_declarations:
+            outbound_payload_dict["tools"] = [{
+                "functionDeclarations": [
+                    {
+                        "name": str(declaration_record.get("name", "")),
+                        "description": str(declaration_record.get("description", "")),
+                        "parameters": dict(declaration_record.get("parameters") or {}),
+                    }
+                    for declaration_record in neutral_tool_declarations
+                    if isinstance(declaration_record, dict)
+                ]
+            }]
 
         generation_config_dictionary: Dict[str, Any] = {}
         if "temperature" in standardized_request_payload_dict and standardized_request_payload_dict["temperature"] is not None:
@@ -205,7 +268,7 @@ class AITranslator:
         aggregated_response_text_str = "".join(text_content_chunks_list)
         candidate_finish_reason_token = str(primary_candidate_record.get("finishReason", "STOP"))
         token_usage_metadata_dict = raw_provider_response_dict.get("usageMetadata", {})
-        return {
+        normalized_envelope: Dict[str, Any] = {
             "provider": "geminirest",
             "model": model_name_identifier,
             "text": aggregated_response_text_str,
@@ -213,6 +276,37 @@ class AITranslator:
             "usage": token_usage_metadata_dict,
             "raw": raw_provider_response_dict,
         }
+        extracted_function_calls_list: List[Dict[str, Any]] = []
+        for part_entry_record in candidate_content_parts_list:
+            if not isinstance(part_entry_record, dict) or "functionCall" not in part_entry_record:
+                continue
+            function_call_record = part_entry_record["functionCall"]
+            if not isinstance(function_call_record, dict) or not function_call_record.get("name"):
+                raise AIException(
+                    ERR_AI_TRANSLATION_FAILED,
+                    "Gemini REST functionCall part is malformed (missing name).",
+                )
+            function_call_arguments = function_call_record.get("args")
+            if function_call_arguments is None:
+                function_call_arguments = {}
+            if not isinstance(function_call_arguments, dict):
+                raise AIException(
+                    ERR_AI_TRANSLATION_FAILED,
+                    "Gemini REST functionCall args must be a JSON object.",
+                )
+            extracted_function_calls_list.append({
+                "id": str(function_call_record.get("id", "")),
+                "name": str(function_call_record["name"]),
+                "arguments": function_call_arguments,
+            })
+        if extracted_function_calls_list:
+            normalized_envelope["tool_calls"] = extracted_function_calls_list
+            # Opaque parts (thought signatures included) must be echoed back verbatim next turn.
+            normalized_envelope["wire_parts"] = [
+                part_entry_record for part_entry_record in candidate_content_parts_list
+                if isinstance(part_entry_record, dict)
+            ]
+        return normalized_envelope
 
     def _from_gemini_interactions(
         self,

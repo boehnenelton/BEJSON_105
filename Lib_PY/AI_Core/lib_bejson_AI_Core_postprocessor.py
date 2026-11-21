@@ -3,14 +3,15 @@ Library:         lib_bejson_AI_Core_postprocessor.py
 Family:          AI_Core
 Module Purpose:  Tier 2 Outbound Pipeline Gate (Response Cleaning, JSON/XML Parsing, Content Sanitizers)
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 2: Model Features & Gates)
-Version:         2.0.0
-Release_Version: 300
+Version:         2.1.0
+Release_Version: 301
 Date:            2026-11-17
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   17c0af67-8120-43b7-9ea1-0a7f5377caee
+RELATIONAL_ID:   a3b7ea06-7fe4-4a28-bb28-630fbaeced39
 
 Changelog:
+  2.1.0 (2026-11-17) -- Release 301: a turn that carries tool_calls may have empty text (tool-call-only turns no longer rejected).
   2.0.0 (2026-11-17) -- AI family renamed to AI_Core (was lib_bejson_ai_*). BEJSON read/write now via Core bridge where applicable.
 """
 from __future__ import annotations
@@ -35,7 +36,7 @@ from lib_bejson_AI_Core_features_common import (  # noqa: E402
     extract_xml_blocks,
 )
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 
 _KEY_LEAK_RE = re.compile(r"AIza[0-9A-Za-z\-_]{20,}")
 
@@ -65,7 +66,7 @@ class AIPostprocessor:
         out = dict(normalized_response)
         text = str(out.get("text", "") or "").strip()
 
-        if not text:
+        if not text and not out.get("tool_calls"):
             raise AIException(
                 ERR_AI_POSTPROCESS_REJECTED,
                 "Provider returned an empty response text.",

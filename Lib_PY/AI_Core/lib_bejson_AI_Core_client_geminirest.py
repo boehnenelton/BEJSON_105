@@ -3,14 +3,15 @@ Library:         lib_bejson_AI_Core_client_geminirest.py
 Family:          AI_Core
 Module Purpose:  Tier 3 Zero-Dependency HTTP REST Client for Google Gemini API
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 3: Service Callers & Security)
-Version:         2.0.0
+Version:         2.0.1
 Release_Version: 300
-Date:            2026-11-17
+Date:            2026-11-19
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   d0f6acde-ff7d-4246-9345-190563d81f37
+RELATIONAL_ID:   0465fc16-a24c-4a91-bede-a16c216e0c18
 
 Changelog:
+  2.0.1 (2026-11-19) -- Single default-model constant DEFAULT_TEXT_MODEL_ID (gemini-3.8-flash, registry-verified); merged newest Nov-18 agent-side changes.
   2.0.0 (2026-11-17) -- AI family renamed to AI_Core (was lib_bejson_ai_*). BEJSON read/write now via Core bridge where applicable.
 """
 from __future__ import annotations
@@ -40,14 +41,14 @@ from lib_bejson_AI_Core_errors import (  # noqa: E402
 )
 from lib_bejson_AI_Core_client_base import BaseAIClient  # noqa: E402
 
-from lib_bejson_AI_Core_features_common import redact_provider_error_text  # noqa: E402
+from lib_bejson_AI_Core_features_common import DEFAULT_TEXT_MODEL_ID, redact_provider_error_text  # noqa: E402
 
 _LOGGER_INSTANCE = logging.getLogger("lib_bejson_AI_Core_client_geminirest")
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 
 DEFAULT_GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
-DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
+DEFAULT_GEMINI_MODEL = DEFAULT_TEXT_MODEL_ID
 
 
 class GeminiRestClient(BaseAIClient):

@@ -1,6 +1,6 @@
-# Architecture Roadmap & Implementation Status (`v1.6.0`)
+# Architecture Roadmap & Implementation Status (`v1.6.0`; library release `v2.1.0` / Release 301 adds geminirest tool calls, see README)
 
-**Implemented Baseline (`v1.6.0`, 23/23 tests passing, 0 naming violations):**
+**Implemented Baseline (`v1.6.0`; the family now has 107 tests, 0 validator violations):**
 - `lib_bejson_AI_Core_dispatcher.py` (`AIDispatcher`, `AI_Dispatch`, `AI_Dispatch_Async`, `Get_Response_*`, `Get_Interaction_ID`, `Get_Tool_Calls`, `Get_Turn_Continuation_Command`)
 - `lib_bejson_AI_Core_models.py` (`Name_Case` model catalog + `Resolve_Model_Identifier`)
 - `lib_bejson_AI_Core_client_geminirest.py` & `lib_bejson_AI_Core_client_geminiinteractions.py`

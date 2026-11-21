@@ -5,9 +5,9 @@ Module Purpose:  The single point where AI_Core touches the main Core family. Co
                  ONLY for reading and writing BEJSON (load, validate, atomic write, field
                  map, add record). Nothing else in AI_Core opens a BEJSON file directly.
 Architecture:    AI_Core depends on Core for BEJSON data handling; Core never depends on AI_Core.
-Version:         2.0.0
+Version:         2.1.0
 Release_Version: 300
-Date:            2026-11-17
+Date:            2026-11-20
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
 RELATIONAL_ID:   5b0c7e1d-3a64-4f2b-9d85-c1a47e90b2f3
@@ -31,7 +31,7 @@ from lib_bejson_AI_Core_errors import (
     ERR_AI_DOCUMENT_WRITE_FAILED,
 )
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 _LOGGER = logging.getLogger("lib_bejson_AI_Core_core_bridge")
 _HERE = Path(__file__).resolve().parent
 _CORE_MARKER = "lib_bejson_Core_bejson_core.py"
@@ -59,6 +59,7 @@ if str(_CORE_DIR) not in sys.path:
     sys.path.insert(0, str(_CORE_DIR))
 
 import lib_bejson_Core_bejson_core as _core  # noqa: E402
+import lib_bejson_Core_bejson_chunking as _chunking  # noqa: E402
 import lib_bejson_Core_bejson_validator as _validator  # noqa: E402
 
 
@@ -178,3 +179,58 @@ def core_quarantine(path: Path | str, reason: Any) -> Optional[Path]:
     except OSError as exc:
         _LOGGER.warning("%s unreadable (%s) and backup failed (%s)", source, reason, exc)
         return None
+
+
+def core_chunk_create(
+    target_dir: Path | str,
+    version: str = "latest",
+    extensions: Optional[List[str]] = None,
+    exclude_dirs: Optional[List[str]] = None,
+    package_version: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Create a Chunked-104a container document from a directory via Core's chunking engine."""
+    return _chunking.bejson_core_chunking_create_chunked_104(
+        str(target_dir),
+        version=version,
+        extensions=extensions,
+        exclude_dirs=exclude_dirs,
+        package_version=package_version,
+    )
+
+
+def core_chunk_hash_bytes(raw_bytes: bytes) -> str:
+    """Compute SHA-256 hex digest of raw bytes via Core's chunking engine."""
+    return _chunking.bejson_core_chunking_hash_file_bytes(raw_bytes)
+
+
+def core_chunk_bump_package_version(prior_doc: Optional[Dict[str, Any]]) -> str:
+    """Increment package version string via Core's chunking engine."""
+    return _chunking.bejson_core_chunking_bump_package_version(prior_doc)
+
+
+def core_atomic_write_json(path: Path | str, payload: Dict[str, Any]) -> bool:
+    """Write a JSON/BEJSON dictionary atomically via Core without schema validation."""
+    return bool(_core.bejson_core_atomic_write(str(path), payload))
+
+
+def core_load_json(path: Path | str) -> Optional[Dict[str, Any]]:
+    """Read a JSON/BEJSON dictionary via Core without schema validation."""
+    doc = _core.bejson_core_load_file(str(path))
+    return doc if isinstance(doc, dict) else None
+
+
+def core_write_text_file(path: Path | str, text: str) -> None:
+    """Atomically write a UTF-8 plain-text file via temporary sibling replacement."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp_target = target.with_suffix(target.suffix + ".tmp")
+    tmp_target.write_text(text, encoding="utf-8")
+    tmp_target.replace(target)
+
+
+def core_write_bytes_file(path: Path | str, raw_bytes: bytes) -> None:
+    """Write raw bytes to a file path."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(raw_bytes)
+

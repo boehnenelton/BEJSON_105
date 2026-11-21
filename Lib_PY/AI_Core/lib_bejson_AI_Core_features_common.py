@@ -3,14 +3,15 @@ Library:         lib_bejson_AI_Core_features_common.py
 Family:          AI_Core
 Module Purpose:  Tier 2 Shared Validation, XML/JSON Extraction, Token Estimation & BEJSON 105 Envelope Helpers
 Architecture:    BEJSON 105 Multi-AI Gateway (Tier 2: Model Features & Gates)
-Version:         2.0.0
+Version:         2.0.1
 Release_Version: 300
-Date:            2026-11-17
+Date:            2026-11-19
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   9e1baea6-69f4-4b2d-9c93-84f896e1524e
+RELATIONAL_ID:   074f10ad-55f8-4a50-9652-e72afd775adf
 
 Changelog:
+  2.0.1 (2026-11-19) -- Single default-model constant DEFAULT_TEXT_MODEL_ID (gemini-3.8-flash, registry-verified); merged newest Nov-18 agent-side changes.
   2.0.0 (2026-11-17) -- AI family renamed to AI_Core (was lib_bejson_ai_*). BEJSON read/write now via Core bridge where applicable.
 """
 from __future__ import annotations
@@ -33,11 +34,13 @@ from lib_bejson_AI_Core_errors import (  # noqa: E402
     ERR_AI_SCHEMA_MISMATCH,
 )
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 _LOGGER_INSTANCE = logging.getLogger("lib_bejson_AI_Core_features_common")
 
 _API_KEY_LEAK_RE = re.compile(r"AIza[0-9A-Za-z\-_]{20,}")
 MAX_PROVIDER_ERROR_TEXT_CHARS = 500
+# Single source for the default text model id. Must be a value in lib_bejson_AI_Core_models.ACTIVE_TEXT_MODELS_REGISTRY (enforced by test).
+DEFAULT_TEXT_MODEL_ID = "gemini-3.8-flash"
 
 
 def redact_provider_error_text(raw_error_text: str, max_chars: int = MAX_PROVIDER_ERROR_TEXT_CHARS) -> str:
@@ -112,7 +115,7 @@ _RESPONSE_FIELDS = (
 def build_bejson_105_ai_request(
     prompt: str,
     provider: str = "geminirest",
-    model: str = "gemini-3.1-flash-lite",
+    model: str = DEFAULT_TEXT_MODEL_ID,
     system_instruction: str = "",
     temperature: float = 0.7,
     max_tokens: int = 2048,

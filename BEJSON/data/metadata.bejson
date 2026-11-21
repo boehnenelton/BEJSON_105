@@ -38,7 +38,7 @@
       "ECOSYSTEM",
       "ALL",
       "CURRENT_VERSION",
-      "5.9.11",
+      "5.9.14",
       "Overall libraries_105 ecosystem version matching bejson_project.json."
     ],
     [
@@ -104,6 +104,38 @@
       "BEJSON_ACRONYM_DEFINITION",
       "BOEHNEN ELTON JSON",
       "BEJSON stands for BOEHNEN ELTON JSON. This is the sole authoritative definition; no other expansion of the acronym is valid. Confirmed by Elton Boehnen, 2026-07-21. Also stated verbatim in the header of all four Core language files (PY/JS/TS/SH)."
+    ],
+    [
+      "RULE",
+      "Taxonomies",
+      "PY",
+      "TAXONOMIES_DEPRECATED",
+      "true",
+      "Taxonomies family is deprecated; replaced by Standardized_Entities universal 14-field Format 105 schema."
+    ],
+    [
+      "RULE",
+      "Tax_Scaffolds",
+      "PY",
+      "TAX_SCAFFOLDS_DEPRECATED",
+      "true",
+      "Tax_Scaffolds family is deprecated; replaced by Standardized_Entities universal 14-field Format 105 schema."
+    ],
+    [
+      "VERSION",
+      "AI_Core",
+      "PY",
+      "CURRENT_VERSION",
+      "2.1.0",
+      "AI_Core family version (Release 301; validator 2.1.0, profiles 2.0.2; not frozen)."
+    ],
+    [
+      "VERSION",
+      "AI_Extensions",
+      "PY",
+      "CURRENT_VERSION",
+      "1.0.0",
+      "AI_Extensions family version (profile_runtime 1.0.2, profile_compiler 1.0.1, profile_abstraction 1.0.0)."
     ]
   ]
 }

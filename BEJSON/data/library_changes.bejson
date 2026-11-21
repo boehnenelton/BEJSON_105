@@ -1148,6 +1148,69 @@
       "Lib_PY/AI_Extensions",
       "2026-11-17",
       "1.0.0: New family for AI extension plugins, manifests, and profiles runtime/compiler/abstraction."
+    ],
+    [
+      "Standardized_Entities",
+      "PY",
+      "Lib_PY/Standardized_Entities",
+      "2026-11-20",
+      "1.0.0: New family for universal 14-field Format 105 entity schema, Core MFDB v1.40 writers, and read-only Validator."
+    ],
+    [
+      "Taxonomies",
+      "PY",
+      "Lib_PY/Taxonomies",
+      "2026-11-20",
+      "Deprecated: Formally deprecated and moved to historical reference; replaced by Standardized_Entities."
+    ],
+    [
+      "Tax_Scaffolds",
+      "PY",
+      "Lib_PY/Tax_Scaffolds",
+      "2026-11-20",
+      "Deprecated: Formally deprecated and moved to historical reference; replaced by Standardized_Entities."
+    ],
+    [
+      "AI_Core",
+      "PY",
+      "Lib_PY/AI_Core (family)",
+      "2026-11-17",
+      "Renamed Lib_PY/AI -> Lib_PY/AI_Core (lib_bejson_AI_Core_<module>.py); BEJSON I/O only through lib_bejson_AI_Core_core_bridge.py."
+    ],
+    [
+      "AI_Core",
+      "PY",
+      "Lib_PY/AI_Core/lib_bejson_AI_Core_validator.py",
+      "2026-11-17",
+      "2.1.0: family validator + freeze manifest; allow pragma (reason mandatory); checks every .py (non-lib_bejson files were skipped before)."
+    ],
+    [
+      "AI_Core",
+      "PY",
+      "Lib_PY/AI_Core/lib_bejson_AI_Core_plugin_*.py",
+      "2026-11-17",
+      "New plugin schema/base/registry: pre/post/render stages, plugins_enabled gate, SHA-pinned manifests, trusted-directory rule; errors 236-244."
+    ],
+    [
+      "AI_Core",
+      "PY",
+      "Lib_PY/AI_Core/lib_bejson_AI_Core_profiles.py",
+      "2026-11-20",
+      "2.0.2: 105 profiles; converter works on a deep copy (2.0.1); Mode forbidden, new defaults, affective-features switch (bumped now)."
+    ],
+    [
+      "AI_Extensions",
+      "PY",
+      "Lib_PY/AI_Extensions/lib_bejson_AI_Extensions_profile_*.py",
+      "2026-11-17",
+      "profile_runtime 1.0.2, profile_compiler 1.0.1 (affective-disabled handling, bumped 2026-11-20), profile_abstraction 1.0.0; 21 tests."
+    ],
+    [
+      "AI_Core",
+      "PY",
+      "Lib_PY/AI_Core docs",
+      "2026-11-20",
+      "README (verified quickstart), ARCHITECTURE, ARCHITECTURE_MAP, NEXT_STEP_PLAN, AGENTS refreshed for bridge, plugin stages, profiles, governance, range 200-249."
     ]
   ]
 }

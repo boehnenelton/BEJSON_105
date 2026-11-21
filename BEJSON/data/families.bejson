@@ -133,6 +133,13 @@
       "false",
       "Lib_PY/AI_Extensions",
       "AI Extension plugins, extension manifests, manifest tool, and profiles runtime, compiler, and abstraction."
+    ],
+    [
+      "Standardized_Entities",
+      "PY",
+      "false",
+      "Lib_PY/Standardized_Entities",
+      "Core + Validator for the universal 14-field Format 105 entity schema; replaces Taxonomies and Tax_Scaffolds."
     ]
   ]
 }

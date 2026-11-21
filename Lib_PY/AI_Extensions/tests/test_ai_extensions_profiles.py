@@ -2,12 +2,12 @@
 Library:         test_ai_extensions_profiles.py
 Family:          AI_Extensions
 Module Purpose:  Tests for profile_compiler (temper engine, payload invariants, 105 document entry), profile_abstraction (model class, instruction adaptation, output sanitizing, gated parser dispatch) and profile_runtime (static validation, approval gate, sandboxed run).
-Version:         1.0.0
+Version:         1.0.1
 Release_Version: 300
-Date:            2026-11-17
+Date:            2026-11-19
 Author:          Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
 Format_Creator:  Elton Boehnen
-RELATIONAL_ID:   48f072e8-20af-40f4-a836-072f9db94902
+RELATIONAL_ID:   aabbe5b1-d973-4f1e-b5cd-41e2f90d3951
 """
 from __future__ import annotations
 
@@ -42,7 +42,8 @@ class TemperTests(unittest.TestCase):
         self.assertEqual(d("clean tests", ["spaghetti"], ["clean"], 2), -5)
         self.assertEqual(d("neutral", ["x"], ["y"], 4), -6)  # passive decay: -(25/4) rounded
         self.assertEqual(d("SPAGHETTI", ["Spaghetti"], [], 1), 2)  # case-insensitive
-        self.assertEqual(d("x", None, None, None), -1)  # null cells tolerated, default stability 2 -> -1.25
+        self.assertEqual(d("x", [], [], None), -1)  # null stability tolerated, default stability 2 -> -1.25
+        self.assertEqual(d("x", None, None, None), 0)  # no trigger lists at all -> affective engine off, no decay
 
     def test_step_bounds(self):
         s = C.ProfileCompiler2.step_temper
@@ -79,7 +80,11 @@ class PayloadTests(unittest.TestCase):
         self.assertIn("100/100 [Critical Meltdown]", text)
 
     def test_null_numeric_cells_do_not_raise(self):
+        # All four affective cells null -> affective features are disabled (compiler 2.x behavior), no temper block, no raise.
         row = {"Name": "N", "Stability": None, "Starting_Temper": None, "Persona": None}
+        self.assertNotIn("Current Temper", C.ProfileCompiler2.compile_payload(row))
+        # A row that declares any affective cell keeps the block; null numeric cells inside it still coerce to defaults.
+        row = {"Name": "N", "Stability": None, "Starting_Temper": None, "Persona": None, "Irritations": []}
         self.assertIn("Current Temper: 0/100", C.ProfileCompiler2.compile_payload(row))
 
     def test_v1_profile_rejected(self):

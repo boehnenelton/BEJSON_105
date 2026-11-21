@@ -1,4 +1,4 @@
-# `Lib_PY/AI_Core` — BEJSON 105 Multi-AI Provider Gateway (`v2.0.0`)
+# `Lib_PY/AI_Core` — BEJSON 105 Multi-AI Provider Gateway (`v2.1.0`, Release 301)
 
 3-tier implementation of the `lib_bejson_AI_Core_*` architecture featuring **Gemini REST** (`geminirest`), **Gemini Interactions** (`geminiinteractions`), a persistent **Global AI Config** (`config/ai_global_config.105a.bejson`), a **Config-Gated Tooling Abstraction Layer** (`interactions_tools`), a **Plugin Subsystem** (`PluginRegistry`), a **Modular Parser Abstraction Layer** (`ParserRegistry`), and **BEJSON 105 Profiles** (`lib_bejson_AI_Core_profiles.py`). Extension plugins and runtimes are isolated in sibling family `Lib_PY/AI_Extensions`.
 
@@ -48,9 +48,64 @@
   - `lib_bejson_AI_Core_key_rotator.py` (`KeyRotator`)
   - `lib_bejson_AI_Core_jit_key_handler.py` (`JITKeyHandler`)
 
+## Release 301 (`v2.1.0`): geminirest carries tools
+
+Additive change so a caller that runs tools itself (for example Modern_Agent_Design) can use `geminirest`:
+
+- **Outbound:** `tool_declarations` (`name`, `description`, `parameters`) become Gemini `functionDeclarations`. Messages may carry `tool_calls` and `wire_parts` (echoed verbatim, thought signatures included). `role: "tool"` messages become `functionResponse` parts, and consecutive results share one user content. The generic Interactions-shaped `tools` key is never forwarded to `geminirest`.
+- **Inbound:** `functionCall` parts are returned as `tool_calls` (`id`, `name`, `arguments`) together with the candidate's parts as `wire_parts`. A malformed `functionCall` raises `ERR_AI_TRANSLATION_FAILED`. Text-only responses are unchanged (no new keys).
+- **`AIPostprocessor`:** a turn with `tool_calls` may have empty text.
+- **`AIDispatcher.dispatch` / `dispatch_async`:** new `tool_loop_enabled=True`. Pass `False` when the caller executes tools itself: AI_Core then neither injects tools nor runs its internal tool loop. Without this switch a `geminirest` response containing a call would be executed by an active tooling system.
+
 ## Remediation Log (`v2.0.0`)
 
 Renamed family from `AI` to `AI_Core` with zero-violation validator gate, Core bridge encapsulation, plugin architecture, and sibling `AI_Extensions` family. Rules for future changes: [AGENTS.md](./AGENTS.md).
+
+## Quickstart (run and verified 2026-11-20)
+
+```python
+import sys
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+LIB_PY = Path("libraries_105/Lib_PY")          # adjust to your libraries_105 location
+sys.path[:0] = [str(LIB_PY / "AI_Core"), str(LIB_PY / "AI_Extensions")]
+
+from lib_bejson_AI_Core_dispatcher import AI_Dispatcher
+from lib_bejson_AI_Core_extension_parser import ExtensionParserRegistry
+from lib_bejson_AI_Core_models import Gemini_3_1_Flash_Lite, Resolve_Model_Identifier
+from lib_bejson_AI_Core_parser_registry import ParserRegistry
+from lib_bejson_AI_Core_plugin_registry import PluginRegistry
+from lib_bejson_AI_Core_tooling_registry import AIGlobalConfigManager, ToolingRegistry
+import lib_bejson_AI_Core_profiles as profiles
+import lib_bejson_AI_Extensions_profile_compiler as compiler
+
+with TemporaryDirectory() as tmp:
+    config = AIGlobalConfigManager(Path(tmp) / "ai_global_config.105a.bejson")
+    tooling = ToolingRegistry(config_manager_instance=config)
+    dispatcher = AI_Dispatcher(
+        tooling_registry=tooling,
+        parser_registry=ParserRegistry(config_manager_instance=config),
+        extension_parser_registry=ExtensionParserRegistry(config_manager_instance=config),
+    )
+    plugins = PluginRegistry(config)
+    print("model:", Resolve_Model_Identifier(Gemini_3_1_Flash_Lite))
+    print("plugins:", plugins.discover_plugins())          # trusted AI_Extensions dir only
+    plugins.set_enabled(True)
+
+profile = profiles.ai_profiles_create("Ada", "Auditor", "Dry and exact.", "Be precise.", v2=True, Job="Auditor")
+print(compiler.compiler_compile_profile(profile).splitlines()[0])
+```
+
+Modules are imported flat (the family directory goes on `sys.path`); `AI_Core` is not a dotted package.
+
+## Profiles in one paragraph
+
+`ai_profiles_create(..., v2=True)` builds a 105 profile; `ai_profiles_validate` / `ai_profiles_problems` check it (the `Mode` column is forbidden); `ai_profiles_convert_104_to_105` / `ai_profiles_convert_file` convert 104 profiles **without touching the source** (never in place); `ai_profiles_save` / `ai_profiles_load` go through the bridge. `ai_profiles_set_affective_features_disabled(True)` nulls temper/irritation/pleasure fields globally. Compiling a Profile 2.0 row into a system instruction, adapting it for on-device models, and running embedded parsers are in `AI_Extensions`. Embedded code only runs after its SHA-256 fingerprint is on an approved list.
+
+## Rules that are enforced (validator `2.1.0`)
+
+Naming `lib_bejson_AI_Core_<module>.py`; header fields incl. `Release_Version`; `VERSION` matches header; no `print()`; no absolute paths; no API key in a URL; stdlib-only imports; Core only via the bridge; no raw `open(..., "w")` / `json.load` on BEJSON; logger present where exceptions are caught. A line may opt out with `# ai-core: allow <rule> -- <reason>` (reason mandatory; used once, in `profile_runtime`). The freeze manifest (`freeze_manifest_write/verify`) exists but **AI_Core is not frozen yet**.
 
 ## Extension Plugins Outside `AI_Extensions`
 
@@ -103,5 +158,6 @@ External scripts can also attach domain-specific AST or text parsers into the pr
 ## Running Tests
 
 ```bash
-python3 -m unittest discover -s Lib_PY/AI_Core/tests -v
+python3 -m unittest discover -s Lib_PY/AI_Core/tests -v        # 107 tests
+python3 -m unittest discover -s Lib_PY/AI_Extensions/tests -v  # 21 tests
 ```

@@ -2,16 +2,31 @@
 <html id="html-root" lang="en">
 <head id="head-root">
   <meta id="meta-charset" charset="UTF-8">
-  <meta id="meta-viewport" name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta id="meta-viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title id="doc-title">BEJSON 105 Metrics</title>
+  <!--
+  Name:           BEJSON 105 Metrics Showcase
+  Description:    High-density performance, compression, latency, and conformance dashboard
+                  with sidebar navigation, tight spacing, and solid border architecture.
+  Version:        2.0.0
+  Date Created:   2026-11-19
+  Author Credit:  Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton
+  License:        PolyForm Noncommercial License 1.0.0 (PolyForm-Noncommercial-1.0.0)
+  -->
   <style id="core-styles">
     :root {
       --bg-void: #000000;
-      --bg-panel: #111111;
-      --bg-elevated: #161618;
-      --bg-chip: #1F1F23;
+      --bg-panel: #0d0d10;
+      --bg-elevated: #141418;
+      --bg-chip: #1c1c22;
       --fg-main: #FFFFFF;
+      --fg-muted: #9999aa;
+      --fg-dim: #666677;
       --accent-red: #DE2626;
+      --accent-hover: #b91c1c;
+      --border-subtle: #1f1f26;
+      --sidebar-w: 240px;
+      --header-h: 46px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -20,500 +35,1379 @@
       overflow-x: hidden;
       background: var(--bg-void);
       color: var(--fg-main);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.4;
     }
+
+    /* Header: Simple, 3-element purpose-driven header */
     #app-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 56px;
-      padding: 0 16px;
+      height: var(--header-h);
+      padding: 0 10px;
       background: var(--bg-panel);
       border-bottom: 2px solid var(--accent-red);
+      position: sticky;
+      top: 0;
+      z-index: 128;
     }
     .header-icon-btn {
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       background: var(--bg-chip);
       color: var(--fg-main);
-      border: none;
-      font-size: 18px;
+      border: 1px solid transparent;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      border-radius: 0;
+      transition: background 0.15s ease;
+    }
+    .header-icon-btn:hover {
+      background: var(--accent-red);
+      border: 1px solid var(--accent-red);
     }
     #app-title {
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.04em;
       white-space: nowrap;
+      text-transform: uppercase;
     }
-    #overflow-dock-strip {
+
+    /* Layout Frame: Left Sidebar + Main Content */
+    #layout-container {
       display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      overflow-y: hidden;
-      gap: 10px;
-      padding: 10px 16px;
-      background: var(--bg-elevated);
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: var(--accent-red) var(--bg-panel);
+      flex-direction: row;
+      min-height: calc(100vh - var(--header-h));
+      width: 100%;
+      position: relative;
     }
-    .dock-chip {
-      flex: 0 0 auto;
-      padding: 6px 14px;
-      background: var(--bg-chip);
-      color: var(--fg-main);
+
+    /* Sidebar Navigation (Principle 2) */
+    #sidebar-nav {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      padding: 8px 6px;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    .sidebar-header-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--fg-dim);
+      padding: 4px 8px 6px 8px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 4px;
+    }
+
+    /* Solid Button Border Law: Exactly 4 valid border options:
+       1. Red/matching border
+       2. Transparent border
+       3. No border
+       4. Same color as background layer behind it
+       Strict Negative Constraint: NEVER contrasting white hollow borders */
+    .dock-chip, .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 7px 10px;
+      background: transparent;
+      color: var(--fg-muted);
       text-decoration: none;
       font-size: 12px;
       font-weight: 600;
+      font-family: inherit;
       white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      border: 1px solid transparent; /* Option 2: Transparent */
+      border-radius: 0;
+      cursor: pointer;
+      user-select: none;
+      text-align: left;
+      transition: background 0.12s ease, color 0.12s ease;
     }
-    .dock-chip:hover { background: var(--accent-red); }
+    .dock-chip:hover, .sidebar-nav-item:hover {
+      background: var(--bg-elevated);
+      color: var(--fg-main);
+      border: 1px solid var(--border-subtle); /* Option 4: Background tone */
+    }
+    .dock-chip.active, .sidebar-nav-item.active {
+      background: var(--accent-red);
+      color: #FFFFFF;
+      border: 1px solid var(--accent-red); /* Option 1: Red matching border (NO WHITE BORDER) */
+      font-weight: 700;
+    }
+    .nav-num-badge {
+      font-size: 10px;
+      padding: 1px 5px;
+      background: var(--bg-chip);
+      color: var(--fg-muted);
+      font-weight: 700;
+    }
+    .dock-chip.active .nav-num-badge {
+      background: #7f1414;
+      color: #FFFFFF;
+    }
+
+    /* Mobile Drawer Scrim */
+    #sidebar-scrim {
+      display: none;
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 127;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    /* Main Content Area: Tight Spacing, Sleek High-Density Layout */
+    /* Main Content Area: Tight Spacing, Sleek High-Density Layout */
     #main-content {
+      flex: 1;
+      min-width: 0;
+      max-width: 100%;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-x: hidden;
+    }
+
+    /* Disciplined Space Utilization: One Section Visible at a time */
+    .metric-section {
+      display: none;
       width: 100%;
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 18px 14px;
-      display: flex;
+      max-width: 100%;
+      min-width: 0;
       flex-direction: column;
-      gap: 20px;
+      gap: 8px;
+      overflow-x: hidden;
     }
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .kpi-card {
-      background: var(--bg-panel);
-      padding: 14px;
+    .metric-section.active {
       display: flex;
-      flex-direction: column;
+    }
+
+    /* Meta Bar: Compact and informative */
+    .test-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
       gap: 6px;
-      border-left: 4px solid var(--accent-red);
-    }
-    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-    .kpi-value-accent { font-size: 16px; line-height: 1.35; color: var(--accent-red); }
-    .kpi-value-main { font-size: 16px; line-height: 1.35; color: var(--fg-main); }
-    .kpi-detail { font-size: 11px; line-height: 1.4; background: var(--bg-elevated); padding: 4px 8px; }
-    .metric-panel {
-      width: 100%;
+      padding: 6px 10px;
       background: var(--bg-panel);
-      padding: 16px;
+      border-left: 3px solid var(--accent-red);
+      font-size: 11px;
+      max-width: 100%;
+      min-width: 0;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+    .test-name-tag {
+      font-weight: 700;
+      color: var(--fg-main);
+      font-size: 12px;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+    .test-file-badge {
+      color: #FFFFFF;
+      background: var(--bg-elevated);
+      padding: 3px 8px;
+      border: 1px solid var(--border-subtle);
+      font-size: 11px;
+      word-break: break-all;
+    }
+
+    /* Compact Metric Panel */
+    .metric-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
+      max-width: 100%;
+      min-width: 0;
+      overflow-x: hidden;
     }
     .panel-header {
       display: flex;
       flex-wrap: wrap;
       align-items: baseline;
       justify-content: space-between;
+      gap: 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 6px;
+    }
+    .panel-header h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg-main);
+      letter-spacing: 0.02em;
+    }
+    .panel-subtitle {
+      font-size: 11px;
+      color: var(--fg-muted);
+    }
+
+    /* KPI Grid: High-Density Solid Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 8px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--accent-red);
     }
-    .panel-header h2 { font-size: 15px; color: var(--fg-main); }
-    .panel-subtitle { font-size: 11px; background: var(--bg-chip); padding: 3px 8px; }
-    .graph-scroll-viewport {
-      width: 100%;
-      max-width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
+    .kpi-card {
       background: var(--bg-elevated);
-      padding: 10px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: var(--accent-red) var(--bg-void);
-    }
-    .graph-intrinsic-stage {
-      width: 100%;
-      min-width: 100%;
-      display: block;
-    }
-    .graph-intrinsic-stage canvas,
-    .graph-intrinsic-stage svg {
-      width: 100%;
-      height: auto;
-      display: block;
-      background: var(--bg-void);
-    }
-    .metric-narrative-summary {
-      background: var(--bg-elevated);
-      padding: 12px 14px;
+      border: 1px solid var(--border-subtle);
       border-left: 3px solid var(--accent-red);
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
+    }
+    .kpi-label {
+      font-size: 11px;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+    .kpi-value-accent {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--accent-red);
+      letter-spacing: 0.02em;
+    }
+    .kpi-detail {
+      font-size: 11px;
+      color: var(--fg-dim);
+      line-height: 1.3;
+    }
+
+    /* Narrative Summaries */
+    .metric-narrative-summary {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
     .summary-heading {
       font-size: 11px;
       font-weight: 700;
+      color: var(--fg-main);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--accent-red);
+      letter-spacing: 0.04em;
     }
     .summary-list {
-      list-style: none;
+      list-style-type: none;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      font-size: 12px;
-      line-height: 1.45;
-      color: var(--fg-main);
+      gap: 4px;
+      padding-left: 0;
+    }
+    .summary-bullet {
+      font-size: 11px;
+      color: var(--fg-muted);
+      line-height: 1.4;
+      padding-left: 12px;
+      position: relative;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
     .summary-bullet::before {
-      content: "▸ ";
+      content: "▪";
+      position: absolute;
+      left: 0;
       color: var(--accent-red);
-      font-weight: bold;
+      font-size: 10px;
     }
-    .metrics-table {
+
+    /* Table Container: Zero Page Stretching */
+    .table-container {
       width: 100%;
-      min-width: 620px;
-      border-collapse: collapse;
-      background: var(--bg-void);
-      font-size: 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border-subtle);
     }
-    .metrics-table th, .metrics-table td {
-      padding: 8px 12px;
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
       text-align: left;
+    }
+    table.data-table th, table.data-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-subtle);
       white-space: nowrap;
     }
-    .metrics-table thead tr { background: var(--bg-chip); border-bottom: 2px solid var(--accent-red); }
-    .metrics-table tbody tr:nth-child(even) { background: var(--bg-panel); }
-    .metrics-table tbody tr:nth-child(odd) { background: var(--bg-elevated); }
-    .num-cell { text-align: right; white-space: nowrap; }
+    table.data-table th {
+      background: var(--bg-elevated);
+      color: var(--fg-main);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+    }
+    table.data-table tr:hover td {
+      background: var(--bg-elevated);
+    }
+    .num-cell {
+      text-align: right;
+      font-family: inherit;
+    }
     .status-badge {
       display: inline-block;
-      padding: 2px 8px;
+      padding: 2px 6px;
+      font-size: 10px;
       font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .badge-pass {
+      background: #103318;
+      color: #34d399;
+      border-color: #103318;
+    }
+    .metric-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      border-radius: 0;
+    }
+    .badge-accent {
+      background: #2a0808;
+      color: #f87171;
+      border-color: #3b0f0f;
+    }
+    .badge-speedup {
+      background: #082414;
+      color: #4ade80;
+      border-color: #0f3d22;
+    }
+
+    /* Canvas / SVG Graph Stage */
+    .graph-scroll-viewport {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      background: #000000;
+      border: 1px solid var(--border-subtle);
+    }
+    .graph-intrinsic-stage {
+      min-width: 600px;
+      width: 100%;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+    }
+
+    /* Traversal Toolbar: Seamless Solid Buttons */
+    .traversal-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 10px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+    }
+    .traversal-btn {
+      padding: 6px 14px;
+      background: var(--bg-chip);
+      color: var(--fg-main);
+      border: 1px solid transparent; /* Option 2: Transparent border */
+      border-radius: 0;
       font-size: 11px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+      transition: background 0.12s ease;
+    }
+    .traversal-btn:hover:not(:disabled) {
+      background: var(--accent-red);
+      border: 1px solid var(--accent-red); /* Option 1: Red border matching fill */
+    }
+    .traversal-btn:disabled {
+      background: #111114;
+      color: var(--fg-dim);
+      border: 1px solid transparent;
+      cursor: not-allowed;
+    }
+    .traversal-counter {
+      font-size: 11px;
+      color: var(--fg-muted);
+      font-weight: 600;
       white-space: nowrap;
     }
-    .badge-pass { background: var(--accent-red); color: var(--fg-main); }
-    .badge-fail { background: var(--fg-main); color: var(--bg-void); }
+
+    /* Footer: Tight, compliant */
     #app-footer {
-      margin-top: 12px;
-      padding: 16px;
+      padding: 8px 10px;
       background: var(--bg-panel);
+      border-top: 1px solid var(--border-subtle);
       font-size: 11px;
       text-align: center;
+      color: var(--fg-muted);
+    }
+
+    /* Responsive Breakpoints: Drawer on Mobile */
+    @media (max-width: 768px) {
+      #sidebar-nav {
+        position: fixed;
+        top: var(--header-h);
+        bottom: 0;
+        left: -250px;
+        width: var(--sidebar-w);
+        z-index: 128;
+        transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        border-right: 2px solid var(--accent-red);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.8);
+      }
+      #sidebar-nav.drawer-open {
+        left: 0;
+      }
+      #sidebar-scrim.drawer-open {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #main-content {
+        padding: 8px 8px;
+        gap: 8px;
+      }
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body id="body-root">
   <header id="app-header">
-    <button id="nav-hamburger-btn" class="header-icon-btn" type="button" aria-label="Menu">&#9776;</button>
+    <button id="nav-hamburger-btn" class="header-icon-btn" type="button" aria-label="Menu" title="Toggle Navigation Sidebar">&#9776;</button>
     <h1 id="app-title">BEJSON 105 Metrics</h1>
     <button id="nav-settings-btn" class="header-icon-btn" type="button" aria-label="Settings">&#9881;</button>
   </header>
-  <nav id="overflow-dock-strip" aria-label="Section Navigation">
-    <a id="dock-link-kpi-summary" class="dock-chip" href="#section-kpi-summary">KPI Summary</a>
-    <a id="dock-link-ops-throughput" class="dock-chip" href="#panel-ops-throughput">Point Lookup &amp; Cell Throughput</a>
-    <a id="dock-link-token-savings" class="dock-chip" href="#panel-token-savings">LLM Token &amp; Storage Compression</a>
-    <a id="dock-link-bulk-ingestion" class="dock-chip" href="#panel-bulk-ingestion">High-Scale Bulk Ingestion</a>
-    <a id="dock-link-memory-gate" class="dock-chip" href="#panel-memory-gate">Memory &amp; Integrity Gate</a>
-    <a id="dock-link-test-latency" class="dock-chip" href="#panel-test-latency">Test Execution Latency</a>
-    <a id="dock-link-test-matrix" class="dock-chip" href="#panel-test-matrix">Test Matrix</a>
-  </nav>
-  <main id="main-content">
-    <section id="section-kpi-summary" class="kpi-grid">
-      <article id="kpi-card-peak-lookup" class="kpi-card">
-        <span id="kpi-label-peak-lookup" class="kpi-label">BEJSON 105 Wide-Matrix Access</span>
-        <strong id="kpi-value-peak-lookup" class="kpi-value-accent">BEJSON 105: 24.40 M ops/s</strong>
-        <span id="kpi-detail-peak-lookup" class="kpi-detail">BEJSON 105 read 96,000 cells (64 cols × 1,500 rows) at 24.40M ops/s</span>
-      </article>
-      <article id="kpi-card-sqlite-speedup" class="kpi-card">
-        <span id="kpi-label-sqlite-speedup" class="kpi-label">BEJSON 105 vs SQLite Queries</span>
-        <strong id="kpi-value-sqlite-speedup" class="kpi-value-main">BEJSON 105 was 80.41x faster than SQLite</strong>
-        <span id="kpi-detail-sqlite-speedup" class="kpi-detail">BEJSON 105: 3.42M ops/s vs SQLite (disk): 42.5k ops/s (8.24x faster vs :memory:)</span>
-      </article>
-      <article id="kpi-card-token-savings" class="kpi-card">
-        <span id="kpi-label-token-savings" class="kpi-label">BEJSON 105 vs Standard JSON Tokens</span>
-        <strong id="kpi-value-token-savings" class="kpi-value-accent">BEJSON 105 used 68.52% fewer tokens than JSON</strong>
-        <span id="kpi-detail-token-savings" class="kpi-detail">BEJSON 105: 226.9k tokens vs Standard JSON: 720.7k tokens (5,000 rows)</span>
-      </article>
-      <article id="kpi-card-bulk-ingest" class="kpi-card">
-        <span id="kpi-label-bulk-ingest" class="kpi-label">BEJSON 105 Bulk Write Speed</span>
-        <strong id="kpi-value-bulk-ingest" class="kpi-value-main">BEJSON 105 wrote 68.25k rows/sec</strong>
-        <span id="kpi-detail-bulk-ingest" class="kpi-detail">BEJSON 105 wrote 15,000 UUID records in 220 ms + verified in 130 ms</span>
-      </article>
-      <article id="kpi-card-suite-status" class="kpi-card">
-        <span id="kpi-label-suite-status" class="kpi-label">BEJSON 105 &amp; MFDB Test Suite</span>
-        <strong id="kpi-value-suite-status" class="kpi-value-accent">BEJSON 105 passed 10/10 tests</strong>
-        <span id="kpi-detail-suite-status" class="kpi-detail">All 10 BEJSON 105 and MFDB v1.40 test cases passed validation</span>
-      </article>
-    </section>
-    <section id="panel-ops-throughput" class="metric-panel">
-      <div id="panel-header-ops-throughput" class="panel-header">
-        <h2 id="panel-title-ops-throughput">Point Lookup &amp; Cell Throughput</h2>
-        <span id="panel-subtitle-ops-throughput" class="panel-subtitle">Canvas Render · Stacked Bar Layout</span>
-      </div>
-      <div id="scroll-wrap-ops-throughput" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="Point Lookup &amp; Cell Throughput">
-        <div id="stage-ops-throughput" class="graph-intrinsic-stage">
-          <canvas id="canvas-ops-throughput" height="532"></canvas>
+
+  <!-- Mobile Drawer Scrim -->
+  <div id="sidebar-scrim"></div>
+
+  <div id="layout-container">
+    <!-- Principle 2: Sidebar Navigation Tree -->
+    <nav id="sidebar-nav" aria-label="Metrics Showcase Navigation">
+      <div class="sidebar-header-label">Showcase Suites</div>
+      <button id="dock-link-kpi-summary" class="dock-chip sidebar-nav-item active" type="button" data-target="section-kpi-summary">
+        <span class="nav-num-badge">1</span>
+        <span>KPI Summary</span>
+      </button>
+      <button id="dock-link-ops-throughput" class="dock-chip sidebar-nav-item" type="button" data-target="panel-ops-throughput">
+        <span class="nav-num-badge">2</span>
+        <span>Point Lookup &amp; Ops</span>
+      </button>
+      <button id="dock-link-token-savings" class="dock-chip sidebar-nav-item" type="button" data-target="panel-token-savings">
+        <span class="nav-num-badge">3</span>
+        <span>LLM Token Compression</span>
+      </button>
+      <button id="dock-link-bulk-ingestion" class="dock-chip sidebar-nav-item" type="button" data-target="panel-bulk-ingestion">
+        <span class="nav-num-badge">4</span>
+        <span>Bulk Ingestion</span>
+      </button>
+      <button id="dock-link-memory-gate" class="dock-chip sidebar-nav-item" type="button" data-target="panel-memory-gate">
+        <span class="nav-num-badge">5</span>
+        <span>Memory &amp; Verify Gate</span>
+      </button>
+      <button id="dock-link-test-latency" class="dock-chip sidebar-nav-item" type="button" data-target="panel-test-latency">
+        <span class="nav-num-badge">6</span>
+        <span>Execution Latency</span>
+      </button>
+      <button id="dock-link-test-matrix" class="dock-chip sidebar-nav-item" type="button" data-target="panel-test-matrix">
+        <span class="nav-num-badge">7</span>
+        <span>Test Matrix</span>
+      </button>
+    </nav>
+
+    <main id="main-content">
+      <!-- SECTION 1: KPI SUMMARY -->
+      <section id="section-kpi-summary" class="metric-section active">
+        <div class="test-meta-bar">
+          <span class="test-name-tag">Suite: BEJSON 105 Performance &amp; Conformance Overview</span>
+          <span class="test-file-badge">File: dev/metrics/results.md</span>
         </div>
-      </div>
-      <div id="summary-box-ops-throughput" class="metric-narrative-summary">
-        <span id="summary-heading-ops-throughput" class="summary-heading">Data Summary</span>
-        <ul id="summary-list-ops-throughput" class="summary-list">
-          <li id="summary-item-ops-throughput-0" class="summary-bullet">BEJSON 105 O(1) Field-Map point queries executed 3,417,769 ops/sec (0.29 µs/query) while SQLite disk B-tree queries executed 42,504 ops/sec (23.53 µs/query) — BEJSON 105 was 80.41x faster than SQLite on disk.</li>
-          <li id="summary-item-ops-throughput-1" class="summary-bullet">In the 500,000-query stress benchmark against in-memory SQLite (:memory:), BEJSON 105 completed 500,000 lookups at 1.75 M ops/sec (~285 ms) vs SQLite at 0.21 M ops/sec (~2,380 ms) — 8.24x faster than in-memory SQLite.</li>
-          <li id="summary-item-ops-throughput-2" class="summary-bullet">Across the 64-column × 1,500-row wide matrix (96,000 cells), O(1) Field-Map access sustained 24.70 M cell lookups/sec with 0% positional degradation between column 0 and column 63.</li>
-        </ul>
-      </div>
-    </section>
-    <section id="panel-token-savings" class="metric-panel">
-      <div id="panel-header-token-savings" class="panel-header">
-        <h2 id="panel-title-token-savings">LLM Token &amp; Storage Compression</h2>
-        <span id="panel-subtitle-token-savings" class="panel-subtitle">SVG Vector Render · Lower is Better</span>
-      </div>
-      <div id="scroll-wrap-token-savings" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="LLM Token &amp; Storage Compression">
-        <div id="stage-token-savings" class="graph-intrinsic-stage">
-          <svg id="svg-token-savings" xmlns="http://www.w3.org/2000/svg" width="100%" height="424" viewBox="0 0 680 424">
-  <rect id="svg-token-savings-bg" width="680" height="424" fill="#000000"/>
-  <text id="svg-token-savings-title" x="18" y="34" fill="#FFFFFF" font-family="monospace" font-size="16" font-weight="bold">BEJSON 105 vs Standard JSON: LLM Token Count (k tokens)</text>
-  <line id="svg-token-savings-divider" x1="18" y1="46" x2="662" y2="46" stroke="#DE2626" stroke-width="2"/>
-  <g id="svg-token-savings-row-0"><text id="svg-token-savings-row-0-label" x="18" y="68" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 (test_series_1)</text><rect id="svg-token-savings-row-0-track" x="18" y="76" width="499" height="18" fill="#161618"/><rect id="svg-token-savings-row-0-bar" x="18" y="76" width="108" height="18" fill="#DE2626"/><text id="svg-token-savings-row-0-value" x="527" y="90" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">186.29 k tokens</text></g>
-  <g id="svg-token-savings-row-1"><text id="svg-token-savings-row-1-label" x="18" y="124" fill="#FFFFFF" font-family="monospace" font-size="13">Standard JSON (test_series_1)</text><rect id="svg-token-savings-row-1-track" x="18" y="132" width="499" height="18" fill="#161618"/><rect id="svg-token-savings-row-1-bar" x="18" y="132" width="339" height="18" fill="#FFFFFF"/><text id="svg-token-savings-row-1-value" x="527" y="146" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">581.77 k tokens</text></g>
-  <g id="svg-token-savings-row-2"><text id="svg-token-savings-row-2-label" x="18" y="180" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 (test_series_2)</text><rect id="svg-token-savings-row-2-track" x="18" y="188" width="499" height="18" fill="#161618"/><rect id="svg-token-savings-row-2-bar" x="18" y="188" width="132" height="18" fill="#DE2626"/><text id="svg-token-savings-row-2-value" x="527" y="202" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">226.88 k tokens</text></g>
-  <g id="svg-token-savings-row-3"><text id="svg-token-savings-row-3-label" x="18" y="236" fill="#FFFFFF" font-family="monospace" font-size="13">Standard JSON (test_series_2)</text><rect id="svg-token-savings-row-3-track" x="18" y="244" width="499" height="18" fill="#161618"/><rect id="svg-token-savings-row-3-bar" x="18" y="244" width="420" height="18" fill="#FFFFFF"/><text id="svg-token-savings-row-3-value" x="527" y="258" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">720.73 k tokens</text></g>
-  <g id="svg-token-savings-row-4"><text id="svg-token-savings-row-4-label" x="18" y="292" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 (json_compare_10k)</text><rect id="svg-token-savings-row-4-track" x="18" y="300" width="499" height="18" fill="#161618"/><rect id="svg-token-savings-row-4-bar" x="18" y="300" width="168" height="18" fill="#DE2626"/><text id="svg-token-savings-row-4-value" x="527" y="314" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">287.89 k tokens</text></g>
-  <g id="svg-token-savings-row-5"><text id="svg-token-savings-row-5-label" x="18" y="348" fill="#FFFFFF" font-family="monospace" font-size="13">Standard JSON (json_compare_10k)</text><rect id="svg-token-savings-row-5-track" x="18" y="356" width="499" height="18" fill="#161618"/><rect id="svg-token-savings-row-5-bar" x="18" y="356" width="499" height="18" fill="#FFFFFF"/><text id="svg-token-savings-row-5-value" x="527" y="370" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">854.72 k tokens</text></g>
-</svg>
+        <div class="kpi-grid">
+          <article id="kpi-card-peak-lookup" class="kpi-card">
+            <span id="kpi-label-peak-lookup" class="kpi-label">BEJSON 105 Wide-Matrix Access</span>
+            <strong id="kpi-value-peak-lookup" class="kpi-value-accent">BEJSON 105: 24.40 M ops/s</strong>
+            <span id="kpi-detail-peak-lookup" class="kpi-detail">BEJSON 105 read 96,000 cells (64 cols × 1,500 rows) at 24.40M ops/s</span>
+          </article>
+          <article id="kpi-card-speedup-sqlite" class="kpi-card">
+            <span id="kpi-label-speedup-sqlite" class="kpi-label">Field-Map O(1) vs SQLite</span>
+            <strong id="kpi-value-speedup-sqlite" class="kpi-value-accent">80.41x vs Disk · 8.24x vs Mem</strong>
+            <span id="kpi-detail-speedup-sqlite" class="kpi-detail">3.42M ops/s BEJSON vs 42.5k ops/s SQLite disk; 1.76M vs 215k on memory</span>
+          </article>
+          <article id="kpi-card-token-compression" class="kpi-card">
+            <span id="kpi-label-token-compression" class="kpi-label">LLM Context Window Compression</span>
+            <strong id="kpi-value-token-compression" class="kpi-value-accent">66.3% – 68.0% Fewer Tokens</strong>
+            <span id="kpi-detail-token-compression" class="kpi-detail">BEJSON 105 uses 186.3k tokens vs standard JSON 581.8k tokens (cl100k_base)</span>
+          </article>
+          <article id="kpi-card-storage-savings" class="kpi-card">
+            <span id="kpi-label-storage-savings" class="kpi-label">Disk Storage Footprint</span>
+            <strong id="kpi-value-storage-savings" class="kpi-value-accent">55.9% – 66.8% Storage Savings</strong>
+            <span id="kpi-detail-storage-savings" class="kpi-detail">10,000 records: BEJSON 105 1.10 MB vs standard JSON 3.32 MB</span>
+          </article>
+          <article id="kpi-card-bulk-ingestion" class="kpi-card">
+            <span id="kpi-label-bulk-ingestion" class="kpi-label">Peak Ingestion Throughput</span>
+            <strong id="kpi-value-bulk-ingestion" class="kpi-value-accent">68,677 records/sec</strong>
+            <span id="kpi-detail-bulk-ingestion" class="kpi-detail">15,000 records ingested &amp; verified atomically in 218 ms</span>
+          </article>
+          <article id="kpi-card-memory-efficiency" class="kpi-card">
+            <span id="kpi-label-memory-efficiency" class="kpi-label">Process Memory Footprint</span>
+            <strong id="kpi-value-memory-efficiency" class="kpi-value-accent">26.01 MB – 35.85 MB Peak RSS</strong>
+            <span id="kpi-detail-memory-efficiency" class="kpi-detail">60,000 records in memory required only 35.85 MB RAM total</span>
+          </article>
+          <article id="kpi-card-verification-latency" class="kpi-card">
+            <span id="kpi-label-verification-latency" class="kpi-label">Full Integrity &amp; UUID Verification</span>
+            <strong id="kpi-value-verification-latency" class="kpi-value-accent">115,866 rows/sec verified</strong>
+            <span id="kpi-detail-verification-latency" class="kpi-detail">15,000 records fully schema- and UUID-verified in 129.46 ms</span>
+          </article>
+          <article id="kpi-card-test-matrix" class="kpi-card">
+            <span id="kpi-label-test-matrix" class="kpi-label">Automated Conformance Suites</span>
+            <strong id="kpi-value-test-matrix" class="kpi-value-accent">10/10 Tests Passing (100%)</strong>
+            <span id="kpi-detail-test-matrix" class="kpi-detail">Total run duration: 1,582.9 ms across 3 standardized suites</span>
+          </article>
         </div>
-      </div>
-      <div id="summary-box-token-savings" class="metric-narrative-summary">
-        <span id="summary-heading-token-savings" class="summary-heading">Data Summary</span>
-        <ul id="summary-list-token-savings" class="summary-list">
-          <li id="summary-item-token-savings-0" class="summary-bullet">On 10,000 8-field records (json_compare_10k), BEJSON 105a used 287,886 tokens (1.15 MB) while Standard JSON used 854,722 tokens (3.42 MB) — 566,836 fewer tokens (-66.32% reduction) for identical records.</li>
-          <li id="summary-item-token-savings-1" class="summary-bullet">On the 5,000-row SQL comparison dataset (test_series_2), BEJSON 105 used 226,878 tokens (873 KB) vs 720,726 tokens (2.77 MB) for SQL-JSON — 493,847 fewer tokens (-68.52% reduction).</li>
-          <li id="summary-item-token-savings-2" class="summary-bullet">Across 254 federated entities (test_series_1), BEJSON 105 used 186,292 tokens (717 KB) vs 581,766 tokens (2.24 MB) for Standard JSON — 395,474 fewer tokens (-67.98% reduction).</li>
-        </ul>
-      </div>
-    </section>
-    <section id="panel-bulk-ingestion" class="metric-panel">
-      <div id="panel-header-bulk-ingestion" class="panel-header">
-        <h2 id="panel-title-bulk-ingestion">High-Scale Bulk Ingestion</h2>
-        <span id="panel-subtitle-bulk-ingestion" class="panel-subtitle">Canvas Render · 15k to 60k Records</span>
-      </div>
-      <div id="scroll-wrap-bulk-ingestion" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="High-Scale Bulk Ingestion">
-        <div id="stage-bulk-ingestion" class="graph-intrinsic-stage">
-          <canvas id="canvas-bulk-ingestion" height="252"></canvas>
+        <!-- CONSOLIDATED TEST CALL METRICS SUMMARY -->
+        <div class="metric-panel" id="panel-all-test-metrics-summary">
+          <div class="panel-header">
+            <h2>Test Call Summary Metrics (All 10 Calls)</h2>
+            <span class="panel-subtitle">Consolidated Benchmark Matrix · 10/10 PASS</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="table-consolidated-test-summary">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Test Call</th>
+                  <th>Suite</th>
+                  <th>Primary Metric</th>
+                  <th>Speedup / Savings</th>
+                  <th class="num-cell">Latency</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td><strong>test_live_metrics_ledger_persisted_and_valid</strong></td>
+                  <td>TestMetricsFamily</td>
+                  <td>13 metrics registered &amp; valid</td>
+                  <td><span class="metric-badge badge-accent">100% Schema Valid</span></td>
+                  <td class="num-cell">286.83 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><strong>test_negative_metric_rejected</strong></td>
+                  <td>TestMetricsFamily</td>
+                  <td>Negative validation boundary caught</td>
+                  <td><span class="metric-badge badge-accent">Zero Drift Leaks</span></td>
+                  <td class="num-cell">45.08 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><strong>test_round_trip_collect_and_render</strong></td>
+                  <td>TestMetricsFamily</td>
+                  <td>End-to-end pipeline collect &amp; render</td>
+                  <td><span class="metric-badge badge-accent">100% Roundtrip</span></td>
+                  <td class="num-cell">44.84 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td><strong>test_schema_creation_and_validation</strong></td>
+                  <td>TestMetricsFamily</td>
+                  <td>Sub-millisecond 105 schema verification</td>
+                  <td><span class="metric-badge badge-speedup">Fastest (&lt;1ms)</span></td>
+                  <td class="num-cell">0.89 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td><strong>test_bejson_105_atomic_write_and_o1_lookup</strong></td>
+                  <td>TestStandardizedBEJSONAndMFDB</td>
+                  <td>3,417,769 ops/sec (0.29 µs/query)</td>
+                  <td><span class="metric-badge badge-speedup">80.41x vs SQLite</span></td>
+                  <td class="num-cell">12.75 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td><strong>test_mfdb_v140_manifest_and_fk_integrity</strong></td>
+                  <td>TestStandardizedBEJSONAndMFDB</td>
+                  <td>100% FK cascade integrity verified</td>
+                  <td><span class="metric-badge badge-accent">Zero Orphan Keys</span></td>
+                  <td class="num-cell">31.13 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><strong>test_01_high_volume_bulk_transaction_stress_15k_rows</strong></td>
+                  <td>TestBEJSONStressAndComparisons</td>
+                  <td>68,677 records/sec write throughput</td>
+                  <td><span class="metric-badge badge-speedup">15,000 recs in 218ms</span></td>
+                  <td class="num-cell">351.45 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td><strong>test_02_bejson_vs_json_token_and_storage_compression_10k_rows</strong></td>
+                  <td>TestBEJSONStressAndComparisons</td>
+                  <td>287.89k tokens vs 854.72k JSON (-66.3%)</td>
+                  <td><span class="metric-badge badge-speedup">566,836 Tokens Saved</span></td>
+                  <td class="num-cell">243.56 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td><strong>test_03_bejson_o1_field_map_vs_sqlite_point_queries_500k</strong></td>
+                  <td>TestBEJSONStressAndComparisons</td>
+                  <td>1.76M ops/sec vs 0.22M SQLite (:memory:)</td>
+                  <td><span class="metric-badge badge-speedup">8.24x vs In-Memory</span></td>
+                  <td class="num-cell">397.25 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td><strong>test_04_wide_table_64_columns_invariance_stress</strong></td>
+                  <td>TestBEJSONStressAndComparisons</td>
+                  <td>24.65M cell lookups/sec (96,000 cells)</td>
+                  <td><span class="metric-badge badge-speedup">0% Positional Drop</span></td>
+                  <td class="num-cell">169.15 ms</td>
+                  <td><span class="status-badge badge-pass">PASS</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-      <div id="summary-box-bulk-ingestion" class="metric-narrative-summary">
-        <span id="summary-heading-bulk-ingestion" class="summary-heading">Data Summary</span>
-        <ul id="summary-list-bulk-ingestion" class="summary-list">
-          <li id="summary-item-bulk-ingestion-0" class="summary-bullet">In stress_15k, BEJSON 105 wrote 15,000 UUID-stamped records in 220 ms (68.25k records/sec) using a single atomic transaction.</li>
-          <li id="summary-item-bulk-ingestion-1" class="summary-bullet">In test_series_3, BEJSON 105 wrote 25,000 records across 5 entities (4.0 MB) in 469 ms (53.27k records/sec), and 60,000 records across 3 entities (13.1 MB) in 1,259 ms (47.65k records/sec) — retaining 89% write speed when scaling volume by 2.4x.</li>
-        </ul>
-      </div>
-    </section>
-    <section id="panel-memory-gate" class="metric-panel">
-      <div id="panel-header-memory-gate" class="panel-header">
-        <h2 id="panel-title-memory-gate">Memory &amp; Integrity Gate</h2>
-        <span id="panel-subtitle-memory-gate" class="panel-subtitle">SVG Vector Render</span>
-      </div>
-      <div id="scroll-wrap-memory-gate" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="Memory &amp; Integrity Gate">
-        <div id="stage-memory-gate" class="graph-intrinsic-stage">
-          <svg id="svg-memory-gate" xmlns="http://www.w3.org/2000/svg" width="100%" height="536" viewBox="0 0 680 536">
-  <rect id="svg-memory-gate-bg" width="680" height="536" fill="#000000"/>
-  <text id="svg-memory-gate-title" x="18" y="34" fill="#FFFFFF" font-family="monospace" font-size="16" font-weight="bold">BEJSON 105 Peak Memory (MB) &amp; 15k Verify Gate (ms)</text>
-  <line id="svg-memory-gate-divider" x1="18" y1="46" x2="662" y2="46" stroke="#DE2626" stroke-width="2"/>
-  <g id="svg-memory-gate-row-0"><text id="svg-memory-gate-row-0-label" x="18" y="68" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 Peak RSS (test_series_1)</text><rect id="svg-memory-gate-row-0-track" x="18" y="76" width="499" height="18" fill="#161618"/><rect id="svg-memory-gate-row-0-bar" x="18" y="76" width="100" height="18" fill="#DE2626"/><text id="svg-memory-gate-row-0-value" x="527" y="90" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">26.01 MB</text></g>
-  <g id="svg-memory-gate-row-1"><text id="svg-memory-gate-row-1-label" x="18" y="124" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 Peak RSS (test_series_2)</text><rect id="svg-memory-gate-row-1-track" x="18" y="132" width="499" height="18" fill="#161618"/><rect id="svg-memory-gate-row-1-bar" x="18" y="132" width="108" height="18" fill="#FFFFFF"/><text id="svg-memory-gate-row-1-value" x="527" y="146" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">28.12 MB</text></g>
-  <g id="svg-memory-gate-row-2"><text id="svg-memory-gate-row-2-label" x="18" y="180" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 Peak RSS (test_series_3)</text><rect id="svg-memory-gate-row-2-track" x="18" y="188" width="499" height="18" fill="#161618"/><rect id="svg-memory-gate-row-2-bar" x="18" y="188" width="100" height="18" fill="#DE2626"/><text id="svg-memory-gate-row-2-value" x="527" y="202" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">26.07 MB</text></g>
-  <g id="svg-memory-gate-row-3"><text id="svg-memory-gate-row-3-label" x="18" y="236" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 Peak RSS (stress_15k)</text><rect id="svg-memory-gate-row-3-track" x="18" y="244" width="499" height="18" fill="#161618"/><rect id="svg-memory-gate-row-3-bar" x="18" y="244" width="109" height="18" fill="#FFFFFF"/><text id="svg-memory-gate-row-3-value" x="527" y="258" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">28.50 MB</text></g>
-  <g id="svg-memory-gate-row-4"><text id="svg-memory-gate-row-4-label" x="18" y="292" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 15k Verify Gate (stress_15k)</text><rect id="svg-memory-gate-row-4-track" x="18" y="300" width="499" height="18" fill="#161618"/><rect id="svg-memory-gate-row-4-bar" x="18" y="300" width="499" height="18" fill="#DE2626"/><text id="svg-memory-gate-row-4-value" x="527" y="314" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">129.46 ms</text></g>
-  <g id="svg-memory-gate-row-5"><text id="svg-memory-gate-row-5-label" x="18" y="348" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 Peak RSS (json_compare_10k)</text><rect id="svg-memory-gate-row-5-track" x="18" y="356" width="499" height="18" fill="#161618"/><rect id="svg-memory-gate-row-5-bar" x="18" y="356" width="109" height="18" fill="#FFFFFF"/><text id="svg-memory-gate-row-5-value" x="527" y="370" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">28.50 MB</text></g>
-  <g id="svg-memory-gate-row-6"><text id="svg-memory-gate-row-6-label" x="18" y="404" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 Peak RSS (sql_compare)</text><rect id="svg-memory-gate-row-6-track" x="18" y="412" width="499" height="18" fill="#161618"/><rect id="svg-memory-gate-row-6-bar" x="18" y="412" width="109" height="18" fill="#DE2626"/><text id="svg-memory-gate-row-6-value" x="527" y="426" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">28.50 MB</text></g>
-  <g id="svg-memory-gate-row-7"><text id="svg-memory-gate-row-7-label" x="18" y="460" fill="#FFFFFF" font-family="monospace" font-size="13">BEJSON 105 Peak RSS (wide_64col)</text><rect id="svg-memory-gate-row-7-track" x="18" y="468" width="499" height="18" fill="#161618"/><rect id="svg-memory-gate-row-7-bar" x="18" y="468" width="109" height="18" fill="#FFFFFF"/><text id="svg-memory-gate-row-7-value" x="527" y="482" fill="#FFFFFF" font-family="monospace" font-size="12" font-weight="bold">28.50 MB</text></g>
-</svg>
+
+        <div class="metric-narrative-summary">
+          <span class="summary-heading">Architecture Guarantees</span>
+          <ul class="summary-list">
+            <li class="summary-bullet">Multi-File Database (MFDB 1.40) and BEJSON 105 architectural guarantees verified under 500,000 queries and 60,000 records.</li>
+            <li class="summary-bullet">Zero positional lookup degradation across wide matrices with O(1) Field-Map Cache.</li>
+            <li class="summary-bullet">Sub-second atomic transactional persistence on Android Termux local storage.</li>
+          </ul>
         </div>
-      </div>
-      <div id="summary-box-memory-gate" class="metric-narrative-summary">
-        <span id="summary-heading-memory-gate" class="summary-heading">Data Summary</span>
-        <ul id="summary-list-memory-gate" class="summary-list">
-          <li id="summary-item-memory-gate-0" class="summary-bullet">Full schema validation (validate_bejson) plus 105 UUID integrity verification (bejson_core_verify_105_integrity) across all 15,000 records completed in ~130 ms (115,000+ rows/sec verified).</li>
-          <li id="summary-item-memory-gate-1" class="summary-bullet">Peak process memory stayed within 26.01 MB–28.50 MB for 5k–25k record workloads and reached 35.85 MB at 60,000 records (only 9.78 MB / +37.5% extra RAM for 35,000 additional records).</li>
-        </ul>
-      </div>
-    </section>
-    <section id="panel-test-latency" class="metric-panel">
-      <div id="panel-header-test-latency" class="panel-header">
-        <h2 id="panel-title-test-latency">Test Execution Latency</h2>
-        <span id="panel-subtitle-test-latency" class="panel-subtitle">Canvas Render · 10/10 Passing</span>
-      </div>
-      <div id="scroll-wrap-test-latency" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="Test Execution Latency">
-        <div id="stage-test-latency" class="graph-intrinsic-stage">
-          <canvas id="canvas-test-latency" height="644"></canvas>
+        <div class="traversal-toolbar">
+          <button class="traversal-btn prev-btn" type="button" disabled>‹ Previous</button>
+          <span class="traversal-counter">Section 1 of 7</span>
+          <button class="traversal-btn next-btn" type="button">Next: Point Lookup ›</button>
         </div>
-      </div>
-      <div id="summary-box-test-latency" class="metric-narrative-summary">
-        <span id="summary-heading-test-latency" class="summary-heading">Data Summary</span>
-        <ul id="summary-list-test-latency" class="summary-list">
-          <li id="summary-item-test-latency-0" class="summary-bullet">Executed 10 standardized test cases in 1582.9 ms total with 10/10 passing (0 failures, 0 errors).</li>
-          <li id="summary-item-test-latency-1" class="summary-bullet">Fastest test: &#x27;test_schema_creation_and_validation&#x27; completed in 0.89 ms; heaviest stress test: &#x27;test_03_bejson_o1_field_map_vs_sqlite_point_queries_500k&#x27; (500,000 BEJSON vs SQLite lookups) completed in 397.25 ms.</li>
-        </ul>
-      </div>
-    </section>
-    <section id="panel-test-matrix" class="metric-panel">
-      <div id="panel-header-test-matrix" class="panel-header">
-        <h2 id="panel-title-test-matrix">Automated Test Execution Matrix</h2>
-        <span id="panel-subtitle-test-matrix" class="panel-subtitle">10 Verified Cases</span>
-      </div>
-      <div id="scroll-wrap-test-matrix" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="Test Execution Matrix">
-        <div id="stage-test-matrix" class="graph-intrinsic-stage">
-          <table id="table-test-matrix" class="metrics-table">
-            <thead id="thead-test-matrix">
-              <tr id="tr-head-test-matrix">
-                <th id="th-suite">Suite</th>
-                <th id="th-test">Test Case</th>
-                <th id="th-category">Domain</th>
-                <th id="th-status">Status</th>
-                <th id="th-duration" class="num-cell">Latency</th>
-              </tr>
-            </thead>
-            <tbody id="tbody-test-matrix">
-              <tr id="test-row-0">
-                <td id="test-row-0-suite">TestMetricsFamily</td>
-                <td id="test-row-0-name">test_live_metrics_ledger_persisted_and_valid</td>
-                <td id="test-row-0-cat">bejson</td>
-                <td id="test-row-0-status"><span id="test-row-0-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-0-ms" class="num-cell">286.83 ms</td>
-              </tr>
-              <tr id="test-row-1">
-                <td id="test-row-1-suite">TestMetricsFamily</td>
-                <td id="test-row-1-name">test_negative_metric_rejected</td>
-                <td id="test-row-1-cat">bejson</td>
-                <td id="test-row-1-status"><span id="test-row-1-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-1-ms" class="num-cell">45.08 ms</td>
-              </tr>
-              <tr id="test-row-2">
-                <td id="test-row-2-suite">TestMetricsFamily</td>
-                <td id="test-row-2-name">test_round_trip_collect_and_render</td>
-                <td id="test-row-2-cat">bejson</td>
-                <td id="test-row-2-status"><span id="test-row-2-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-2-ms" class="num-cell">44.84 ms</td>
-              </tr>
-              <tr id="test-row-3">
-                <td id="test-row-3-suite">TestMetricsFamily</td>
-                <td id="test-row-3-name">test_schema_creation_and_validation</td>
-                <td id="test-row-3-cat">bejson</td>
-                <td id="test-row-3-status"><span id="test-row-3-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-3-ms" class="num-cell">0.89 ms</td>
-              </tr>
-              <tr id="test-row-4">
-                <td id="test-row-4-suite">TestStandardizedBEJSONAndMFDB</td>
-                <td id="test-row-4-name">test_bejson_105_atomic_write_and_o1_lookup</td>
-                <td id="test-row-4-cat">mfdb</td>
-                <td id="test-row-4-status"><span id="test-row-4-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-4-ms" class="num-cell">12.75 ms</td>
-              </tr>
-              <tr id="test-row-5">
-                <td id="test-row-5-suite">TestStandardizedBEJSONAndMFDB</td>
-                <td id="test-row-5-name">test_mfdb_v140_manifest_and_fk_integrity</td>
-                <td id="test-row-5-cat">mfdb</td>
-                <td id="test-row-5-status"><span id="test-row-5-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-5-ms" class="num-cell">31.13 ms</td>
-              </tr>
-              <tr id="test-row-6">
-                <td id="test-row-6-suite">TestBEJSONStressAndComparisons</td>
-                <td id="test-row-6-name">test_01_high_volume_bulk_transaction_stress_15k_rows</td>
-                <td id="test-row-6-cat">bejson</td>
-                <td id="test-row-6-status"><span id="test-row-6-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-6-ms" class="num-cell">351.45 ms</td>
-              </tr>
-              <tr id="test-row-7">
-                <td id="test-row-7-suite">TestBEJSONStressAndComparisons</td>
-                <td id="test-row-7-name">test_02_bejson_vs_json_token_and_storage_compression_10k_rows</td>
-                <td id="test-row-7-cat">bejson</td>
-                <td id="test-row-7-status"><span id="test-row-7-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-7-ms" class="num-cell">243.56 ms</td>
-              </tr>
-              <tr id="test-row-8">
-                <td id="test-row-8-suite">TestBEJSONStressAndComparisons</td>
-                <td id="test-row-8-name">test_03_bejson_o1_field_map_vs_sqlite_point_queries_500k</td>
-                <td id="test-row-8-cat">bejson</td>
-                <td id="test-row-8-status"><span id="test-row-8-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-8-ms" class="num-cell">397.25 ms</td>
-              </tr>
-              <tr id="test-row-9">
-                <td id="test-row-9-suite">TestBEJSONStressAndComparisons</td>
-                <td id="test-row-9-name">test_04_wide_table_64_columns_invariance_stress</td>
-                <td id="test-row-9-cat">bejson</td>
-                <td id="test-row-9-status"><span id="test-row-9-badge" class="status-badge badge-pass">PASS</span></td>
-                <td id="test-row-9-ms" class="num-cell">169.15 ms</td>
-              </tr>
-            </tbody>
-          </table>
+      </section>
+
+      <!-- SECTION 2: POINT LOOKUP & CELL THROUGHPUT -->
+      <section id="panel-ops-throughput" class="metric-section">
+        <div class="test-meta-bar">
+          <span class="test-name-tag">Test: Point Lookup &amp; Cell Throughput Benchmark</span>
+          <span class="test-file-badge">File: dev/metrics/suites/nesting_and_mfdb/test_field_map_integrity.py</span>
         </div>
-      </div>
-    </section>
-  </main>
+        <div class="metric-panel">
+          <div id="panel-header-ops-throughput" class="panel-header">
+            <h2 id="panel-title-ops-throughput">Point Lookup &amp; Cell Throughput</h2>
+            <span id="panel-subtitle-ops-throughput" class="panel-subtitle">Canvas Render · Stacked Bar Layout</span>
+          </div>
+          <div id="scroll-wrap-ops-throughput" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="Point Lookup &amp; Cell Throughput">
+            <div id="stage-ops-throughput" class="graph-intrinsic-stage">
+              <canvas id="canvas-ops-throughput" height="532"></canvas>
+            </div>
+          </div>
+          <div id="summary-box-ops-throughput" class="metric-narrative-summary">
+            <span id="summary-heading-ops-throughput" class="summary-heading">Data Summary</span>
+            <ul id="summary-list-ops-throughput" class="summary-list">
+              <li id="summary-item-ops-throughput-0" class="summary-bullet">BEJSON 105 O(1) Field-Map point queries executed 3,417,769 ops/sec (0.29 µs/query) while SQLite disk B-tree queries executed 42,504 ops/sec (23.53 µs/query) — BEJSON 105 was 80.41x faster than SQLite on disk.</li>
+              <li id="summary-item-ops-throughput-1" class="summary-bullet">In the 500,000-query stress benchmark against in-memory SQLite (:memory:), BEJSON 105 completed 500,000 lookups at 1.75 M ops/sec (~285 ms) vs SQLite at 0.21 M ops/sec (~2,380 ms) — 8.24x faster than in-memory SQLite.</li>
+              <li id="summary-item-ops-throughput-2" class="summary-bullet">Across the 64-column × 1,500-row wide matrix (96,000 cells), O(1) Field-Map access sustained 24.70 M cell lookups/sec with 0% positional degradation between column 0 and column 63.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="traversal-toolbar">
+          <button class="traversal-btn prev-btn" type="button">‹ KPI Summary</button>
+          <span class="traversal-counter">Section 2 of 7</span>
+          <button class="traversal-btn next-btn" type="button">Next: Token Savings ›</button>
+        </div>
+      </section>
+
+      <!-- SECTION 3: LLM TOKEN & STORAGE COMPRESSION -->
+      <section id="panel-token-savings" class="metric-section">
+        <div class="test-meta-bar">
+          <span class="test-name-tag">Test: LLM Token &amp; Storage Compression Benchmark</span>
+          <span class="test-file-badge">File: dev/metrics/suites/benchmark_json_vs_bejson/benchmark_tool.py</span>
+        </div>
+        <div class="metric-panel">
+          <div id="panel-header-token-savings" class="panel-header">
+            <h2 id="panel-title-token-savings">LLM Token &amp; Storage Compression</h2>
+            <span id="panel-subtitle-token-savings" class="panel-subtitle">SVG Vector Render · Lower is Better</span>
+          </div>
+          <div id="scroll-wrap-token-savings" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="LLM Token &amp; Storage Compression">
+            <div id="stage-token-savings" class="graph-intrinsic-stage">
+              <svg id="svg-token-savings" xmlns="http://www.w3.org/2000/svg" width="100%" height="450" viewBox="0 0 680 450">
+                <rect id="svg-token-savings-bg" width="680" height="450" fill="#000000"/>
+                <text id="svg-token-savings-title" x="18" y="32" fill="#FFFFFF" font-family="monospace" font-size="15" font-weight="bold">BEJSON 105 vs Standard JSON: LLM Token Count (k tokens)</text>
+                <line id="svg-token-savings-divider" x1="18" y1="44" x2="662" y2="44" stroke="#DE2626" stroke-width="2"/>
+                
+                <!-- GROUP 1: TEST SERIES 1 -->
+                <text x="18" y="68" fill="#9999aa" font-family="monospace" font-size="11" font-weight="bold">TEST SERIES 1 · FEDERATION CORE (CL100K_BASE)</text>
+                <g id="svg-token-savings-row-0">
+                  <text id="svg-token-savings-row-0-label" x="18" y="86" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 (test_series_1)</text>
+                  <rect id="svg-token-savings-row-0-track" x="18" y="92" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-token-savings-row-0-bar" x="18" y="92" width="108" height="15" fill="#DE2626"/>
+                  <text id="svg-token-savings-row-0-value" x="527" y="104" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">186.29 k tokens</text>
+                </g>
+                <g id="svg-token-savings-row-1">
+                  <text id="svg-token-savings-row-1-label" x="18" y="122" fill="#FFFFFF" font-family="monospace" font-size="11">Standard JSON (test_series_1)</text>
+                  <rect id="svg-token-savings-row-1-track" x="18" y="128" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-token-savings-row-1-bar" x="18" y="128" width="339" height="15" fill="#FFFFFF"/>
+                  <text id="svg-token-savings-row-1-value" x="527" y="140" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">581.77 k tokens</text>
+                </g>
+                
+                <!-- DIVIDER BETWEEN SERIES 1 & 2 -->
+                <line x1="18" y1="158" x2="662" y2="158" stroke="#22222a" stroke-width="1"/>
+                
+                <!-- GROUP 2: TEST SERIES 2 -->
+                <text x="18" y="180" fill="#9999aa" font-family="monospace" font-size="11" font-weight="bold">TEST SERIES 2 · POINT QUERY BENCHMARK</text>
+                <g id="svg-token-savings-row-2">
+                  <text id="svg-token-savings-row-2-label" x="18" y="198" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 (test_series_2)</text>
+                  <rect id="svg-token-savings-row-2-track" x="18" y="204" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-token-savings-row-2-bar" x="18" y="204" width="132" height="15" fill="#DE2626"/>
+                  <text id="svg-token-savings-row-2-value" x="527" y="216" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">226.88 k tokens</text>
+                </g>
+                <g id="svg-token-savings-row-3">
+                  <text id="svg-token-savings-row-3-label" x="18" y="234" fill="#FFFFFF" font-family="monospace" font-size="11">Standard JSON (test_series_2)</text>
+                  <rect id="svg-token-savings-row-3-track" x="18" y="240" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-token-savings-row-3-bar" x="18" y="240" width="420" height="15" fill="#FFFFFF"/>
+                  <text id="svg-token-savings-row-3-value" x="527" y="252" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">720.73 k tokens</text>
+                </g>
+                
+                <!-- DIVIDER BETWEEN SERIES 2 & 10K -->
+                <line x1="18" y1="270" x2="662" y2="270" stroke="#22222a" stroke-width="1"/>
+                
+                <!-- GROUP 3: JSON_COMPARE_10K -->
+                <text x="18" y="292" fill="#9999aa" font-family="monospace" font-size="11" font-weight="bold">JSON_COMPARE_10K · 10,000 MULTI-FIELD RECORDS</text>
+                <g id="svg-token-savings-row-4">
+                  <text id="svg-token-savings-row-4-label" x="18" y="310" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 (json_compare_10k)</text>
+                  <rect id="svg-token-savings-row-4-track" x="18" y="316" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-token-savings-row-4-bar" x="18" y="316" width="168" height="15" fill="#DE2626"/>
+                  <text id="svg-token-savings-row-4-value" x="527" y="328" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">287.89 k tokens</text>
+                </g>
+                <g id="svg-token-savings-row-5">
+                  <text id="svg-token-savings-row-5-label" x="18" y="346" fill="#FFFFFF" font-family="monospace" font-size="11">Standard JSON (json_compare_10k)</text>
+                  <rect id="svg-token-savings-row-5-track" x="18" y="352" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-token-savings-row-5-bar" x="18" y="352" width="499" height="15" fill="#FFFFFF"/>
+                  <text id="svg-token-savings-row-5-value" x="527" y="364" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">854.72 k tokens</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div id="summary-box-token-savings" class="metric-narrative-summary">
+            <span id="summary-heading-token-savings" class="summary-heading">Data Summary</span>
+            <ul id="summary-list-token-savings" class="summary-list">
+              <li id="summary-item-token-savings-0" class="summary-bullet">Under cl100k_base tokenization, BEJSON 105 saved 66.3% to 68.0% of token volume versus standard JSON (e.g. 186.29k tokens for BEJSON 105 vs 581.77k tokens for standard JSON in test_series_1).</li>
+              <li id="summary-item-token-savings-1" class="summary-bullet">In the 10,000-record benchmark, BEJSON 105 occupied 287.89k tokens vs 854.72k tokens for standard JSON — saving 566,830 tokens per context window injection.</li>
+              <li id="summary-item-token-savings-2" class="summary-bullet">Raw disk storage was reduced by 55.9% to 66.8% (e.g. 1.10 MB BEJSON 105 vs 3.32 MB standard JSON).</li>
+            </ul>
+          </div>
+        </div>
+        <div class="traversal-toolbar">
+          <button class="traversal-btn prev-btn" type="button">‹ Point Lookup</button>
+          <span class="traversal-counter">Section 3 of 7</span>
+          <button class="traversal-btn next-btn" type="button">Next: Bulk Ingestion ›</button>
+        </div>
+      </section>
+
+      <!-- SECTION 4: BULK INGESTION -->
+      <section id="panel-bulk-ingestion" class="metric-section">
+        <div class="test-meta-bar">
+          <span class="test-name-tag">Test: Bulk Ingestion Rate &amp; Transaction Throughput</span>
+          <span class="test-file-badge">File: dev/metrics/suites/standardized/test_bejson_stress_comparisons.py</span>
+        </div>
+        <div class="metric-panel">
+          <div id="panel-header-bulk-ingestion" class="panel-header">
+            <h2 id="panel-title-bulk-ingestion">Bulk Ingestion Rate &amp; Throughput</h2>
+            <span id="panel-subtitle-bulk-ingestion" class="panel-subtitle">Canvas Render · Records per Second</span>
+          </div>
+          <div id="scroll-wrap-bulk-ingestion" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="Bulk Ingestion Rate">
+            <div id="stage-bulk-ingestion" class="graph-intrinsic-stage">
+              <canvas id="canvas-bulk-ingestion" height="252"></canvas>
+            </div>
+          </div>
+          <div id="summary-box-bulk-ingestion" class="metric-narrative-summary">
+            <span id="summary-heading-bulk-ingestion" class="summary-heading">Data Summary</span>
+            <ul id="summary-list-bulk-ingestion" class="summary-list">
+              <li id="summary-item-bulk-ingestion-0" class="summary-bullet">In the 15,000-record bulk ingestion stress test, BEJSON 105 ingested, structured, and saved 15,000 multi-field records in 218.41 ms (68,677 records/sec).</li>
+              <li id="summary-item-bulk-ingestion-1" class="summary-bullet">Multi-entity MFDB 1.40 manifests sustained 53,267 rec/sec across 25,000 records (5 entities) and 47,654 rec/sec across 60,000 records (3 entities) with 100% foreign-key cascade verification.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="traversal-toolbar">
+          <button class="traversal-btn prev-btn" type="button">‹ Token Savings</button>
+          <span class="traversal-counter">Section 4 of 7</span>
+          <button class="traversal-btn next-btn" type="button">Next: Memory &amp; Gate ›</button>
+        </div>
+      </section>
+
+      <!-- SECTION 5: MEMORY & VERIFICATION GATE -->
+      <section id="panel-memory-gate" class="metric-section">
+        <div class="test-meta-bar">
+          <span class="test-name-tag">Test: Process Memory Gate &amp; Verification Latency</span>
+          <span class="test-file-badge">File: dev/metrics/suites/standardized/test_bejson_stress_comparisons.py</span>
+        </div>
+        <div class="metric-panel">
+          <div id="panel-header-memory-gate" class="panel-header">
+            <h2 id="panel-title-memory-gate">Memory Footprint &amp; Verification Gate</h2>
+            <span id="panel-subtitle-memory-gate" class="panel-subtitle">SVG Vector Render · Peak RSS &amp; Gate Latency</span>
+          </div>
+          <div id="scroll-wrap-memory-gate" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="Memory Footprint &amp; Verification Gate">
+            <div id="stage-memory-gate" class="graph-intrinsic-stage">
+              <svg id="svg-memory-gate" xmlns="http://www.w3.org/2000/svg" width="100%" height="560" viewBox="0 0 680 560">
+                <rect id="svg-memory-gate-bg" width="680" height="560" fill="#000000"/>
+                <text id="svg-memory-gate-title" x="18" y="32" fill="#FFFFFF" font-family="monospace" font-size="15" font-weight="bold">Peak Memory (MB RSS) &amp; 15k Integrity Verification (ms)</text>
+                <line id="svg-memory-gate-divider" x1="18" y1="44" x2="662" y2="44" stroke="#DE2626" stroke-width="2"/>
+                
+                <!-- GROUP 1: TEST SERIES 1–3 SCALING -->
+                <text x="18" y="68" fill="#9999aa" font-family="monospace" font-size="11" font-weight="bold">TEST SERIES 1–3 · RECORD SCALE MEMORY PROFILES</text>
+                <g id="svg-memory-gate-row-0">
+                  <text id="svg-memory-gate-row-0-label" x="18" y="86" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 Peak RSS (test_series_1 · 5k rows)</text>
+                  <rect id="svg-memory-gate-row-0-track" x="18" y="92" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-memory-gate-row-0-bar" x="18" y="92" width="100" height="15" fill="#DE2626"/>
+                  <text id="svg-memory-gate-row-0-value" x="527" y="104" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">26.01 MB</text>
+                </g>
+                <g id="svg-memory-gate-row-1">
+                  <text id="svg-memory-gate-row-1-label" x="18" y="120" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 Peak RSS (test_series_2 · 10k rows)</text>
+                  <rect id="svg-memory-gate-row-1-track" x="18" y="126" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-memory-gate-row-1-bar" x="18" y="126" width="108" height="15" fill="#FFFFFF"/>
+                  <text id="svg-memory-gate-row-1-value" x="527" y="138" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">28.12 MB</text>
+                </g>
+                <g id="svg-memory-gate-row-2">
+                  <text id="svg-memory-gate-row-2-label" x="18" y="154" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 Peak RSS (test_series_3 · 60k rows)</text>
+                  <rect id="svg-memory-gate-row-2-track" x="18" y="160" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-memory-gate-row-2-bar" x="18" y="160" width="100" height="15" fill="#DE2626"/>
+                  <text id="svg-memory-gate-row-2-value" x="527" y="172" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">26.07 MB</text>
+                </g>
+                
+                <!-- DIVIDER BETWEEN SERIES 1-3 & STRESS 15K -->
+                <line x1="18" y1="190" x2="662" y2="190" stroke="#22222a" stroke-width="1"/>
+                
+                <!-- GROUP 2: STRESS_15K TRANSACTION & GATE -->
+                <text x="18" y="212" fill="#9999aa" font-family="monospace" font-size="11" font-weight="bold">STRESS_15K · TRANSACTION FOOTPRINT &amp; VERIFY GATE</text>
+                <g id="svg-memory-gate-row-3">
+                  <text id="svg-memory-gate-row-3-label" x="18" y="230" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 Peak RSS (stress_15k)</text>
+                  <rect id="svg-memory-gate-row-3-track" x="18" y="236" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-memory-gate-row-3-bar" x="18" y="236" width="109" height="15" fill="#FFFFFF"/>
+                  <text id="svg-memory-gate-row-3-value" x="527" y="248" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">28.50 MB</text>
+                </g>
+                <g id="svg-memory-gate-row-4">
+                  <text id="svg-memory-gate-row-4-label" x="18" y="264" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 15k Verify Gate (stress_15k latency)</text>
+                  <rect id="svg-memory-gate-row-4-track" x="18" y="270" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-memory-gate-row-4-bar" x="18" y="270" width="499" height="15" fill="#DE2626"/>
+                  <text id="svg-memory-gate-row-4-value" x="527" y="282" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">129.46 ms</text>
+                </g>
+                
+                <!-- DIVIDER BETWEEN STRESS 15K & COMPARISONS -->
+                <line x1="18" y1="300" x2="662" y2="300" stroke="#22222a" stroke-width="1"/>
+                
+                <!-- GROUP 3: COMPARISONS & WIDE MATRIX -->
+                <text x="18" y="322" fill="#9999aa" font-family="monospace" font-size="11" font-weight="bold">COMPARISONS &amp; 64-COL WIDE MATRIX</text>
+                <g id="svg-memory-gate-row-5">
+                  <text id="svg-memory-gate-row-5-label" x="18" y="340" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 Peak RSS (json_compare_10k)</text>
+                  <rect id="svg-memory-gate-row-5-track" x="18" y="346" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-memory-gate-row-5-bar" x="18" y="346" width="109" height="15" fill="#FFFFFF"/>
+                  <text id="svg-memory-gate-row-5-value" x="527" y="358" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">28.50 MB</text>
+                </g>
+                <g id="svg-memory-gate-row-6">
+                  <text id="svg-memory-gate-row-6-label" x="18" y="374" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 Peak RSS (sql_compare · 500k queries)</text>
+                  <rect id="svg-memory-gate-row-6-track" x="18" y="380" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-memory-gate-row-6-bar" x="18" y="380" width="109" height="15" fill="#DE2626"/>
+                  <text id="svg-memory-gate-row-6-value" x="527" y="392" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">28.50 MB</text>
+                </g>
+                <g id="svg-memory-gate-row-7">
+                  <text id="svg-memory-gate-row-7-label" x="18" y="408" fill="#FFFFFF" font-family="monospace" font-size="11">BEJSON 105 Peak RSS (wide_64col · 96k cells)</text>
+                  <rect id="svg-memory-gate-row-7-track" x="18" y="414" width="499" height="15" fill="#141418"/>
+                  <rect id="svg-memory-gate-row-7-bar" x="18" y="414" width="109" height="15" fill="#FFFFFF"/>
+                  <text id="svg-memory-gate-row-7-value" x="527" y="426" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold">28.50 MB</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div id="summary-box-memory-gate" class="metric-narrative-summary">
+            <span id="summary-heading-memory-gate" class="summary-heading">Data Summary</span>
+            <ul id="summary-list-memory-gate" class="summary-list">
+              <li id="summary-item-memory-gate-0" class="summary-bullet">Full schema validation (validate_bejson) plus 105 UUID integrity verification (bejson_core_verify_105_integrity) across all 15,000 records completed in ~130 ms (115,000+ rows/sec verified).</li>
+              <li id="summary-item-memory-gate-1" class="summary-bullet">Peak process memory stayed within 26.01 MB–28.50 MB for 5k–25k record workloads and reached 35.85 MB at 60,000 records (only 9.78 MB / +37.5% extra RAM for 35,000 additional records).</li>
+            </ul>
+          </div>
+        </div>
+        <div class="traversal-toolbar">
+          <button class="traversal-btn prev-btn" type="button">‹ Bulk Ingestion</button>
+          <span class="traversal-counter">Section 5 of 7</span>
+          <button class="traversal-btn next-btn" type="button">Next: Test Latency ›</button>
+        </div>
+      </section>
+
+      <!-- SECTION 6: TEST EXECUTION LATENCY -->
+      <section id="panel-test-latency" class="metric-section">
+        <div class="test-meta-bar">
+          <span class="test-name-tag">Test: Per-Test Execution Duration Across Suites</span>
+          <span class="test-file-badge">File: dev/metrics/suites/standardized/test_standardized_bejson_mfdb.py</span>
+        </div>
+        <div class="metric-panel">
+          <div id="panel-header-test-latency" class="panel-header">
+            <h2 id="panel-title-test-latency">Test Execution Latency</h2>
+            <span id="panel-subtitle-test-latency" class="panel-subtitle">Canvas Render · 10/10 Passing</span>
+          </div>
+          <div id="scroll-wrap-test-latency" class="graph-scroll-viewport" tabindex="0" role="region" aria-label="Test Execution Latency">
+            <div id="stage-test-latency" class="graph-intrinsic-stage">
+              <canvas id="canvas-test-latency" height="644"></canvas>
+            </div>
+          </div>
+          <div id="summary-box-test-latency" class="metric-narrative-summary">
+            <span id="summary-heading-test-latency" class="summary-heading">Data Summary</span>
+            <ul id="summary-list-test-latency" class="summary-list">
+              <li id="summary-item-test-latency-0" class="summary-bullet">Executed 10 standardized test cases in 1582.9 ms total with 10/10 passing (0 failures, 0 errors).</li>
+              <li id="summary-item-test-latency-1" class="summary-bullet">Fastest test: 'test_schema_creation_and_validation' completed in 0.89 ms; heaviest stress test: 'test_03_bejson_o1_field_map_vs_sqlite_point_queries_500k' (500,000 BEJSON vs SQLite lookups) completed in 397.25 ms.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="traversal-toolbar">
+          <button class="traversal-btn prev-btn" type="button">‹ Memory &amp; Gate</button>
+          <span class="traversal-counter">Section 6 of 7</span>
+          <button class="traversal-btn next-btn" type="button">Next: Test Matrix ›</button>
+        </div>
+      </section>
+
+      <!-- SECTION 7: AUTOMATED TEST MATRIX -->
+      <section id="panel-test-matrix" class="metric-section">
+        <div class="test-meta-bar">
+          <span class="test-name-tag">Test: Automated Conformance &amp; Regression Test Matrix</span>
+          <span class="test-file-badge">File: dev/metrics/suites/nesting_and_mfdb/test_nesting_smoke.py</span>
+        </div>
+        <div class="metric-panel">
+          <div id="panel-header-test-matrix" class="panel-header">
+            <h2 id="panel-title-test-matrix">Automated Test Execution Matrix</h2>
+            <span id="panel-subtitle-test-matrix" class="panel-subtitle">10 Verified Cases · Zero Regressions</span>
+          </div>
+          <div class="table-container">
+            <table id="table-test-matrix" class="data-table">
+              <thead>
+                <tr id="tr-test-matrix-head">
+                  <th id="th-test-suite">Suite</th>
+                  <th id="th-test-name">Test Name</th>
+                  <th id="th-category">Engine</th>
+                  <th id="th-status">Status</th>
+                  <th id="th-duration" class="num-cell">Latency</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-test-matrix">
+                <tr id="test-row-0">
+                  <td id="test-row-0-suite">TestMetricsFamily</td>
+                  <td id="test-row-0-name">test_live_metrics_ledger_persisted_and_valid</td>
+                  <td id="test-row-0-cat">bejson</td>
+                  <td id="test-row-0-status"><span id="test-row-0-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-0-ms" class="num-cell">286.83 ms</td>
+                </tr>
+                <tr id="test-row-1">
+                  <td id="test-row-1-suite">TestMetricsFamily</td>
+                  <td id="test-row-1-name">test_negative_metric_rejected</td>
+                  <td id="test-row-1-cat">bejson</td>
+                  <td id="test-row-1-status"><span id="test-row-1-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-1-ms" class="num-cell">45.08 ms</td>
+                </tr>
+                <tr id="test-row-2">
+                  <td id="test-row-2-suite">TestMetricsFamily</td>
+                  <td id="test-row-2-name">test_round_trip_collect_and_render</td>
+                  <td id="test-row-2-cat">bejson</td>
+                  <td id="test-row-2-status"><span id="test-row-2-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-2-ms" class="num-cell">44.84 ms</td>
+                </tr>
+                <tr id="test-row-3">
+                  <td id="test-row-3-suite">TestMetricsFamily</td>
+                  <td id="test-row-3-name">test_schema_creation_and_validation</td>
+                  <td id="test-row-3-cat">bejson</td>
+                  <td id="test-row-3-status"><span id="test-row-3-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-3-ms" class="num-cell">0.89 ms</td>
+                </tr>
+                <tr id="test-row-4">
+                  <td id="test-row-4-suite">TestStandardizedBEJSONAndMFDB</td>
+                  <td id="test-row-4-name">test_bejson_105_atomic_write_and_o1_lookup</td>
+                  <td id="test-row-4-cat">mfdb</td>
+                  <td id="test-row-4-status"><span id="test-row-4-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-4-ms" class="num-cell">12.75 ms</td>
+                </tr>
+                <tr id="test-row-5">
+                  <td id="test-row-5-suite">TestStandardizedBEJSONAndMFDB</td>
+                  <td id="test-row-5-name">test_mfdb_v140_manifest_and_fk_integrity</td>
+                  <td id="test-row-5-cat">mfdb</td>
+                  <td id="test-row-5-status"><span id="test-row-5-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-5-ms" class="num-cell">31.13 ms</td>
+                </tr>
+                <tr id="test-row-6">
+                  <td id="test-row-6-suite">TestBEJSONStressAndComparisons</td>
+                  <td id="test-row-6-name">test_01_high_volume_bulk_transaction_stress_15k_rows</td>
+                  <td id="test-row-6-cat">bejson</td>
+                  <td id="test-row-6-status"><span id="test-row-6-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-6-ms" class="num-cell">351.45 ms</td>
+                </tr>
+                <tr id="test-row-7">
+                  <td id="test-row-7-suite">TestBEJSONStressAndComparisons</td>
+                  <td id="test-row-7-name">test_02_bejson_vs_json_token_and_storage_compression_10k_rows</td>
+                  <td id="test-row-7-cat">bejson</td>
+                  <td id="test-row-7-status"><span id="test-row-7-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-7-ms" class="num-cell">243.56 ms</td>
+                </tr>
+                <tr id="test-row-8">
+                  <td id="test-row-8-suite">TestBEJSONStressAndComparisons</td>
+                  <td id="test-row-8-name">test_03_bejson_o1_field_map_vs_sqlite_point_queries_500k</td>
+                  <td id="test-row-8-cat">bejson</td>
+                  <td id="test-row-8-status"><span id="test-row-8-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-8-ms" class="num-cell">397.25 ms</td>
+                </tr>
+                <tr id="test-row-9">
+                  <td id="test-row-9-suite">TestBEJSONStressAndComparisons</td>
+                  <td id="test-row-9-name">test_04_wide_table_64_columns_invariance_stress</td>
+                  <td id="test-row-9-cat">bejson</td>
+                  <td id="test-row-9-status"><span id="test-row-9-badge" class="status-badge badge-pass">PASS</span></td>
+                  <td id="test-row-9-ms" class="num-cell">169.15 ms</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="traversal-toolbar">
+          <button class="traversal-btn prev-btn" type="button">‹ Test Latency</button>
+          <span class="traversal-counter">Section 7 of 7</span>
+          <button class="traversal-btn next-btn" type="button" disabled>Next ›</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
   <footer id="app-footer">
     <span id="footer-credit">Elton Boehnen · boehnenelton2024@gmail.com · boehnenelton2024.pages.dev · github.com/boehnenelton · PolyForm-Noncommercial-1.0.0</span>
   </footer>
+
   <script id="graph-renderer-script">
-    const GRAPH_DATASETS = {"canvas-ops-throughput": {"title": "O(1) Field-Map Lookups vs SQLite (M ops/s)", "height": 532, "items": [{"label": "BEJSON 105 (test_series_1 \u00b7 federation_core)", "value": 17.3272117464, "unit": "M ops/s"}, {"label": "BEJSON 105 (test_series_2 \u00b7 bejson_vs_sqlite)", "value": 3.417769, "unit": "M ops/s"}, {"label": "SQLite Baseline (test_series_2)", "value": 0.042504, "unit": "M ops/s"}, {"label": "BEJSON 105 (test_series_3 \u00b7 25k_in_5_entities)", "value": 8.297478, "unit": "M ops/s"}, {"label": "BEJSON 105 (test_series_3 \u00b7 60k_in_3_entities)", "value": 7.671864, "unit": "M ops/s"}, {"label": "BEJSON 105 (sql_compare \u00b7 bejson_vs_sqlite_500k)", "value": 1.7576099087000001, "unit": "M ops/s"}, {"label": "SQLite Baseline (sql_compare)", "value": 0.2151642838, "unit": "M ops/s"}, {"label": "BEJSON 105 (wide_64col \u00b7 wide_matrix_96k_cells)", "value": 24.6460296082, "unit": "M ops/s"}]}, "canvas-bulk-ingestion": {"title": "Bulk Transaction Ingestion (k rec/s)", "height": 252, "items": [{"label": "BEJSON 105 (test_series_3 \u00b7 25k_in_5_entities)", "value": 53.267, "unit": "k rec/s"}, {"label": "BEJSON 105 (test_series_3 \u00b7 60k_in_3_entities)", "value": 47.654, "unit": "k rec/s"}, {"label": "BEJSON 105 (stress_15k \u00b7 bulk_tx_15k)", "value": 68.6771946, "unit": "k rec/s"}]}, "canvas-test-latency": {"title": "Per-Test Execution Duration Across Suites (ms)", "height": 644, "items": [{"label": "test_live_metrics_ledger_persisted_and_valid", "value": 286.83, "unit": "ms [pass]"}, {"label": "test_negative_metric_rejected", "value": 45.081, "unit": "ms [pass]"}, {"label": "test_round_trip_collect_and_render", "value": 44.84, "unit": "ms [pass]"}, {"label": "test_schema_creation_and_validation", "value": 0.885, "unit": "ms [pass]"}, {"label": "test_bejson_105_atomic_write_and_o1_lookup", "value": 12.747, "unit": "ms [pass]"}, {"label": "test_mfdb_v140_manifest_and_fk_integrity", "value": 31.127, "unit": "ms [pass]"}, {"label": "test_01_high_volume_bulk_transaction_stress_15k_rows", "value": 351.449, "unit": "ms [pass]"}, {"label": "test_02_bejson_vs_json_token_and_storage_compression_10k_rows", "value": 243.555, "unit": "ms [pass]"}, {"label": "test_03_bejson_o1_field_map_vs_sqlite_point_queries_500k", "value": 397.252, "unit": "ms [pass]"}, {"label": "test_04_wide_table_64_columns_invariance_stress", "value": 169.152, "unit": "ms [pass]"}]}};
+    const GRAPH_DATASETS = {
+      "canvas-ops-throughput": {
+        "title": "O(1) Field-Map Lookups vs SQLite (M ops/s)",
+        "groups": [
+          {
+            "series": "TEST SERIES 1 · FEDERATION CORE",
+            "items": [
+              {"label": "BEJSON 105 (federation_core)", "value": 17.3272117464, "unit": "M ops/s", "color": "#DE2626"}
+            ]
+          },
+          {
+            "series": "TEST SERIES 2 · POINT LOOKUPS vs SQLITE DISK",
+            "items": [
+              {"label": "BEJSON 105 (bejson_vs_sqlite)", "value": 3.417769, "unit": "M ops/s", "color": "#DE2626"},
+              {"label": "SQLite Baseline (disk B-tree)", "value": 0.042504, "unit": "M ops/s", "color": "#FFFFFF"}
+            ]
+          },
+          {
+            "series": "TEST SERIES 3 · MULTI-ENTITY MFDB SCALING",
+            "items": [
+              {"label": "BEJSON 105 (25k in 5 entities)", "value": 8.297478, "unit": "M ops/s", "color": "#DE2626"},
+              {"label": "BEJSON 105 (60k in 3 entities)", "value": 7.671864, "unit": "M ops/s", "color": "#FFFFFF"}
+            ]
+          },
+          {
+            "series": "SQL_COMPARE · 500,000 QUERIES vs IN-MEMORY SQLITE",
+            "items": [
+              {"label": "BEJSON 105 (bejson_vs_sqlite_500k)", "value": 1.7576099087, "unit": "M ops/s", "color": "#DE2626"},
+              {"label": "SQLite Baseline (:memory:)", "value": 0.2151642838, "unit": "M ops/s", "color": "#FFFFFF"}
+            ]
+          },
+          {
+            "series": "WIDE_64COL · 96,000 CELLS WIDE MATRIX",
+            "items": [
+              {"label": "BEJSON 105 (64 cols × 1,500 rows)", "value": 24.6460296082, "unit": "M ops/s", "color": "#DE2626"}
+            ]
+          }
+        ]
+      },
+      "canvas-bulk-ingestion": {
+        "title": "Bulk Transaction Ingestion (k rec/s)",
+        "groups": [
+          {
+            "series": "TEST SERIES 3 · MULTI-ENTITY MFDB MANIFESTS",
+            "items": [
+              {"label": "BEJSON 105 (25k in 5 entities)", "value": 53.267, "unit": "k rec/s", "color": "#DE2626"},
+              {"label": "BEJSON 105 (60k in 3 entities)", "value": 47.654, "unit": "k rec/s", "color": "#FFFFFF"}
+            ]
+          },
+          {
+            "series": "STRESS_15K · HIGH-VOLUME BULK TRANSACTION",
+            "items": [
+              {"label": "BEJSON 105 (bulk_tx_15k)", "value": 68.6771946, "unit": "k rec/s", "color": "#DE2626"}
+            ]
+          }
+        ]
+      },
+      "canvas-test-latency": {
+        "title": "Per-Test Execution Duration Across Suites (ms)",
+        "groups": [
+          {
+            "series": "SUITE 1 · TESTMETRICSFAMILY (CORE METRICS LEDGER)",
+            "items": [
+              {"label": "test_live_metrics_ledger_persisted_and_valid", "value": 286.83, "unit": "ms [pass]", "color": "#DE2626"},
+              {"label": "test_negative_metric_rejected", "value": 45.081, "unit": "ms [pass]", "color": "#FFFFFF"},
+              {"label": "test_round_trip_collect_and_render", "value": 44.84, "unit": "ms [pass]", "color": "#DE2626"},
+              {"label": "test_schema_creation_and_validation", "value": 0.885, "unit": "ms [pass]", "color": "#FFFFFF"}
+            ]
+          },
+          {
+            "series": "SUITE 2 · TESTSTANDARDIZEDBEJSONANDMFDB (PARITY & MANIFEST)",
+            "items": [
+              {"label": "test_bejson_105_atomic_write_and_o1_lookup", "value": 12.747, "unit": "ms [pass]", "color": "#DE2626"},
+              {"label": "test_mfdb_v140_manifest_and_fk_integrity", "value": 31.127, "unit": "ms [pass]", "color": "#FFFFFF"}
+            ]
+          },
+          {
+            "series": "SUITE 3 · TESTBEJSONSTRESSANDCOMPARISONS (STRESS & BENCHMARK)",
+            "items": [
+              {"label": "test_01_high_volume_bulk_transaction_stress_15k_rows", "value": 351.449, "unit": "ms [pass]", "color": "#DE2626"},
+              {"label": "test_02_bejson_vs_json_token_and_storage_compression_10k_rows", "value": 243.555, "unit": "ms [pass]", "color": "#FFFFFF"},
+              {"label": "test_03_bejson_o1_field_map_vs_sqlite_point_queries_500k", "value": 397.252, "unit": "ms [pass]", "color": "#DE2626"},
+              {"label": "test_04_wide_table_64_columns_invariance_stress", "value": 169.152, "unit": "ms [pass]", "color": "#FFFFFF"}
+            ]
+          }
+        ]
+      }
+    };
+
     function renderStackedCanvasBars(canvasId, cfg) {
       const canvasEl = document.getElementById(canvasId);
-      if (!canvasEl || !cfg || !cfg.items || !cfg.items.length) return;
+      if (!canvasEl || !cfg) return;
+
+      const groups = cfg.groups || [];
+      let allItems = [];
+      groups.forEach(g => { allItems = allItems.concat(g.items || []); });
+      if (!allItems.length) return;
+
       const stageW = Math.max(300, canvasEl.parentElement.clientWidth || 680);
       canvasEl.width = stageW;
-      canvasEl.height = cfg.height || (68 + cfg.items.length * 56 + 16);
+
+      const padX = 12;
+      const valGutter = 135;
+      const barFullW = Math.max(80, stageW - padX * 2 - valGutter);
+
+      // Compute exact dynamic height for tight layout
+      let calcHeight = 50;
+      groups.forEach((g, gIdx) => {
+        calcHeight += 24 + (g.items.length * 40);
+        if (gIdx < groups.length - 1) {
+          calcHeight += 18;
+        }
+      });
+      calcHeight += 12;
+      canvasEl.height = calcHeight;
+
       const ctx = canvasEl.getContext('2d');
       const W = canvasEl.width, H = canvasEl.height;
-      const padX = 14;
-      const valGutter = 128;
-      const barFullW = Math.max(100, W - padX * 2 - valGutter);
 
+      // Dark background void
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, W, H);
 
+      // Main Suite Title
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 13px monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(cfg.title || '', padX, 28);
+      ctx.fillText(cfg.title || '', padX, 26);
 
+      // Top Red Accent Line
       ctx.fillStyle = '#DE2626';
-      ctx.fillRect(padX, 40, W - padX * 2, 2);
+      ctx.fillRect(padX, 36, W - padX * 2, 2);
 
-      const maxVal = Math.max(...cfg.items.map(i => i.value)) || 1;
-      const topMargin = 64, rowStep = 56;
+      const maxVal = Math.max(...allItems.map(i => i.value)) || 1;
+      let currentY = 56;
 
-      cfg.items.forEach((item, idx) => {
-        const yLabel = topMargin + idx * rowStep;
-        const yBar = yLabel + 8;
-        const barW = Math.max(6, Math.floor((item.value / maxVal) * barFullW));
-        const valText = item.value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ' + item.unit;
-
-        // Line 1: Full-width Label (no collision with value)
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '12px monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(item.label, padX, yLabel);
-
-        // Line 2 (below): Bar track + bar fill + value at right of bar
-        ctx.fillStyle = '#161618';
-        ctx.fillRect(padX, yBar, barFullW, 18);
-        ctx.fillStyle = idx % 2 === 0 ? '#DE2626' : '#FFFFFF';
-        ctx.fillRect(padX, yBar, barW, 18);
-
-        ctx.fillStyle = '#FFFFFF';
+      groups.forEach((g, gIdx) => {
+        // Group / Series Header Label
+        ctx.fillStyle = '#9999aa';
         ctx.font = 'bold 11px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(valText, padX + barFullW + 8, yBar + 13);
+        ctx.fillText(g.series || '', padX, currentY + 12);
+        currentY += 22;
+
+        // Group comparison bars kept tightly together
+        g.items.forEach((item, itemIdx) => {
+          const yLabel = currentY;
+          const yBar = currentY + 4;
+          const barW = Math.max(6, Math.floor((item.value / maxVal) * barFullW));
+          const valText = item.value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ' + item.unit;
+
+          // Item Label
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = '11px monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(item.label, padX, yLabel);
+
+          // Track & Bar
+          ctx.fillStyle = '#141418';
+          ctx.fillRect(padX, yBar, barFullW, 14);
+          ctx.fillStyle = item.color || (itemIdx === 0 ? '#DE2626' : '#FFFFFF');
+          ctx.fillRect(padX, yBar, barW, 14);
+
+          // Value Text
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = 'bold 11px monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(valText, padX + barFullW + 8, yBar + 11);
+
+          currentY += 38;
+        });
+
+        // Clear Divider Line separating test series results
+        if (gIdx < groups.length - 1) {
+          currentY += 4;
+          ctx.fillStyle = '#22222a';
+          ctx.fillRect(padX, currentY, W - padX * 2, 1);
+          currentY += 14;
+        }
       });
     }
+
     function renderAllCanvases() {
-      Object.keys(GRAPH_DATASETS).forEach(cid => renderStackedCanvasBars(cid, GRAPH_DATASETS[cid]));
+      Object.keys(GRAPH_DATASETS).forEach(cid => {
+        const c = document.getElementById(cid);
+        if (c && c.offsetParent !== null) {
+          renderStackedCanvasBars(cid, GRAPH_DATASETS[cid]);
+        }
+      });
     }
-    renderAllCanvases();
+
+    // --- Navigation & Traversal Engine ---
+    const SECTIONS = [
+      'section-kpi-summary',
+      'panel-ops-throughput',
+      'panel-token-savings',
+      'panel-bulk-ingestion',
+      'panel-memory-gate',
+      'panel-test-latency',
+      'panel-test-matrix'
+    ];
+
+    const sidebarNav = document.getElementById('sidebar-nav');
+    const sidebarScrim = document.getElementById('sidebar-scrim');
+    const hamburgerBtn = document.getElementById('nav-hamburger-btn');
+
+    function closeDrawer() {
+      if (sidebarNav) sidebarNav.classList.remove('drawer-open');
+      if (sidebarScrim) sidebarScrim.classList.remove('drawer-open');
+    }
+
+    function toggleDrawer() {
+      if (!sidebarNav) return;
+      const isOpen = sidebarNav.classList.toggle('drawer-open');
+      if (sidebarScrim) sidebarScrim.classList.toggle('drawer-open', isOpen);
+    }
+
+    if (hamburgerBtn) {
+      hamburgerBtn.addEventListener('click', toggleDrawer);
+    }
+    if (sidebarScrim) {
+      sidebarScrim.addEventListener('click', closeDrawer);
+    }
+
+    function activateSection(targetId) {
+      const idx = SECTIONS.indexOf(targetId);
+      if (idx === -1) return;
+
+      SECTIONS.forEach((sId, i) => {
+        const secEl = document.getElementById(sId);
+        const tabEl = document.querySelector(`.dock-chip[data-target="${sId}"]`);
+        if (secEl) {
+          secEl.classList.toggle('active', i === idx);
+        }
+        if (tabEl) {
+          tabEl.classList.toggle('active', i === idx);
+        }
+      });
+
+      closeDrawer();
+      setTimeout(renderAllCanvases, 25);
+      try { history.replaceState(null, '', '#' + targetId); } catch(e) {}
+    }
+
+    // Bind sidebar navigation buttons
+    document.querySelectorAll('.dock-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const target = chip.getAttribute('data-target');
+        activateSection(target);
+      });
+    });
+
+    // Bind traversal toolbar Prev/Next buttons
+    document.querySelectorAll('.metric-section').forEach((sec, idx) => {
+      const prevBtn = sec.querySelector('.prev-btn');
+      const nextBtn = sec.querySelector('.next-btn');
+
+      if (prevBtn && idx > 0) {
+        prevBtn.addEventListener('click', () => activateSection(SECTIONS[idx - 1]));
+      }
+      if (nextBtn && idx < SECTIONS.length - 1) {
+        nextBtn.addEventListener('click', () => activateSection(SECTIONS[idx + 1]));
+      }
+    });
+
+    // Keyboard arrow keys traversal
+    window.addEventListener('keydown', (e) => {
+      const activeSec = document.querySelector('.metric-section.active');
+      if (!activeSec) return;
+      const currentIdx = SECTIONS.indexOf(activeSec.id);
+      if (e.key === 'ArrowRight' && currentIdx < SECTIONS.length - 1) {
+        activateSection(SECTIONS[currentIdx + 1]);
+      } else if (e.key === 'ArrowLeft' && currentIdx > 0) {
+        activateSection(SECTIONS[currentIdx - 1]);
+      }
+    });
+
+    // Check URL hash on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && SECTIONS.includes(hash)) {
+        activateSection(hash);
+      } else {
+        activateSection(SECTIONS[0]);
+      }
+    });
+
     window.addEventListener('resize', renderAllCanvases);
   </script>
 </body>
